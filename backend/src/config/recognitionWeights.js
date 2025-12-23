@@ -6,6 +6,8 @@ const RECOGNITION_WEIGHTS = {
     // Weight by user role
     roles: {
         admin: 10,
+        moderator: 8,
+        matchmaker: 6, // Matchmakers have medium-high weight
         elder: 8,
         helper: 5,
         contributor: 2

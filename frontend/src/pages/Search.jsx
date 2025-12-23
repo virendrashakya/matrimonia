@@ -1,203 +1,178 @@
 import { useState } from 'react';
+import { Card, Form, Input, Select, InputNumber, Button, Row, Col, Typography, Spin, Empty, Space, Divider, Tag } from 'antd';
+import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons';
+import { useLanguage } from '../context/LanguageContext';
 import ProfileCard from '../components/ProfileCard';
 import api from '../services/api';
 
+const { Title, Text } = Typography;
+const { Option } = Select;
+
+const INDIAN_STATES = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
+    'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
+    'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
+    'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana',
+    'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi'
+];
+
 function Search() {
-    const [filters, setFilters] = useState({
-        gender: '',
-        ageMin: '',
-        ageMax: '',
-        caste: '',
-        city: '',
-        education: '',
-        maritalStatus: '',
-        recognitionLevel: ''
-    });
-    const [results, setResults] = useState(null);
+    const { t } = useLanguage();
+    const [form] = Form.useForm();
+    const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [searched, setSearched] = useState(false);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSearch = async (e) => {
-        e.preventDefault();
+    const handleSearch = async (values) => {
         setLoading(true);
-
+        setSearched(true);
         try {
-            // Build query string from non-empty filters
             const params = new URLSearchParams();
-            Object.entries(filters).forEach(([key, value]) => {
-                if (value) params.append(key, value);
+            Object.entries(values).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    params.append(key, value);
+                }
             });
 
-            const response = await api.get(`/search/profiles?${params.toString()}`);
-            setResults(response.data.data);
+            const response = await api.get(`/profiles?${params.toString()}&limit=20`);
+            setResults(response.data.data.profiles);
         } catch (error) {
-            console.error('Search error:', error);
+            console.error('Error searching:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const clearFilters = () => {
-        setFilters({
-            gender: '',
-            ageMin: '',
-            ageMax: '',
-            caste: '',
-            city: '',
-            education: '',
-            maritalStatus: '',
-            recognitionLevel: ''
-        });
-        setResults(null);
+    const handleClear = () => {
+        form.resetFields();
+        setResults([]);
+        setSearched(false);
     };
 
     return (
-        <div className="page">
-            <h1 style={{ marginBottom: '32px' }}>Search Profiles</h1>
+        <div style={{ padding: '32px 0' }}>
+            <Title level={2} style={{ marginBottom: 24 }}>
+                <SearchOutlined style={{ marginRight: 12, color: '#A0153E' }} />
+                {t.search.title}
+            </Title>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '32px' }}>
-                {/* Filters Sidebar */}
-                <aside>
-                    <form onSubmit={handleSearch} className="card">
-                        <h3 style={{ marginBottom: '24px' }}>Filters</h3>
+            <Row gutter={24}>
+                {/* Filters */}
+                <Col xs={24} md={8} lg={6}>
+                    <Card
+                        title={<><FilterOutlined /> {t.search.filters}</>}
+                        style={{ borderRadius: 12, position: 'sticky', top: 80 }}
+                    >
+                        <Form form={form} layout="vertical" onFinish={handleSearch}>
+                            <Form.Item label={t.search.ageRange}>
+                                <Space>
+                                    <Form.Item name="ageMin" noStyle>
+                                        <InputNumber min={18} max={70} placeholder="18" style={{ width: 70 }} />
+                                    </Form.Item>
+                                    <Text type="secondary">{t.search.to}</Text>
+                                    <Form.Item name="ageMax" noStyle>
+                                        <InputNumber min={18} max={70} placeholder="50" style={{ width: 70 }} />
+                                    </Form.Item>
+                                </Space>
+                            </Form.Item>
 
-                        <div className="form-group">
-                            <label>Gender</label>
-                            <select name="gender" value={filters.gender} onChange={handleChange}>
-                                <option value="">Any</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div>
+                            <Form.Item name="gender" label={t.addProfile?.gender || 'Gender'}>
+                                <Select allowClear placeholder={t.search.any}>
+                                    <Option value="male">{t.addProfile?.male || 'Male'}</Option>
+                                    <Option value="female">{t.addProfile?.female || 'Female'}</Option>
+                                </Select>
+                            </Form.Item>
 
-                        <div className="form-group">
-                            <label>Age Range</label>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <input
-                                    type="number"
-                                    name="ageMin"
-                                    placeholder="Min"
-                                    min="18"
-                                    max="100"
-                                    value={filters.ageMin}
-                                    onChange={handleChange}
-                                />
-                                <input
-                                    type="number"
-                                    name="ageMax"
-                                    placeholder="Max"
-                                    min="18"
-                                    max="100"
-                                    value={filters.ageMax}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
+                            <Form.Item name="caste" label={t.profileDetail?.caste || 'Caste'}>
+                                <Input placeholder={t.search.any} />
+                            </Form.Item>
 
-                        <div className="form-group">
-                            <label>Caste</label>
-                            <input
-                                type="text"
-                                name="caste"
-                                placeholder="Enter caste"
-                                value={filters.caste}
-                                onChange={handleChange}
-                            />
-                        </div>
+                            <Form.Item name="state" label={t.profileDetail?.state || 'State'}>
+                                <Select allowClear showSearch placeholder={t.search.any}>
+                                    {INDIAN_STATES.map(s => <Option key={s} value={s}>{s}</Option>)}
+                                </Select>
+                            </Form.Item>
 
-                        <div className="form-group">
-                            <label>City</label>
-                            <input
-                                type="text"
-                                name="city"
-                                placeholder="Enter city"
-                                value={filters.city}
-                                onChange={handleChange}
-                            />
-                        </div>
+                            <Form.Item name="city" label={t.profileDetail?.city || 'City'}>
+                                <Input placeholder={t.search.any} />
+                            </Form.Item>
 
-                        <div className="form-group">
-                            <label>Education</label>
-                            <input
-                                type="text"
-                                name="education"
-                                placeholder="e.g., B.Tech, MBA"
-                                value={filters.education}
-                                onChange={handleChange}
-                            />
-                        </div>
+                            <Form.Item name="maritalStatus" label={t.profileDetail?.maritalStatus || 'Marital Status'}>
+                                <Select allowClear placeholder={t.search.any}>
+                                    <Option value="never_married">{t.addProfile?.neverMarried || 'Never Married'}</Option>
+                                    <Option value="divorced">{t.addProfile?.divorced || 'Divorced'}</Option>
+                                    <Option value="widowed">{t.addProfile?.widowed || 'Widowed'}</Option>
+                                </Select>
+                            </Form.Item>
 
-                        <div className="form-group">
-                            <label>Marital Status</label>
-                            <select name="maritalStatus" value={filters.maritalStatus} onChange={handleChange}>
-                                <option value="">Any</option>
-                                <option value="never_married">Never Married</option>
-                                <option value="divorced">Divorced</option>
-                                <option value="widowed">Widowed</option>
-                            </select>
-                        </div>
+                            <Form.Item name="diet" label="Diet">
+                                <Select allowClear placeholder={t.search.any}>
+                                    <Option value="vegetarian">Vegetarian</Option>
+                                    <Option value="non_vegetarian">Non-Vegetarian</Option>
+                                    <Option value="eggetarian">Eggetarian</Option>
+                                </Select>
+                            </Form.Item>
 
-                        <div className="form-group">
-                            <label>Recognition Level</label>
-                            <select name="recognitionLevel" value={filters.recognitionLevel} onChange={handleChange}>
-                                <option value="">Any</option>
-                                <option value="new">New</option>
-                                <option value="low">Low</option>
-                                <option value="moderate">Moderate</option>
-                                <option value="high">High</option>
-                            </select>
-                        </div>
+                            <Divider />
 
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '24px' }}>
-                            <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={loading}>
-                                {loading ? 'Searching...' : '🔍 Search'}
-                            </button>
-                            <button type="button" className="btn btn-outline" onClick={clearFilters}>
-                                Clear
-                            </button>
-                        </div>
-                    </form>
-                </aside>
+                            <Space style={{ width: '100%' }} direction="vertical">
+                                <Button type="primary" htmlType="submit" block icon={<SearchOutlined />} loading={loading}>
+                                    {t.search.searchBtn}
+                                </Button>
+                                <Button block icon={<ClearOutlined />} onClick={handleClear}>
+                                    {t.search.clear}
+                                </Button>
+                            </Space>
+                        </Form>
+                    </Card>
+                </Col>
 
                 {/* Results */}
-                <main>
+                <Col xs={24} md={16} lg={18}>
                     {loading ? (
-                        <div className="flex-center" style={{ padding: '64px' }}>
-                            <div className="spinner"></div>
+                        <div style={{ display: 'flex', justifyContent: 'center', padding: 100 }}>
+                            <Spin size="large" />
                         </div>
-                    ) : results ? (
-                        <>
-                            <p style={{ marginBottom: '24px', color: 'var(--text-muted)' }}>
-                                Found {results.pagination.total} profiles
-                            </p>
-
-                            {results.profiles.length > 0 ? (
+                    ) : searched ? (
+                        results.length > 0 ? (
+                            <>
+                                <div style={{ marginBottom: 16 }}>
+                                    <Tag color="green">{t.search.found} {results.length} {t.search.profilesFound}</Tag>
+                                </div>
                                 <div className="profile-grid">
-                                    {results.profiles.map(profile => (
+                                    {results.map(profile => (
                                         <ProfileCard key={profile._id} profile={profile} />
                                     ))}
                                 </div>
-                            ) : (
-                                <div className="empty-state">
-                                    <div className="empty-state-icon">🔍</div>
-                                    <h3>No profiles found</h3>
-                                    <p>Try adjusting your filters</p>
-                                </div>
-                            )}
-                        </>
+                            </>
+                        ) : (
+                            <Card style={{ borderRadius: 12, textAlign: 'center', padding: 60 }}>
+                                <Empty
+                                    image={<div style={{ fontSize: 64 }}>🔍</div>}
+                                    description={
+                                        <Space direction="vertical">
+                                            <Title level={4} style={{ color: '#8B7355' }}>{t.search.noResults}</Title>
+                                            <Text type="secondary">{t.search.adjustFilters}</Text>
+                                        </Space>
+                                    }
+                                />
+                            </Card>
+                        )
                     ) : (
-                        <div className="empty-state">
-                            <div className="empty-state-icon">🔍</div>
-                            <h3>Start searching</h3>
-                            <p>Use the filters to find matching profiles</p>
-                        </div>
+                        <Card style={{ borderRadius: 12, textAlign: 'center', padding: 60, background: '#FFFBF5' }}>
+                            <Empty
+                                image={<div style={{ fontSize: 64 }}>🔍</div>}
+                                description={
+                                    <Space direction="vertical">
+                                        <Title level={4} style={{ color: '#8B7355' }}>{t.search.title}</Title>
+                                        <Text type="secondary">{t.search.useFilters}</Text>
+                                    </Space>
+                                }
+                            />
+                        </Card>
                     )}
-                </main>
-            </div>
+                </Col>
+            </Row>
         </div>
     );
 }

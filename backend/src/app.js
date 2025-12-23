@@ -11,25 +11,101 @@ const uploadRoutes = require('./routes/upload');
 const adminRoutes = require('./routes/admin');
 const searchRoutes = require('./routes/search');
 const importRoutes = require('./routes/import');
+const configRoutes = require('./routes/config');
 
 const app = express();
 
-// Security middleware
+// ======================
+// DETAILED LOGGING - DEV
+// ======================
+
+// Intercept response body for logging
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  // Store original json method
+  const originalJson = res.json.bind(res);
+
+  // Capture request details
+  const reqLog = {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    url: req.url,
+    query: Object.keys(req.query).length > 0 ? req.query : undefined,
+    ip: req.ip || req.connection.remoteAddress,
+    userAgent: req.get('User-Agent')?.substring(0, 50),
+  };
+
+  // Override json method to capture response
+  res.json = (body) => {
+    const duration = Date.now() - start;
+    const isError = res.statusCode >= 400;
+
+    // Log request
+    console.log('\n' + '='.repeat(60));
+    console.log(`${isError ? '❌' : '✅'} ${req.method} ${req.url} → ${res.statusCode} (${duration}ms)`);
+    console.log('='.repeat(60));
+
+    // Request details
+    console.log('\n📥 REQUEST:');
+    console.log(`   Time: ${reqLog.timestamp}`);
+    console.log(`   IP: ${reqLog.ip}`);
+    if (reqLog.query) console.log(`   Query: ${JSON.stringify(reqLog.query)}`);
+
+    // Log request body (hide sensitive data)
+    if (req.body && Object.keys(req.body).length > 0) {
+      const safeBody = { ...req.body };
+      if (safeBody.password) safeBody.password = '***HIDDEN***';
+      if (safeBody.passwordHash) safeBody.passwordHash = '***HIDDEN***';
+      console.log(`   Body: ${JSON.stringify(safeBody, null, 2).substring(0, 500)}`);
+    }
+
+    // Log response
+    console.log('\n📤 RESPONSE:');
+    console.log(`   Status: ${res.statusCode}`);
+    console.log(`   Duration: ${duration}ms`);
+
+    // Log response body (always show for errors, truncate for success)
+    if (body) {
+      const bodyStr = JSON.stringify(body, null, 2);
+      if (isError) {
+        console.log(`   Body: ${bodyStr}`);
+      } else {
+        console.log(`   Body: ${bodyStr.substring(0, 300)}${bodyStr.length > 300 ? '...' : ''}`);
+      }
+    }
+
+    console.log('');
+
+    // Call original json method
+    return originalJson(body);
+  };
+
+  next();
+});
+
+// ======================
+// SECURITY MIDDLEWARE
+// ======================
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
+  windowMs: 60 * 1000,
   max: 100,
-  message: { error: 'Too many requests, please try again later' }
+  message: { error: 'Too many requests, please try again later' },
+  handler: (req, res, next, options) => {
+    console.log(`\n⚠️ RATE LIMIT: ${req.ip} exceeded limit for ${req.method} ${req.url}`);
+    res.status(options.statusCode).json(options.message);
+  }
 });
 app.use(limiter);
 
-// Auth endpoints have stricter limits
+// Auth rate limiter
 const authLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
@@ -40,51 +116,113 @@ const authLimiter = rateLimit({
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// Routes
+// ======================
+// ROUTES
+// ======================
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/config', configRoutes);
 
-// Health check
+// Health check (no logging needed)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-
-  if (err.name === 'ValidationError') {
-    return res.status(400).json({ error: err.message });
-  }
-
-  if (err.name === 'UnauthorizedError') {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-
-  res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === 'production'
-      ? 'Something went wrong'
-      : err.message
+// 404 handler for unknown routes
+app.use((req, res, next) => {
+  console.log(`\n❓ 404 NOT FOUND: ${req.method} ${req.url}`);
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.url,
+    method: req.method,
+    hint: 'Available routes start with /api/'
   });
 });
 
-// Database connection and server start
+// ======================
+// ERROR HANDLING
+// ======================
+app.use((err, req, res, next) => {
+  const timestamp = new Date().toISOString();
+
+  console.log('\n' + '!'.repeat(60));
+  console.log(`🚨 ERROR in ${req.method} ${req.url}`);
+  console.log('!'.repeat(60));
+  console.log(`   Time: ${timestamp}`);
+  console.log(`   User: ${req.user?._id || 'Not authenticated'}`);
+  console.log(`   IP: ${req.ip}`);
+  console.log(`   Error Name: ${err.name}`);
+  console.log(`   Error Message: ${err.message}`);
+  console.log(`   Stack:\n${err.stack}`);
+  console.log('!'.repeat(60) + '\n');
+
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ error: err.message, type: 'ValidationError' });
+  }
+
+  if (err.name === 'UnauthorizedError') {
+    return res.status(401).json({ error: 'Invalid token', type: 'UnauthorizedError' });
+  }
+
+  if (err.name === 'CastError') {
+    return res.status(400).json({ error: 'Invalid ID format', type: 'CastError' });
+  }
+
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message,
+    type: err.name
+  });
+});
+
+// ======================
+// STARTUP
+// ======================
 const PORT = process.env.PORT || 5000;
 
+console.log('\n' + '='.repeat(60));
+console.log('🪔 MATRIMONIA SERVER');
+console.log('='.repeat(60));
+console.log(`📅 Started: ${new Date().toISOString()}`);
+console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`🔗 Frontend: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
+  .then(async () => {
+    console.log('✅ MongoDB connected');
+
+    // Log collection counts
+    try {
+      const db = mongoose.connection.db;
+      const users = await db.collection('users').countDocuments();
+      const profiles = await db.collection('profiles').countDocuments();
+      console.log(`   Users: ${users}, Profiles: ${profiles}`);
+    } catch (e) { }
+
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`\n🚀 Server: http://localhost:${PORT}`);
+      console.log(`📡 API: http://localhost:${PORT}/api`);
+      console.log('\n📋 Routes:');
+      console.log('   POST /api/auth/register');
+      console.log('   POST /api/auth/login');
+      console.log('   GET  /api/profiles');
+      console.log('   POST /api/profiles');
+      console.log('   ... and more');
+      console.log('='.repeat(60) + '\n');
     });
   })
   .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
+    console.error('❌ MongoDB error:', err.message);
     process.exit(1);
   });
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\n👋 Shutting down...');
+  mongoose.connection.close(false).then(() => process.exit(0));
+});
 
 module.exports = app;

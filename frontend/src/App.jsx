@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Layout, Spin } from 'antd';
 import { useAuth } from './context/AuthContext';
 
 // Layout
@@ -11,8 +12,12 @@ import Dashboard from './pages/Dashboard';
 import Profiles from './pages/Profiles';
 import ProfileDetail from './pages/ProfileDetail';
 import AddProfile from './pages/AddProfile';
+import EditProfile from './pages/EditProfile';
 import Search from './pages/Search';
 import ImportWhatsApp from './pages/ImportWhatsApp';
+import AdminPanel from './pages/AdminPanel';
+
+const { Content } = Layout;
 
 // Protected Route wrapper
 function ProtectedRoute({ children }) {
@@ -20,8 +25,8 @@ function ProtectedRoute({ children }) {
 
     if (loading) {
         return (
-            <div className="flex-center" style={{ minHeight: '100vh' }}>
-                <div className="spinner"></div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                <Spin size="large" />
             </div>
         );
     }
@@ -37,9 +42,9 @@ function App() {
     const { isAuthenticated } = useAuth();
 
     return (
-        <>
+        <Layout style={{ minHeight: '100vh' }}>
             {isAuthenticated && <Navbar />}
-            <main className="container">
+            <Content style={{ padding: isAuthenticated ? '0 48px' : 0, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
                 <Routes>
                     {/* Public routes */}
                     <Route path="/login" element={
@@ -62,19 +67,25 @@ function App() {
                     <Route path="/profiles/:id" element={
                         <ProtectedRoute><ProfileDetail /></ProtectedRoute>
                     } />
+                    <Route path="/profiles/:id/edit" element={
+                        <ProtectedRoute><EditProfile /></ProtectedRoute>
+                    } />
                     <Route path="/search" element={
                         <ProtectedRoute><Search /></ProtectedRoute>
                     } />
                     <Route path="/import" element={
                         <ProtectedRoute><ImportWhatsApp /></ProtectedRoute>
                     } />
+                    <Route path="/admin" element={
+                        <ProtectedRoute><AdminPanel /></ProtectedRoute>
+                    } />
 
                     {/* Default redirect */}
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
-            </main>
-        </>
+            </Content>
+        </Layout>
     );
 }
 

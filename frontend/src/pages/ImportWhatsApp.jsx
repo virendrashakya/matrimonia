@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Card, Upload, Button, Typography, Table, Statistic, Row, Col, Steps, Alert, Space, List } from 'antd';
+import { InboxOutlined, EyeOutlined, ImportOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+
+const { Title, Text, Paragraph } = Typography;
+const { Dragger } = Upload;
 
 function ImportWhatsApp() {
     const navigate = useNavigate();
@@ -9,9 +14,10 @@ function ImportWhatsApp() {
     const [loading, setLoading] = useState(false);
     const [preview, setPreview] = useState(null);
     const [importResult, setImportResult] = useState(null);
+    const [currentStep, setCurrentStep] = useState(0);
 
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
+    const handleFileChange = (info) => {
+        const selectedFile = info.file;
         const validExtensions = ['.txt', '.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
         const isValid = validExtensions.some(ext => selectedFile?.name.toLowerCase().endsWith(ext));
 
@@ -19,6 +25,7 @@ function ImportWhatsApp() {
             setFile(selectedFile);
             setPreview(null);
             setImportResult(null);
+            setCurrentStep(1);
 
             if (!selectedFile.name.endsWith('.txt')) {
                 toast('PDF/DOC/Image parsing requires AI integration (coming soon)', { icon: 'ℹ️' });
@@ -26,6 +33,7 @@ function ImportWhatsApp() {
         } else {
             toast.error('Please select a supported file format');
         }
+        return false; // Prevent auto upload
     };
 
     const handlePreview = async () => {
@@ -41,6 +49,7 @@ function ImportWhatsApp() {
             });
 
             setPreview(response.data.data);
+            setCurrentStep(2);
             toast.success(`Found ${response.data.data.count} biodata entries`);
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to parse file');
@@ -62,6 +71,7 @@ function ImportWhatsApp() {
             });
 
             setImportResult(response.data.data);
+            setCurrentStep(3);
             toast.success(`Imported ${response.data.data.imported} profiles!`);
         } catch (error) {
             toast.error(error.response?.data?.error || 'Import failed');
@@ -70,158 +80,162 @@ function ImportWhatsApp() {
         }
     };
 
+    const columns = [
+        { title: 'Name', dataIndex: 'fullName', key: 'fullName', render: (v) => v || 'Unknown' },
+        { title: 'Gender', dataIndex: 'gender', key: 'gender', render: (v) => v || '-' },
+        { title: 'Caste', dataIndex: 'caste', key: 'caste', render: (v) => v || '-' },
+        { title: 'City', dataIndex: 'city', key: 'city', render: (v) => v || '-' },
+        { title: 'Education', dataIndex: 'education', key: 'education', render: (v) => v || '-' },
+    ];
+
     return (
-        <div className="page">
-            <h1 style={{ marginBottom: '8px' }}>Import from WhatsApp</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-                Upload a WhatsApp group chat export (.txt) to import matrimonial profiles
-            </p>
+        <div style={{ padding: '24px 0' }}>
+            <Title level={2}>Import Profiles</Title>
+            <Paragraph type="secondary" style={{ marginBottom: 32 }}>
+                Upload files to import matrimonial profiles in bulk
+            </Paragraph>
 
-            <div className="card" style={{ marginBottom: '24px' }}>
-                <h3 style={{ marginBottom: '16px' }}>Step 1: Export WhatsApp Chat</h3>
-                <ol style={{ paddingLeft: '24px', color: 'var(--text-secondary)', lineHeight: '2' }}>
-                    <li>Open your WhatsApp matrimonial group</li>
-                    <li>Tap the group name → More → Export chat</li>
-                    <li>Choose "Without media" for faster export</li>
-                    <li>Save the .txt file to your device</li>
-                </ol>
-            </div>
+            <Steps
+                current={currentStep}
+                items={[
+                    { title: 'Upload File' },
+                    { title: 'Preview' },
+                    { title: 'Import' },
+                    { title: 'Complete' },
+                ]}
+                style={{ marginBottom: 32 }}
+            />
 
-            <div className="card" style={{ marginBottom: '24px' }}>
-                <h3 style={{ marginBottom: '16px' }}>Step 2: Upload File</h3>
+            {/* Step 1: Instructions */}
+            <Card title="How to Export from WhatsApp" style={{ marginBottom: 24 }}>
+                <List
+                    size="small"
+                    dataSource={[
+                        'Open your WhatsApp matrimonial group',
+                        'Tap the group name → More → Export chat',
+                        'Choose "Without media" for faster export',
+                        'Save the .txt file to your device',
+                    ]}
+                    renderItem={(item, index) => (
+                        <List.Item>
+                            <Text>{index + 1}. {item}</Text>
+                        </List.Item>
+                    )}
+                />
+            </Card>
 
-                <div style={{
-                    border: '2px dashed var(--border)',
-                    borderRadius: '12px',
-                    padding: '32px',
-                    textAlign: 'center',
-                    marginBottom: '24px'
-                }}>
-                    <input
-                        type="file"
-                        accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        onChange={handleFileChange}
-                        id="file-upload"
-                        style={{ display: 'none' }}
-                    />
-                    <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '8px' }}>📄</div>
-                        <p style={{ margin: 0, color: 'var(--primary)', fontWeight: '600' }}>
-                            {file ? file.name : 'Click to select file'}
-                        </p>
-                        <p style={{ margin: '8px 0 0 0', color: 'var(--text-muted)', fontSize: '14px' }}>
-                            Supported: .txt (WhatsApp), .pdf, .doc, images
-                        </p>
-                        <p style={{ margin: '4px 0 0 0', color: 'var(--risk-medium)', fontSize: '12px' }}>
-                            Note: PDF/DOC/images require AI (coming soon)
-                        </p>
-                    </label>
-                </div>
+            {/* Step 2: Upload */}
+            <Card title="Upload File" style={{ marginBottom: 24 }}>
+                <Dragger
+                    accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    beforeUpload={handleFileChange}
+                    showUploadList={false}
+                    disabled={loading}
+                >
+                    <p className="ant-upload-drag-icon">
+                        <InboxOutlined />
+                    </p>
+                    <p className="ant-upload-text">
+                        {file ? file.name : 'Click or drag file to upload'}
+                    </p>
+                    <p className="ant-upload-hint">
+                        Supported: .txt (WhatsApp), .pdf, .doc, images
+                    </p>
+                    <Text type="warning" style={{ fontSize: 12 }}>
+                        Note: PDF/DOC/images require AI (coming soon)
+                    </Text>
+                </Dragger>
 
                 {file && !preview && !importResult && (
-                    <button
+                    <Button
+                        type="primary"
+                        icon={<EyeOutlined />}
                         onClick={handlePreview}
-                        className="btn btn-secondary"
-                        disabled={loading}
-                        style={{ width: '100%' }}
+                        loading={loading}
+                        style={{ marginTop: 16, width: '100%' }}
+                        size="large"
                     >
-                        {loading ? 'Parsing...' : '🔍 Preview Extracted Data'}
-                    </button>
+                        Preview Extracted Data
+                    </Button>
                 )}
-            </div>
+            </Card>
 
-            {/* Preview Results */}
+            {/* Step 3: Preview */}
             {preview && (
-                <div className="card" style={{ marginBottom: '24px' }}>
-                    <h3 style={{ marginBottom: '16px' }}>
-                        Step 3: Review ({preview.count} profiles found)
-                    </h3>
+                <Card title={`Preview (${preview.count} profiles found)`} style={{ marginBottom: 24 }}>
+                    <Table
+                        columns={columns}
+                        dataSource={preview.preview.map((item, i) => ({ ...item, key: i }))}
+                        pagination={false}
+                        scroll={{ x: true }}
+                        size="small"
+                    />
 
-                    <div style={{ maxHeight: '400px', overflow: 'auto', marginBottom: '24px' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                                    <th style={{ textAlign: 'left', padding: '12px', background: 'var(--background)' }}>Name</th>
-                                    <th style={{ textAlign: 'left', padding: '12px', background: 'var(--background)' }}>Gender</th>
-                                    <th style={{ textAlign: 'left', padding: '12px', background: 'var(--background)' }}>Caste</th>
-                                    <th style={{ textAlign: 'left', padding: '12px', background: 'var(--background)' }}>City</th>
-                                    <th style={{ textAlign: 'left', padding: '12px', background: 'var(--background)' }}>Education</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {preview.preview.map((item, index) => (
-                                    <tr key={index} style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <td style={{ padding: '12px' }}>{item.fullName || 'Unknown'}</td>
-                                        <td style={{ padding: '12px' }}>{item.gender || '-'}</td>
-                                        <td style={{ padding: '12px' }}>{item.caste || '-'}</td>
-                                        <td style={{ padding: '12px' }}>{item.city || '-'}</td>
-                                        <td style={{ padding: '12px' }}>{item.education || '-'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        {preview.count > 10 && (
-                            <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '16px' }}>
-                                Showing first 10 of {preview.count} entries
-                            </p>
-                        )}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <button
-                            onClick={handleImport}
-                            className="btn btn-primary"
-                            disabled={loading}
-                        >
-                            {loading ? 'Importing...' : `✓ Import ${preview.count} Profiles`}
-                        </button>
-                        <button
-                            onClick={() => { setFile(null); setPreview(null); }}
-                            className="btn btn-outline"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* Import Results */}
-            {importResult && (
-                <div className="card">
-                    <h3 style={{ marginBottom: '16px', color: 'var(--risk-low)' }}>
-                        ✓ Import Complete
-                    </h3>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                        <div style={{ textAlign: 'center', padding: '16px', background: 'var(--background)', borderRadius: '8px' }}>
-                            <div style={{ fontSize: '32px', fontWeight: 'bold' }}>{importResult.total}</div>
-                            <div style={{ color: 'var(--text-muted)' }}>Total Found</div>
-                        </div>
-                        <div style={{ textAlign: 'center', padding: '16px', background: '#D1FAE5', borderRadius: '8px' }}>
-                            <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--risk-low)' }}>{importResult.imported}</div>
-                            <div style={{ color: 'var(--text-muted)' }}>Imported</div>
-                        </div>
-                        <div style={{ textAlign: 'center', padding: '16px', background: '#FEF3C7', borderRadius: '8px' }}>
-                            <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--risk-medium)' }}>{importResult.skipped}</div>
-                            <div style={{ color: 'var(--text-muted)' }}>Skipped</div>
-                        </div>
-                    </div>
-
-                    {importResult.errors.length > 0 && (
-                        <div style={{ marginBottom: '24px' }}>
-                            <h4 style={{ marginBottom: '8px' }}>Skipped Entries:</h4>
-                            <ul style={{ paddingLeft: '20px', color: 'var(--text-muted)' }}>
-                                {importResult.errors.map((err, i) => (
-                                    <li key={i}>{err.name}: {err.reason}</li>
-                                ))}
-                            </ul>
-                        </div>
+                    {preview.count > 10 && (
+                        <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 16 }}>
+                            Showing first 10 of {preview.count} entries
+                        </Text>
                     )}
 
-                    <button onClick={() => navigate('/profiles')} className="btn btn-primary">
+                    <Space style={{ marginTop: 24 }}>
+                        <Button
+                            type="primary"
+                            icon={<ImportOutlined />}
+                            onClick={handleImport}
+                            loading={loading}
+                            size="large"
+                        >
+                            Import {preview.count} Profiles
+                        </Button>
+                        <Button onClick={() => { setFile(null); setPreview(null); setCurrentStep(0); }}>
+                            Cancel
+                        </Button>
+                    </Space>
+                </Card>
+            )}
+
+            {/* Step 4: Results */}
+            {importResult && (
+                <Card>
+                    <Alert
+                        message="Import Complete"
+                        type="success"
+                        showIcon
+                        icon={<CheckCircleOutlined />}
+                        style={{ marginBottom: 24 }}
+                    />
+
+                    <Row gutter={24} style={{ marginBottom: 24 }}>
+                        <Col span={8}>
+                            <Statistic title="Total Found" value={importResult.total} />
+                        </Col>
+                        <Col span={8}>
+                            <Statistic title="Imported" value={importResult.imported} valueStyle={{ color: '#10B981' }} />
+                        </Col>
+                        <Col span={8}>
+                            <Statistic title="Skipped" value={importResult.skipped} valueStyle={{ color: '#F59E0B' }} />
+                        </Col>
+                    </Row>
+
+                    {importResult.errors.length > 0 && (
+                        <Alert
+                            message="Skipped Entries"
+                            description={
+                                <List
+                                    size="small"
+                                    dataSource={importResult.errors}
+                                    renderItem={(err) => <List.Item>{err.name}: {err.reason}</List.Item>}
+                                />
+                            }
+                            type="warning"
+                            style={{ marginBottom: 24 }}
+                        />
+                    )}
+
+                    <Button type="primary" onClick={() => navigate('/profiles')} size="large">
                         View Imported Profiles
-                    </button>
-                </div>
+                    </Button>
+                </Card>
             )}
         </div>
     );

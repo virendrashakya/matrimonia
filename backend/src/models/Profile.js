@@ -72,38 +72,195 @@ const ProfileSchema = new mongoose.Schema({
     company: String,
     annualIncome: String, // Range like "5-10 LPA"
 
-    // Physical
+    // Local Language Content (Hindi)
+    localContent: {
+        fullName: String,      // पूरा नाम
+        caste: String,         // जाति
+        subCaste: String,      // उपजाति
+        gotra: String,         // गोत्र
+        city: String,          // शहर
+        state: String,         // राज्य
+        nativePlace: String,   // मूल स्थान
+        education: String,     // शिक्षा
+        educationDetail: String,
+        profession: String,    // पेशा
+        company: String,       // कंपनी
+        fatherName: String,    // पिता का नाम
+        fatherOccupation: String,
+        motherName: String,    // माता का नाम
+        siblings: String,      // भाई-बहन
+        aboutMe: String,       // मेरे बारे में
+    },
+
+    // Physical Attributes
     heightCm: Number,
-    complexion: String,
+    weightKg: Number,
+    complexion: {
+        type: String,
+        enum: ['very_fair', 'fair', 'wheatish', 'wheatish_brown', 'dark']
+    },
+    bodyType: {
+        type: String,
+        enum: ['slim', 'average', 'athletic', 'heavy']
+    },
+    bloodGroup: {
+        type: String,
+        enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown']
+    },
+    physicalStatus: {
+        type: String,
+        enum: ['normal', 'physically_challenged'],
+        default: 'normal'
+    },
+
+    // Horoscope / Kundli Details
+    horoscope: {
+        rashi: {
+            type: String,
+            enum: ['mesh', 'vrishabh', 'mithun', 'kark', 'simha', 'kanya',
+                'tula', 'vrishchik', 'dhanu', 'makar', 'kumbh', 'meen']
+        },
+        nakshatra: {
+            type: String,
+            enum: ['ashwini', 'bharani', 'krittika', 'rohini', 'mrigashira', 'ardra',
+                'punarvasu', 'pushya', 'ashlesha', 'magha', 'purva_phalguni', 'uttara_phalguni',
+                'hasta', 'chitra', 'swati', 'vishakha', 'anuradha', 'jyeshtha',
+                'mula', 'purva_ashadha', 'uttara_ashadha', 'shravana', 'dhanishta', 'shatabhisha',
+                'purva_bhadrapada', 'uttara_bhadrapada', 'revati']
+        },
+        manglikStatus: {
+            type: String,
+            enum: ['manglik', 'non_manglik', 'anshik_manglik', 'dont_know'],
+            default: 'dont_know'
+        },
+        birthTime: String,
+        birthPlace: String,
+    },
+
+    // Lifestyle
+    diet: {
+        type: String,
+        enum: ['vegetarian', 'non_vegetarian', 'eggetarian', 'vegan', 'jain'],
+        default: 'vegetarian'
+    },
+    smoking: {
+        type: String,
+        enum: ['no', 'occasionally', 'yes'],
+        default: 'no'
+    },
+    drinking: {
+        type: String,
+        enum: ['no', 'occasionally', 'yes'],
+        default: 'no'
+    },
+
+    // About Me
+    aboutMe: {
+        type: String,
+        maxLength: 1000
+    },
+    hobbies: [String],
+    languages: [String], // Languages known
 
     // Marital
     maritalStatus: {
         type: String,
-        enum: ['never_married', 'divorced', 'widowed', 'awaiting_divorce'],
+        enum: ['never_married', 'divorced', 'widowed', 'awaiting_divorce', 'annulled'],
         default: 'never_married'
     },
+    numberOfChildren: {
+        type: Number,
+        default: 0
+    },
+    childrenLivingWith: {
+        type: String,
+        enum: ['not_applicable', 'living_together', 'not_living_together']
+    },
 
-    // Family
+    // Family Details
     fatherName: String,
     fatherOccupation: String,
+    fatherStatus: {
+        type: String,
+        enum: ['employed', 'business', 'retired', 'not_employed', 'passed_away']
+    },
     motherName: String,
-    siblings: String, // "2 brothers, 1 sister"
+    motherOccupation: String,
+    motherStatus: {
+        type: String,
+        enum: ['homemaker', 'employed', 'business', 'retired', 'passed_away']
+    },
+    siblings: String,
+    brothersCount: Number,
+    sistersCount: Number,
+    brothersMarried: Number,
+    sistersMarried: Number,
     familyType: {
         type: String,
-        enum: ['joint', 'nuclear']
+        enum: ['joint', 'nuclear', 'other']
     },
-    familyStatus: String, // "Middle Class", "Upper Middle Class"
+    familyStatus: {
+        type: String,
+        enum: ['middle_class', 'upper_middle_class', 'rich', 'affluent', 'lower_middle_class']
+    },
+    familyValues: {
+        type: String,
+        enum: ['traditional', 'moderate', 'liberal']
+    },
+    familyIncome: String,
+    propertyDetails: String,
 
-    // Preferences (what they're looking for)
+    // Partner Preferences (comprehensive)
     preferences: {
-        ageMin: Number,
-        ageMax: Number,
+        // Age & Physical
+        ageMin: { type: Number, min: 18, max: 70 },
+        ageMax: { type: Number, min: 18, max: 70 },
         heightMin: Number,
         heightMax: Number,
-        education: [String],
+        weightMin: Number,
+        weightMax: Number,
+        bodyType: [{ type: String, enum: ['slim', 'average', 'athletic', 'heavy'] }],
+        complexion: [{ type: String, enum: ['very_fair', 'fair', 'wheatish', 'wheatish_brown', 'dark', 'any'] }],
+        physicalStatus: { type: String, enum: ['normal', 'doesnt_matter'], default: 'normal' },
+
+        // Background
+        maritalStatus: [{ type: String, enum: ['never_married', 'divorced', 'widowed', 'awaiting_divorce', 'annulled', 'any'] }],
+        religion: [String],
         caste: [String],
-        cities: [String],
-        maritalStatus: [String]
+        subCaste: [String],
+        gotras: [String], // Gotras to exclude (same gotra marriage avoided)
+        motherTongue: [String],
+
+        // Location
+        country: [String],
+        state: [String],
+        city: [String],
+        residencyStatus: [{ type: String, enum: ['citizen', 'permanent_resident', 'work_permit', 'student_visa', 'any'] }],
+
+        // Education & Career
+        education: [String],
+        educationLevel: [{ type: String, enum: ['high_school', 'diploma', 'bachelors', 'masters', 'doctorate', 'any'] }],
+        profession: [String],
+        workingWith: [{ type: String, enum: ['private_company', 'government', 'business', 'self_employed', 'not_working', 'any'] }],
+        incomeMin: String,
+        incomeMax: String,
+
+        // Lifestyle
+        diet: [{ type: String, enum: ['vegetarian', 'non_vegetarian', 'eggetarian', 'vegan', 'jain', 'any'] }],
+        smoking: [{ type: String, enum: ['no', 'occasionally', 'yes', 'any'] }],
+        drinking: [{ type: String, enum: ['no', 'occasionally', 'yes', 'any'] }],
+
+        // Horoscope
+        manglikStatus: [{ type: String, enum: ['manglik', 'non_manglik', 'anshik_manglik', 'any'] }],
+        rashiCompatibility: Boolean,
+
+        // Family
+        familyType: [{ type: String, enum: ['joint', 'nuclear', 'any'] }],
+        familyValues: [{ type: String, enum: ['traditional', 'moderate', 'liberal', 'any'] }],
+        familyStatus: [{ type: String, enum: ['middle_class', 'upper_middle_class', 'rich', 'affluent', 'any'] }],
+
+        // Other Preferences
+        aboutPartner: { type: String, maxLength: 500 }, // Free text description
     },
 
     // Media

@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
     // Authorization
     role: {
         type: String,
-        enum: ['admin', 'elder', 'helper', 'contributor'],
+        enum: ['admin', 'moderator', 'matchmaker', 'elder', 'helper', 'contributor'],
         default: 'contributor'
     },
     isVerified: {
@@ -42,6 +42,25 @@ const UserSchema = new mongoose.Schema({
         ref: 'User'
     },
     verifiedAt: Date,
+
+    // Agency Info (for matchmakers)
+    agency: {
+        name: { type: String, trim: true },
+        registrationNumber: { type: String, trim: true },
+        address: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        website: { type: String, trim: true },
+        establishedYear: { type: Number },
+        description: { type: String, maxLength: 500 }
+    },
+
+    // Preferences
+    preferredLanguage: {
+        type: String,
+        enum: ['en', 'hi'],
+        default: 'en'
+    },
 
     // Audit
     isActive: {

@@ -118,6 +118,33 @@ router.get('/me', authenticate, async (req, res) => {
 });
 
 /**
+ * PATCH /api/auth/me/language
+ * Update user's preferred language
+ */
+router.patch('/me/language', authenticate, async (req, res, next) => {
+    try {
+        const { language } = req.body;
+
+        if (!['en', 'hi'].includes(language)) {
+            return res.status(400).json({ error: 'Invalid language. Supported: en, hi' });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { preferredLanguage: language },
+            { new: true }
+        );
+
+        res.json({
+            success: true,
+            data: { user }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
  * PUT /api/auth/verify-user/:userId
  * Verify a user (admin/elder only)
  */
@@ -207,7 +234,7 @@ router.put('/users/:userId/role', authenticate, requireRole('admin'), async (req
         const { userId } = req.params;
         const { role } = req.body;
 
-        if (!['admin', 'elder', 'helper', 'contributor'].includes(role)) {
+        if (!['admin', 'moderator', 'matchmaker', 'elder', 'helper', 'contributor'].includes(role)) {
             return res.status(400).json({ error: 'Invalid role' });
         }
 
@@ -220,6 +247,96 @@ router.put('/users/:userId/role', authenticate, requireRole('admin'), async (req
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+
+        // Audit log
+        await AuditLog.create({
+            action: 'user_role_change',
+            targetType: 'user',
+            targetId: userId,
+            performedBy: req.user._id,
+            changes: { role },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        res.json({
+            success: true,
+            data: { user }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * PATCH /api/auth/users/:userId/verify
+ * Verify a user (admin/moderator only)
+ */
+router.patch('/users/:userId/verify', authenticate, requireRole('admin', 'moderator'), async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (user.isVerified) {
+            return res.status(400).json({ error: 'User is already verified' });
+        }
+
+        user.isVerified = true;
+        user.verifiedBy = req.user._id;
+        user.verifiedAt = new Date();
+        await user.save();
+
+        // Audit log
+        await AuditLog.create({
+            action: 'user_verify',
+            targetType: 'user',
+            targetId: userId,
+            performedBy: req.user._id,
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        res.json({
+            success: true,
+            data: { user }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * PATCH /api/auth/users/:userId/status
+ * Toggle user active status (admin only)
+ */
+router.patch('/users/:userId/status', authenticate, requireRole('admin'), async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        const { isActive } = req.body;
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { isActive },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Audit log
+        await AuditLog.create({
+            action: isActive ? 'user_activate' : 'user_deactivate',
+            targetType: 'user',
+            targetId: userId,
+            performedBy: req.user._id,
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
 
         res.json({
             success: true,

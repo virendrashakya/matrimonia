@@ -1,15 +1,16 @@
 import { useState } from 'react';
+import { Card, Typography, Button, Form, Radio, Input, Space, Statistic, Row, Col, Alert } from 'antd';
+import { CheckCircleOutlined, TeamOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 function RecognitionSection({ profileId, recognition, onRecognitionAdded, isVerified }) {
     const [showForm, setShowForm] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        type: 'know_personally',
-        relationship: '',
-        notes: ''
-    });
+    const [form] = Form.useForm();
 
     const levelColors = {
         new: '#9CA3AF',
@@ -25,15 +26,13 @@ function RecognitionSection({ profileId, recognition, onRecognitionAdded, isVeri
         { value: 'community_reference', label: 'Community reference' }
     ];
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (values) => {
         setLoading(true);
-
         try {
-            await api.post(`/profiles/${profileId}/recognitions`, formData);
+            await api.post(`/profiles/${profileId}/recognitions`, values);
             toast.success('Recognition added successfully!');
             setShowForm(false);
-            setFormData({ type: 'know_personally', relationship: '', notes: '' });
+            form.resetFields();
             if (onRecognitionAdded) onRecognitionAdded();
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to add recognition');
@@ -43,97 +42,78 @@ function RecognitionSection({ profileId, recognition, onRecognitionAdded, isVeri
     };
 
     return (
-        <div className="card" style={{ marginTop: '24px' }}>
-            <h3 style={{ marginBottom: '16px' }}>Recognition Score</h3>
-
-            <div style={{ display: 'flex', gap: '32px', marginBottom: '24px' }}>
-                <div>
-                    <div style={{
-                        fontSize: '48px',
-                        fontWeight: 'bold',
-                        color: levelColors[recognition?.level || 'new']
-                    }}>
-                        {recognition?.score?.toFixed(1) || '0.0'}
-                    </div>
-                    <div style={{ color: 'var(--text-muted)', textTransform: 'uppercase', fontSize: '14px' }}>
-                        {recognition?.level || 'NEW'}
-                    </div>
-                </div>
-
-                <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: '32px' }}>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold' }}>
-                        {recognition?.recogniserCount || 0}
-                    </div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-                        People Recognise
-                    </div>
-                </div>
-            </div>
+        <Card title="Recognition Score" style={{ marginTop: 24 }}>
+            <Row gutter={48} style={{ marginBottom: 24 }}>
+                <Col>
+                    <Statistic
+                        title="Score"
+                        value={recognition?.score?.toFixed(1) || '0.0'}
+                        valueStyle={{ color: levelColors[recognition?.level || 'new'], fontSize: 48 }}
+                        suffix={<Text type="secondary" style={{ fontSize: 16 }}>{(recognition?.level || 'new').toUpperCase()}</Text>}
+                    />
+                </Col>
+                <Col>
+                    <Statistic
+                        title="People Recognise"
+                        value={recognition?.recogniserCount || 0}
+                        prefix={<TeamOutlined />}
+                    />
+                </Col>
+            </Row>
 
             {!isVerified ? (
-                <p style={{ color: 'var(--text-muted)', padding: '16px', background: 'var(--background)', borderRadius: '8px' }}>
-                    ⚠️ Only verified users can add recognition. Contact an admin to get verified.
-                </p>
+                <Alert
+                    message="Verification Required"
+                    description="Only verified users can add recognition. Contact an admin to get verified."
+                    type="warning"
+                    showIcon
+                />
             ) : !showForm ? (
-                <button onClick={() => setShowForm(true)} className="btn btn-primary">
-                    🤝 I Know This Person
-                </button>
+                <Button type="primary" icon={<CheckCircleOutlined />} onClick={() => setShowForm(true)} size="large">
+                    I Know This Person
+                </Button>
             ) : (
-                <form onSubmit={handleSubmit} style={{ background: 'var(--background)', padding: '24px', borderRadius: '12px' }}>
-                    <h4 style={{ marginBottom: '16px' }}>Add Your Recognition</h4>
+                <Card type="inner" title="Add Your Recognition">
+                    <Form form={form} layout="vertical" onFinish={handleSubmit}>
+                        <Form.Item
+                            name="type"
+                            label="How do you know them?"
+                            rules={[{ required: true, message: 'Please select recognition type' }]}
+                        >
+                            <Radio.Group>
+                                <Space direction="vertical">
+                                    {recognitionTypes.map(type => (
+                                        <Radio key={type.value} value={type.value}>{type.label}</Radio>
+                                    ))}
+                                </Space>
+                            </Radio.Group>
+                        </Form.Item>
 
-                    <div className="form-group">
-                        <label>How do you know them?</label>
-                        {recognitionTypes.map(type => (
-                            <label key={type.value} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', cursor: 'pointer' }}>
-                                <input
-                                    type="radio"
-                                    name="type"
-                                    value={type.value}
-                                    checked={formData.type === type.value}
-                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    style={{ width: 'auto' }}
-                                />
-                                {type.label}
-                            </label>
-                        ))}
-                    </div>
+                        <Form.Item name="relationship" label="Relationship (optional)">
+                            <Input placeholder="e.g., Family friend, Neighbor, Colleague" />
+                        </Form.Item>
 
-                    <div className="form-group">
-                        <label>Relationship (optional)</label>
-                        <input
-                            type="text"
-                            placeholder="e.g., Family friend, Neighbor, Colleague"
-                            value={formData.relationship}
-                            onChange={(e) => setFormData({ ...formData, relationship: e.target.value })}
+                        <Form.Item name="notes" label="Notes (optional)">
+                            <TextArea rows={3} placeholder="Any additional details..." />
+                        </Form.Item>
+
+                        <Alert
+                            message="Your name will be recorded with this recognition"
+                            type="info"
+                            showIcon
+                            style={{ marginBottom: 16 }}
                         />
-                    </div>
 
-                    <div className="form-group">
-                        <label>Notes (optional)</label>
-                        <textarea
-                            placeholder="Any additional details about how you know them..."
-                            value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            rows={3}
-                        />
-                    </div>
-
-                    <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                        ⚠️ Your name will be recorded with this recognition.
-                    </p>
-
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <button type="submit" className="btn btn-primary" disabled={loading}>
-                            {loading ? 'Submitting...' : 'Submit Recognition'}
-                        </button>
-                        <button type="button" className="btn btn-outline" onClick={() => setShowForm(false)}>
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+                        <Space>
+                            <Button type="primary" htmlType="submit" loading={loading}>
+                                Submit Recognition
+                            </Button>
+                            <Button onClick={() => setShowForm(false)}>Cancel</Button>
+                        </Space>
+                    </Form>
+                </Card>
             )}
-        </div>
+        </Card>
     );
 }
 
