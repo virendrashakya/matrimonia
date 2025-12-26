@@ -5,10 +5,10 @@ const ConfigurationSchema = new mongoose.Schema({
     _id: { type: String, default: 'app_config' },
 
     // App Branding
-    appName: { type: String, default: 'Matrimonia' },
-    appNameHi: { type: String, default: 'मैट्रिमोनिया' },
-    tagline: { type: String, default: 'Where Families Connect' },
-    taglineHi: { type: String, default: 'जहाँ परिवार मिलते हैं' },
+    appName: { type: String, default: 'Pehchan' },
+    appNameHi: { type: String, default: 'पहचान' },
+    tagline: { type: String, default: 'Where recognition turns into trust' },
+    taglineHi: { type: String, default: 'जहाँ पहचान भरोसा बनती है' },
     logoUrl: { type: String, default: '/logo.png' },
 
     // Theme

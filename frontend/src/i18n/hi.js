@@ -1,8 +1,8 @@
 // Hindi translations
 const hi = {
     // App
-    appName: 'मैट्रिमोनिया',
-    tagline: 'सही जीवन साथी खोजने के लिए एक विश्वसनीय समुदाय मंच',
+    appName: 'पहचान',
+    tagline: 'जहाँ पहचान भरोसा बनती है',
 
     // Navigation
     nav: {

@@ -38,80 +38,65 @@ function Login() {
     return (
         <div style={{
             minHeight: '100vh',
+            background: 'linear-gradient(135deg, #A0153E 0%, #7A0F2E 50%, #5C0B22 100%)',
             display: 'flex',
-            background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFBF5 50%, #FFF5EB 100%)',
+            flexDirection: 'column',
         }}>
-            {/* Left side - Decorative */}
-            <div style={{
-                flex: 1,
-                background: 'linear-gradient(135deg, #A0153E 0%, #7A0F2E 50%, #5C0B22 100%)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: 48,
-                position: 'relative',
-                overflow: 'hidden',
-            }}>
-                {/* Language Selector on decorative side */}
-                <div style={{ position: 'absolute', top: 24, right: 24 }}>
-                    <Dropdown menu={languageMenu} placement="bottomRight">
-                        <Button icon={<GlobalOutlined />} style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)', color: 'white' }}>
-                            {languages[language]?.nativeName}
-                        </Button>
-                    </Dropdown>
-                </div>
-
-                <div style={{
-                    position: 'absolute',
-                    top: -100,
-                    right: -100,
-                    width: 300,
-                    height: 300,
-                    borderRadius: '50%',
-                    background: 'rgba(212, 175, 55, 0.1)',
-                }} />
-
-                <div style={{ textAlign: 'center', color: 'white', zIndex: 1 }}>
-                    <img src="/logo.png" alt="Matrimonia" style={{ height: 120, width: 120, objectFit: 'contain', marginBottom: 24 }} />
-                    <Title level={1} style={{ color: 'white', marginBottom: 16, fontSize: 48 }}>
-                        {t.appName}
-                    </Title>
-                    <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: 18, maxWidth: 400 }}>
-                        {t.tagline}
-                    </Paragraph>
-                    <div style={{
-                        width: 100,
-                        height: 3,
-                        background: 'linear-gradient(90deg, transparent, #D4AF37, transparent)',
-                        margin: '32px auto',
-                    }} />
-                    <Space direction="vertical" size={8} style={{ color: 'rgba(255,255,255,0.7)' }}>
-                        <div>✓ {t.auth.verifiedProfiles}</div>
-                        <div>✓ {t.auth.communityRecognition}</div>
-                        <div>✓ {t.auth.elderFriendly}</div>
-                    </Space>
-                </div>
+            {/* Language Selector - Top Right */}
+            <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
+                <Dropdown menu={languageMenu} placement="bottomRight">
+                    <Button icon={<GlobalOutlined />} style={{
+                        background: 'rgba(255,255,255,0.2)',
+                        border: 'none',
+                        color: 'white'
+                    }}>
+                        {languages[language]?.nativeName}
+                    </Button>
+                </Dropdown>
             </div>
 
-            {/* Right side - Login form */}
+            {/* Hero Section */}
+            <div style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                color: 'white',
+            }}>
+                <img
+                    src="/logo.png"
+                    alt="Pehchan"
+                    style={{
+                        height: 80,
+                        width: 80,
+                        objectFit: 'contain',
+                        marginBottom: 16
+                    }}
+                />
+                <Title level={1} style={{
+                    color: 'white',
+                    marginBottom: 8,
+                    fontSize: 'clamp(28px, 6vw, 48px)'
+                }}>
+                    {t.appName}
+                </Title>
+                <Paragraph style={{
+                    color: 'rgba(255,255,255,0.8)',
+                    fontSize: 'clamp(14px, 3vw, 18px)',
+                    maxWidth: 400,
+                    margin: '0 auto',
+                }}>
+                    {t.tagline}
+                </Paragraph>
+            </div>
+
+            {/* Login Card */}
             <div style={{
                 flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 48,
+                background: 'white',
+                borderRadius: '24px 24px 0 0',
+                padding: '32px 20px 48px',
+                marginTop: 'auto',
             }}>
-                <Card
-                    style={{
-                        width: 420,
-                        maxWidth: '100%',
-                        borderRadius: 16,
-                        boxShadow: '0 8px 40px rgba(44, 24, 16, 0.1)',
-                        border: '1px solid #F3E8D8',
-                    }}
-                    bodyStyle={{ padding: 40 }}
-                >
+                <div style={{ maxWidth: 400, margin: '0 auto' }}>
                     <Space direction="vertical" size="large" style={{ width: '100%' }}>
                         <div style={{ textAlign: 'center' }}>
                             <Title level={2} style={{ marginBottom: 8, color: '#2C1810' }}>
@@ -129,7 +114,8 @@ function Login() {
                                 <Input
                                     prefix={<PhoneOutlined style={{ color: '#8B7355' }} />}
                                     placeholder={t.auth.enterPhone}
-                                    style={{ borderRadius: 8 }}
+                                    size="large"
+                                    style={{ borderRadius: 12 }}
                                 />
                             </Form.Item>
 
@@ -141,17 +127,24 @@ function Login() {
                                 <Input.Password
                                     prefix={<LockOutlined style={{ color: '#8B7355' }} />}
                                     placeholder={t.auth.enterPassword}
-                                    style={{ borderRadius: 8 }}
+                                    size="large"
+                                    style={{ borderRadius: 12 }}
                                 />
                             </Form.Item>
 
-                            <Form.Item style={{ marginBottom: 16 }}>
+                            <Form.Item style={{ marginBottom: 16, marginTop: 24 }}>
                                 <Button
                                     type="primary"
                                     htmlType="submit"
                                     block
                                     loading={loading}
-                                    style={{ height: 42, borderRadius: 8, fontSize: 15, fontWeight: 600 }}
+                                    size="large"
+                                    style={{
+                                        height: 48,
+                                        borderRadius: 12,
+                                        fontSize: 16,
+                                        fontWeight: 600
+                                    }}
                                 >
                                     {t.auth.login}
                                 </Button>
@@ -165,13 +158,20 @@ function Login() {
                         <Link to="/register">
                             <Button
                                 block
-                                style={{ borderRadius: 8, borderColor: '#A0153E', color: '#A0153E', fontWeight: 500 }}
+                                size="large"
+                                style={{
+                                    borderRadius: 12,
+                                    borderColor: '#A0153E',
+                                    color: '#A0153E',
+                                    fontWeight: 500,
+                                    height: 48,
+                                }}
                             >
                                 {t.auth.register}
                             </Button>
                         </Link>
                     </Space>
-                </Card>
+                </div>
             </div>
         </div>
     );

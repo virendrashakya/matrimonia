@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// In production, VITE_API_URL should be set to your Railway backend URL
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json'
     }

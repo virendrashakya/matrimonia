@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 
 // Pages
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -16,6 +17,7 @@ import EditProfile from './pages/EditProfile';
 import Search from './pages/Search';
 import ImportWhatsApp from './pages/ImportWhatsApp';
 import AdminPanel from './pages/AdminPanel';
+import UserProfile from './pages/UserProfile';
 
 const { Content } = Layout;
 
@@ -44,9 +46,12 @@ function App() {
     return (
         <Layout style={{ minHeight: '100vh' }}>
             {isAuthenticated && <Navbar />}
-            <Content style={{ padding: isAuthenticated ? '0 48px' : 0, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+            <Content style={{ padding: isAuthenticated ? '0 24px' : 0, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
                 <Routes>
                     {/* Public routes */}
+                    <Route path="/" element={
+                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />
+                    } />
                     <Route path="/login" element={
                         isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
                     } />
@@ -79,10 +84,12 @@ function App() {
                     <Route path="/admin" element={
                         <ProtectedRoute><AdminPanel /></ProtectedRoute>
                     } />
+                    <Route path="/profile" element={
+                        <ProtectedRoute><UserProfile /></ProtectedRoute>
+                    } />
 
-                    {/* Default redirect */}
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    {/* Fallback */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </Content>
         </Layout>
@@ -90,3 +97,4 @@ function App() {
 }
 
 export default App;
+

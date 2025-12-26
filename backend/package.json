@@ -1,8 +1,11 @@
 {
-  "name": "matrimonia-backend",
+  "name": "pehchan-backend",
   "version": "1.0.0",
-  "description": "Private matrimonial application backend",
+  "description": "Pehchan - Community matrimonial platform backend",
   "main": "src/app.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",

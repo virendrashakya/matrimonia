@@ -12,6 +12,7 @@ const adminRoutes = require('./routes/admin');
 const searchRoutes = require('./routes/search');
 const importRoutes = require('./routes/import');
 const configRoutes = require('./routes/config');
+const userRoutes = require('./routes/user');
 
 const app = express();
 
@@ -126,6 +127,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/user', userRoutes);
 
 // Health check (no logging needed)
 app.get('/api/health', (req, res) => {

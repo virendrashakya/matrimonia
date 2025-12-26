@@ -1,8 +1,8 @@
 // English translations
 const en = {
     // App
-    appName: 'Matrimonia',
-    tagline: 'A trusted community platform for finding the perfect life partner',
+    appName: 'Pehchan',
+    tagline: 'Where recognition turns into trust',
 
     // Navigation
     nav: {
