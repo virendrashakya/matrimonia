@@ -19,13 +19,17 @@ import {
     WomanOutlined,
     HeartFilled,
     SendOutlined,
-    FilePdfOutlined
+    FilePdfOutlined,
+    QrcodeOutlined,
+    WhatsAppOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import RecognitionSection from '../components/RecognitionSection';
 import PhotoGallery from '../components/PhotoGallery';
 import BiodataPDF from '../components/BiodataPDF';
+import ProfileQRCode from '../components/ProfileQRCode';
+import WhatsAppShare from '../components/WhatsAppShare';
 import api from '../services/api';
 
 const { Title, Text, Paragraph } = Typography;
@@ -55,6 +59,8 @@ function ProfileDetail() {
     const [interestStatus, setInterestStatus] = useState(null); // null, 'pending', 'accepted', 'rejected'
     const [sendingInterest, setSendingInterest] = useState(false);
     const [biodataPDFVisible, setBiodataPDFVisible] = useState(false);
+    const [qrVisible, setQrVisible] = useState(false);
+    const [whatsappVisible, setWhatsappVisible] = useState(false);
 
     // Admin and moderator cannot express interest
     const canExpressInterest = !['admin', 'moderator'].includes(user?.role);
@@ -394,6 +400,21 @@ function ProfileDetail() {
                             >
                                 {isHindi ? '🔗 लिंक कॉपी करें' : '🔗 Copy Link'}
                             </Button>
+                            <Button
+                                block
+                                icon={<QrcodeOutlined />}
+                                onClick={() => setQrVisible(true)}
+                            >
+                                {isHindi ? 'QR कोड' : 'QR Code'}
+                            </Button>
+                            <Button
+                                block
+                                icon={<WhatsAppOutlined />}
+                                onClick={() => setWhatsappVisible(true)}
+                                style={{ background: '#25D366', color: 'white', border: 'none' }}
+                            >
+                                {isHindi ? 'WhatsApp शेयर' : 'WhatsApp Share'}
+                            </Button>
                         </Space>
                     </Card>
 
@@ -528,6 +549,20 @@ function ProfileDetail() {
                     onClose={() => setBiodataPDFVisible(false)}
                 />
             )}
+
+            {/* QR Code Modal */}
+            <ProfileQRCode
+                profile={profile}
+                visible={qrVisible}
+                onClose={() => setQrVisible(false)}
+            />
+
+            {/* WhatsApp Share Modal */}
+            <WhatsAppShare
+                profile={profile}
+                visible={whatsappVisible}
+                onClose={() => setWhatsappVisible(false)}
+            />
         </div>
     );
 }

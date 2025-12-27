@@ -19,6 +19,7 @@ import ImportWhatsApp from './pages/ImportWhatsApp';
 import AdminPanel from './pages/AdminPanel';
 import UserProfile from './pages/UserProfile';
 import InterestsPage from './pages/InterestsPage';
+import MatchmakerDashboard from './pages/MatchmakerDashboard';
 
 const { Content } = Layout;
 
@@ -90,6 +91,9 @@ function App() {
                     } />
                     <Route path="/interests" element={
                         <ProtectedRoute><InterestsPage /></ProtectedRoute>
+                    } />
+                    <Route path="/my-profiles" element={
+                        <ProtectedRoute><MatchmakerDashboard /></ProtectedRoute>
                     } />
 
                     {/* Fallback */}
