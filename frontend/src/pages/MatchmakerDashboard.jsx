@@ -31,6 +31,7 @@ function MatchmakerDashboard() {
     const [loading, setLoading] = useState(true);
     const [profiles, setProfiles] = useState([]);
     const [stats, setStats] = useState({});
+    const [analytics, setAnalytics] = useState(null);
     const [searchText, setSearchText] = useState('');
 
     // Modal states
@@ -53,6 +54,12 @@ function MatchmakerDashboard() {
             // Fetch dashboard stats
             const statsRes = await api.get('/user/dashboard-stats');
             setStats(statsRes.data.data || {});
+
+            // Fetch analytics
+            try {
+                const analyticsRes = await api.get('/analytics/my-analytics');
+                setAnalytics(analyticsRes.data.data || null);
+            } catch (e) { /* analytics optional */ }
 
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -189,17 +196,17 @@ function MatchmakerDashboard() {
 
             {/* Stats Cards */}
             <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-                <Col xs={12} sm={6}>
+                <Col xs={12} sm={6} lg={4}>
                     <Card style={{ background: 'linear-gradient(135deg, #FFF3E0, #FFE0B2)', border: 'none' }}>
                         <Statistic
-                            title={<Text style={{ color: '#E65100' }}>{isHindi ? 'कुल प्रोफ़ाइल' : 'Total Profiles'}</Text>}
+                            title={<Text style={{ color: '#E65100' }}>{isHindi ? 'कुल प्रोफ़ाइल' : 'Profiles'}</Text>}
                             value={profiles.length}
                             prefix={<TeamOutlined style={{ color: '#FF6B00' }} />}
                             valueStyle={{ color: '#E65100' }}
                         />
                     </Card>
                 </Col>
-                <Col xs={12} sm={6}>
+                <Col xs={12} sm={6} lg={4}>
                     <Card style={{ background: 'linear-gradient(135deg, #E8F5E9, #C8E6C9)', border: 'none' }}>
                         <Statistic
                             title={<Text style={{ color: '#2E7D32' }}>{isHindi ? 'सक्रिय' : 'Active'}</Text>}
@@ -209,17 +216,27 @@ function MatchmakerDashboard() {
                         />
                     </Card>
                 </Col>
-                <Col xs={12} sm={6}>
+                <Col xs={12} sm={6} lg={4}>
+                    <Card style={{ background: 'linear-gradient(135deg, #E3F2FD, #BBDEFB)', border: 'none' }}>
+                        <Statistic
+                            title={<Text style={{ color: '#1565C0' }}>{isHindi ? 'कुल व्यूज' : 'Total Views'}</Text>}
+                            value={analytics?.views?.totalViews || 0}
+                            prefix={<EyeOutlined style={{ color: '#1976D2' }} />}
+                            valueStyle={{ color: '#1565C0' }}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={12} sm={6} lg={4}>
                     <Card style={{ background: 'linear-gradient(135deg, #FCE4EC, #F8BBD9)', border: 'none' }}>
                         <Statistic
-                            title={<Text style={{ color: '#C2185B' }}>{isHindi ? 'रुचियाँ प्राप्त' : 'Interests'}</Text>}
+                            title={<Text style={{ color: '#C2185B' }}>{isHindi ? 'रुचियाँ' : 'Interests'}</Text>}
                             value={stats.totalInterestsReceived || 0}
                             prefix={<HeartOutlined style={{ color: '#E91E63' }} />}
                             valueStyle={{ color: '#C2185B' }}
                         />
                     </Card>
                 </Col>
-                <Col xs={12} sm={6}>
+                <Col xs={12} sm={6} lg={4}>
                     <Card style={{ background: 'linear-gradient(135deg, #FFF8E1, #FFECB3)', border: 'none' }}>
                         <Statistic
                             title={<Text style={{ color: '#F57F17' }}>{isHindi ? 'मैच' : 'Matches'}</Text>}

@@ -22,12 +22,16 @@ const loginSchema = Joi.object({
  * Profile creation/update validation
  */
 const profileSchema = Joi.object({
+    // Basic Info
     fullName: Joi.string().required().trim().max(100),
     gender: Joi.string().valid('male', 'female').required(),
     dateOfBirth: Joi.date().required().max('now'),
     phone: Joi.string().required(),
     alternatePhone: Joi.string().optional().allow(''),
     email: Joi.string().email().optional().allow(''),
+    maritalStatus: Joi.string().valid('never_married', 'divorced', 'widowed', 'awaiting_divorce').optional(),
+
+    // Location & Demographics
     caste: Joi.string().required(),
     subCaste: Joi.string().optional().allow(''),
     gotra: Joi.string().optional().allow(''),
@@ -37,29 +41,73 @@ const profileSchema = Joi.object({
     state: Joi.string().required(),
     country: Joi.string().optional().default('India'),
     nativePlace: Joi.string().optional().allow(''),
+
+    // Education & Career
     education: Joi.string().required(),
     educationDetail: Joi.string().optional().allow(''),
     profession: Joi.string().required(),
     company: Joi.string().optional().allow(''),
     annualIncome: Joi.string().optional().allow(''),
-    heightCm: Joi.number().optional().min(100).max(250),
+
+    // Physical
+    heightCm: Joi.number().optional().min(100).max(250).allow(null),
+    weightKg: Joi.number().optional().min(30).max(200).allow(null),
     complexion: Joi.string().optional().allow(''),
-    maritalStatus: Joi.string().valid('never_married', 'divorced', 'widowed', 'awaiting_divorce').optional(),
+    bodyType: Joi.string().optional().allow(''),
+
+    // Lifestyle
+    diet: Joi.string().optional().allow(''),
+    smoking: Joi.string().optional().allow(''),
+    drinking: Joi.string().optional().allow(''),
+    hobbies: Joi.array().items(Joi.string()).optional(),
+    languages: Joi.array().items(Joi.string()).optional(),
+    aboutMe: Joi.string().optional().allow('').max(1000),
+
+    // Family Details
     fatherName: Joi.string().optional().allow(''),
     fatherOccupation: Joi.string().optional().allow(''),
+    fatherStatus: Joi.string().optional().allow(''),
     motherName: Joi.string().optional().allow(''),
+    motherStatus: Joi.string().optional().allow(''),
     siblings: Joi.string().optional().allow(''),
-    familyType: Joi.string().valid('joint', 'nuclear').optional(),
+    brothersCount: Joi.number().optional().min(0).max(10).allow(null),
+    brothersMarried: Joi.number().optional().min(0).max(10).allow(null),
+    sistersCount: Joi.number().optional().min(0).max(10).allow(null),
+    sistersMarried: Joi.number().optional().min(0).max(10).allow(null),
+    familyType: Joi.string().valid('joint', 'nuclear').optional().allow(''),
     familyStatus: Joi.string().optional().allow(''),
+    familyValues: Joi.string().optional().allow(''),
+
+    // Horoscope
+    horoscope: Joi.object({
+        rashi: Joi.string().optional().allow(''),
+        nakshatra: Joi.string().optional().allow(''),
+        manglikStatus: Joi.string().optional().allow(''),
+        birthTime: Joi.string().optional().allow(''),
+        birthPlace: Joi.string().optional().allow('')
+    }).optional(),
+
+    // Local content (Hindi)
+    localContent: Joi.object().optional(),
+
+    // Partner Preferences
     preferences: Joi.object({
-        ageMin: Joi.number().optional(),
-        ageMax: Joi.number().optional(),
-        heightMin: Joi.number().optional(),
-        heightMax: Joi.number().optional(),
+        ageMin: Joi.number().optional().allow(null),
+        ageMax: Joi.number().optional().allow(null),
+        heightMin: Joi.number().optional().allow(null),
+        heightMax: Joi.number().optional().allow(null),
         education: Joi.array().items(Joi.string()).optional(),
         caste: Joi.array().items(Joi.string()).optional(),
         cities: Joi.array().items(Joi.string()).optional(),
-        maritalStatus: Joi.array().items(Joi.string()).optional()
+        state: Joi.array().items(Joi.string()).optional(),
+        maritalStatus: Joi.array().items(Joi.string()).optional(),
+        motherTongue: Joi.array().items(Joi.string()).optional(),
+        diet: Joi.array().items(Joi.string()).optional(),
+        smoking: Joi.array().items(Joi.string()).optional(),
+        drinking: Joi.array().items(Joi.string()).optional(),
+        manglikStatus: Joi.array().items(Joi.string()).optional(),
+        rashiCompatibility: Joi.boolean().optional(),
+        aboutPartner: Joi.string().optional().allow('').max(500)
     }).optional()
 });
 

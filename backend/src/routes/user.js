@@ -4,7 +4,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { User, Profile, Recognition } = require('../models');
+const { User, Profile, RecognitionEntry } = require('../models');
 const { authenticate } = require('../middleware/auth');
 
 /**
@@ -19,7 +19,7 @@ router.get('/me', authenticate, async (req, res) => {
         // Get stats
         const [profilesCount, recognitionsGiven] = await Promise.all([
             Profile.countDocuments({ createdBy: req.user._id, status: { $ne: 'deleted' } }),
-            Recognition.countDocuments({ givenBy: req.user._id })
+            RecognitionEntry.countDocuments({ givenBy: req.user._id })
         ]);
 
         res.json({
@@ -198,7 +198,7 @@ router.get('/dashboard-stats', authenticate, async (req, res) => {
             createdBy: req.user._id,
             status: { $ne: 'deleted' }
         });
-        stats.myRecognitions = await Recognition.countDocuments({
+        stats.myRecognitions = await RecognitionEntry.countDocuments({
             givenBy: req.user._id
         });
 

@@ -93,7 +93,23 @@ function AddProfile() {
             navigate(`/profiles/${response.data.data.profile._id}`);
         } catch (error) {
             console.error('API Error:', error.response?.data);
-            const errorMsg = error.response?.data?.details?.[0] || error.response?.data?.error || 'Failed to create profile';
+
+            // Extract detailed error message from backend
+            const errorData = error.response?.data;
+            let errorMsg = 'Failed to create profile';
+
+            if (errorData) {
+                // Check for validation errors
+                if (errorData.details && Array.isArray(errorData.details)) {
+                    errorMsg = errorData.details.join(', ');
+                } else if (errorData.error) {
+                    // Use Hindi error if available and language is Hindi
+                    errorMsg = isHindi && errorData.errorHi ? errorData.errorHi : errorData.error;
+                } else if (typeof errorData === 'string') {
+                    errorMsg = errorData;
+                }
+            }
+
             toast.error(errorMsg);
         } finally {
             setLoading(false);
@@ -638,17 +654,54 @@ function AddProfile() {
                 percent={Math.round(((currentStep + 1) / STEPS.length) * 100)}
                 showInfo={false}
                 strokeColor="#A0153E"
-                style={{ marginBottom: 24 }}
+                style={{ marginBottom: 16 }}
             />
 
-            {/* Steps Navigation */}
-            <Steps
-                current={currentStep}
-                onChange={goToStep}
-                items={STEPS}
-                size="small"
-                style={{ marginBottom: 24 }}
-            />
+            {/* Current Step Indicator (Mobile friendly) */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 24,
+                padding: '12px 16px',
+                background: 'linear-gradient(135deg, #FFF8F0, #FFFBF5)',
+                borderRadius: 12
+            }}>
+                {STEPS[currentStep].icon}
+                <Text strong style={{ fontSize: 16, color: '#A0153E' }}>
+                    {currentStep + 1}. {STEPS[currentStep].title}
+                </Text>
+                <Text type="secondary">({currentStep + 1}/{STEPS.length})</Text>
+            </div>
+
+            {/* Step Dots Navigation */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 8,
+                marginBottom: 24
+            }}>
+                {STEPS.map((step, index) => (
+                    <div
+                        key={step.title}
+                        onClick={() => goToStep(index)}
+                        style={{
+                            width: index === currentStep ? 24 : 12,
+                            height: 12,
+                            borderRadius: 6,
+                            background: index === currentStep
+                                ? 'linear-gradient(135deg, #A0153E, #7A0F2E)'
+                                : index < currentStep
+                                    ? '#D4AF37'
+                                    : '#E5D4C0',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease'
+                        }}
+                        title={step.title}
+                    />
+                ))}
+            </div>
 
             {/* Form */}
             <Form

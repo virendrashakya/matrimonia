@@ -15,6 +15,7 @@ const configRoutes = require('./routes/config');
 const userRoutes = require('./routes/user');
 const interestRoutes = require('./routes/interest');
 const notificationRoutes = require('./routes/notifications');
+const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 
@@ -132,6 +133,7 @@ app.use('/api/config', configRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/interests', interestRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check (no logging needed)
 app.get('/api/health', (req, res) => {

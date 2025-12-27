@@ -74,6 +74,9 @@ function ProfileDetail() {
             const response = await api.get(`/profiles/${id}`);
             setProfile(response.data.data.profile);
 
+            // Record profile view (in background)
+            api.post(`/analytics/view/${id}`, { source: 'direct' }).catch(() => { });
+
             // Check if user has already expressed interest
             try {
                 const interestsRes = await api.get('/interests/sent');

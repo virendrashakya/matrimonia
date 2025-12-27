@@ -5,6 +5,7 @@ const AuditLog = require('./AuditLog');
 const Configuration = require('./Configuration');
 const Interest = require('./Interest');
 const Notification = require('./Notification');
+const ProfileView = require('./ProfileView');
 
 module.exports = {
     User,
@@ -13,5 +14,6 @@ module.exports = {
     AuditLog,
     Configuration,
     Interest,
-    Notification
+    Notification,
+    ProfileView
 };
