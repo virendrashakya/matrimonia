@@ -91,9 +91,40 @@ router.get('/:id', authenticate, async (req, res, next) => {
 /**
  * POST /api/profiles
  * Create a new profile
+ * 
+ * Role limits:
+ * - admin/moderator: Cannot create profiles
+ * - contributor/helper/unverified: 1 profile only
+ * - matchmaker/elder: Unlimited profiles
  */
 router.post('/', authenticate, validate(profileSchema), async (req, res, next) => {
     try {
+        const { role } = req.user;
+
+        // Admin and moderator cannot create profiles
+        if (['admin', 'moderator'].includes(role)) {
+            return res.status(403).json({
+                error: 'Administrators and moderators cannot create matrimonial profiles',
+                errorHi: 'प्रशासक और मॉडरेटर विवाह प्रोफ़ाइल नहीं बना सकते'
+            });
+        }
+
+        // Check profile limit for normal users
+        if (['contributor', 'helper', 'unverified'].includes(role)) {
+            const existingCount = await Profile.countDocuments({
+                createdBy: req.user._id,
+                status: { $ne: 'deleted' }
+            });
+
+            if (existingCount >= 1) {
+                return res.status(403).json({
+                    error: 'You can only create one profile. Upgrade to matchmaker for unlimited profiles.',
+                    errorHi: 'आप केवल एक प्रोफ़ाइल बना सकते हैं। असीमित प्रोफ़ाइल के लिए मैचमेकर बनें।',
+                    existingCount
+                });
+            }
+        }
+
         const profileData = req.validatedBody;
 
         // Check phone reuse

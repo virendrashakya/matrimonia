@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, Row, Col, Typography, Tag, Spin, Empty, Descriptions, Avatar, Divider, List, Button, Space, Tabs, Badge } from 'antd';
+import { Card, Row, Col, Typography, Tag, Spin, Empty, Descriptions, Avatar, Divider, List, Button, Space, Tabs, Badge, message } from 'antd';
 import {
     UserOutlined,
     ArrowLeftOutlined,
@@ -16,12 +16,16 @@ import {
     StarOutlined,
     EnvironmentOutlined,
     ManOutlined,
-    WomanOutlined
+    WomanOutlined,
+    HeartFilled,
+    SendOutlined,
+    FilePdfOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import RecognitionSection from '../components/RecognitionSection';
 import PhotoGallery from '../components/PhotoGallery';
+import BiodataPDF from '../components/BiodataPDF';
 import api from '../services/api';
 
 const { Title, Text, Paragraph } = Typography;
@@ -48,6 +52,12 @@ function ProfileDetail() {
     const { t, isHindi } = useLanguage();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [interestStatus, setInterestStatus] = useState(null); // null, 'pending', 'accepted', 'rejected'
+    const [sendingInterest, setSendingInterest] = useState(false);
+    const [biodataPDFVisible, setBiodataPDFVisible] = useState(false);
+
+    // Admin and moderator cannot express interest
+    const canExpressInterest = !['admin', 'moderator'].includes(user?.role);
 
     useEffect(() => {
         fetchProfile();
@@ -57,10 +67,34 @@ function ProfileDetail() {
         try {
             const response = await api.get(`/profiles/${id}`);
             setProfile(response.data.data.profile);
+
+            // Check if user has already expressed interest
+            try {
+                const interestsRes = await api.get('/interests/sent');
+                const existingInterest = interestsRes.data.interests?.find(
+                    i => i.toProfile?._id === id
+                );
+                if (existingInterest) {
+                    setInterestStatus(existingInterest.status);
+                }
+            } catch (e) { /* ignore */ }
         } catch (error) {
             console.error('Error fetching profile:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleExpressInterest = async () => {
+        setSendingInterest(true);
+        try {
+            await api.post(`/interests/${id}`);
+            setInterestStatus('pending');
+            message.success(isHindi ? 'रुचि भेजी गई!' : 'Interest sent successfully!');
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to send interest');
+        } finally {
+            setSendingInterest(false);
         }
     };
 
@@ -336,6 +370,33 @@ function ProfileDetail() {
                         </Space>
                     </Card>
 
+                    {/* Share Profile Card */}
+                    <Card title={isHindi ? '📤 शेयर करें' : '📤 Share Profile'} size="small" style={{ marginBottom: 16 }}>
+                        <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                            <Button
+                                block
+                                icon={<span style={{ marginRight: 8 }}>📱</span>}
+                                onClick={() => {
+                                    const url = window.location.href;
+                                    const text = `${isHindi ? 'इस प्रोफ़ाइल को देखें' : 'Check out this profile'}: ${profile.fullName}, ${profile.age} ${isHindi ? 'वर्ष' : 'yrs'}, ${profile.city}\n\n${url}`;
+                                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                                }}
+                                style={{ background: '#25D366', color: 'white', border: 'none' }}
+                            >
+                                {isHindi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}
+                            </Button>
+                            <Button
+                                block
+                                onClick={() => {
+                                    navigator.clipboard.writeText(window.location.href);
+                                    message.success(isHindi ? 'लिंक कॉपी किया गया!' : 'Link copied!');
+                                }}
+                            >
+                                {isHindi ? '🔗 लिंक कॉपी करें' : '🔗 Copy Link'}
+                            </Button>
+                        </Space>
+                    </Card>
+
                     {/* About Me */}
                     {profile.aboutMe && (
                         <Card title="About Me / मेरे बारे में" size="small" style={{ marginBottom: 16 }}>
@@ -383,11 +444,47 @@ function ProfileDetail() {
                                     <Text type="secondary"><BookOutlined /> {profile.education}</Text>
                                 </Space>
                             </div>
-                            {canEdit && (
-                                <Link to={`/profiles/${profile._id}/edit`}>
-                                    <Button icon={<EditOutlined />}>Edit</Button>
-                                </Link>
-                            )}
+                            <Space wrap>
+                                {/* Download Biodata Button */}
+                                <Button
+                                    icon={<FilePdfOutlined />}
+                                    onClick={() => setBiodataPDFVisible(true)}
+                                >
+                                    {isHindi ? 'बायोडाटा' : 'Biodata PDF'}
+                                </Button>
+
+                                {/* Express Interest Button - show only if not owner and allowed */}
+                                {!isOwner && canExpressInterest && (
+                                    interestStatus ? (
+                                        <Tag
+                                            color={interestStatus === 'accepted' ? 'success' : interestStatus === 'pending' ? 'processing' : 'default'}
+                                            style={{ fontSize: 14, padding: '4px 12px' }}
+                                        >
+                                            {interestStatus === 'accepted' && <><HeartFilled /> {isHindi ? 'मैच!' : 'Match!'}</>}
+                                            {interestStatus === 'pending' && <><SendOutlined /> {isHindi ? 'रुचि भेजी गई' : 'Interest Sent'}</>}
+                                            {interestStatus === 'rejected' && (isHindi ? 'अस्वीकृत' : 'Declined')}
+                                        </Tag>
+                                    ) : (
+                                        <Button
+                                            type="primary"
+                                            icon={<HeartFilled />}
+                                            onClick={handleExpressInterest}
+                                            loading={sendingInterest}
+                                            style={{
+                                                background: 'linear-gradient(135deg, #A0153E, #7A0F2E)',
+                                                borderColor: 'transparent'
+                                            }}
+                                        >
+                                            {isHindi ? 'रुचि भेजें' : 'Express Interest'}
+                                        </Button>
+                                    )
+                                )}
+                                {canEdit && (
+                                    <Link to={`/profiles/${profile._id}/edit`}>
+                                        <Button icon={<EditOutlined />}>Edit</Button>
+                                    </Link>
+                                )}
+                            </Space>
                         </div>
 
                         <Divider style={{ margin: '16px 0' }} />
@@ -422,6 +519,15 @@ function ProfileDetail() {
                     </div>
                 </Col>
             </Row>
+
+            {/* Biodata PDF Modal */}
+            {profile && (
+                <BiodataPDF
+                    profile={profile}
+                    visible={biodataPDFVisible}
+                    onClose={() => setBiodataPDFVisible(false)}
+                />
+            )}
         </div>
     );
 }

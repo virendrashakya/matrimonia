@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Layout, Menu, Button, Space, Typography, Avatar, Dropdown, Drawer } from 'antd';
+import { Layout, Menu, Button, Space, Typography, Avatar, Dropdown, Drawer, Badge, List, Empty } from 'antd';
 import {
     HomeOutlined,
     UserOutlined,
@@ -12,20 +12,47 @@ import {
     CrownOutlined,
     GlobalOutlined,
     MenuOutlined,
-    CloseOutlined
+    CloseOutlined,
+    HeartOutlined,
+    BellOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import api from '../services/api';
 
 const { Header } = Layout;
 const { Text } = Typography;
 
 function Navbar() {
     const { user, logout, isElder } = useAuth();
-    const { t, language, changeLanguage, languages } = useLanguage();
+    const { t, language, changeLanguage, languages, isHindi } = useLanguage();
     const navigate = useNavigate();
     const isAdmin = user?.role === 'admin';
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        fetchNotifications();
+        // Poll every 30 seconds
+        const interval = setInterval(fetchNotifications, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            const res = await api.get('/notifications?limit=5');
+            setNotifications(res.data.notifications || []);
+            setUnreadCount(res.data.unreadCount || 0);
+        } catch (e) { /* ignore */ }
+    };
+
+    const markAsRead = async (id) => {
+        try {
+            await api.put(`/notifications/${id}/read`);
+            fetchNotifications();
+        } catch (e) { /* ignore */ }
+    };
 
     const handleLogout = () => {
         logout();
@@ -67,6 +94,8 @@ function Navbar() {
         { key: 'profiles', icon: <UserOutlined />, label: t.nav.profiles, path: '/profiles' },
         { key: 'search', icon: <SearchOutlined />, label: t.nav.search, path: '/search' },
         { key: 'new', icon: <PlusOutlined />, label: t.nav.addProfile, path: '/profiles/new' },
+        { key: 'my-profile', icon: <UserOutlined />, label: isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profile', path: '/profile' },
+        { key: 'interests', icon: <HeartOutlined />, label: isHindi ? 'मेरी रुचियाँ' : 'My Interests', path: '/interests' },
         ...(isElder ? [{ key: 'import', icon: <ImportOutlined />, label: t.nav.import, path: '/import' }] : []),
         ...(isAdmin ? [{ key: 'admin', icon: <SettingOutlined />, label: t.nav.admin, path: '/admin' }] : []),
     ];
@@ -136,8 +165,122 @@ function Navbar() {
                         </Button>
                     </Dropdown>
 
-                    {/* User info */}
-                    <Link to="/profile" style={{ textDecoration: 'none' }}>
+                    {/* Notification Bell */}
+                    <Dropdown
+                        trigger={['click']}
+                        placement="bottomRight"
+                        dropdownRender={() => (
+                            <div style={{
+                                background: 'white',
+                                borderRadius: 12,
+                                boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
+                                width: 320,
+                                maxHeight: 400,
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{
+                                    padding: '12px 16px',
+                                    borderBottom: '1px solid #f0f0f0',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <Text strong>{isHindi ? 'सूचनाएं' : 'Notifications'}</Text>
+                                    {unreadCount > 0 && (
+                                        <Button
+                                            type="link"
+                                            size="small"
+                                            onClick={async () => {
+                                                await api.put('/notifications/read-all');
+                                                fetchNotifications();
+                                            }}
+                                        >
+                                            {isHindi ? 'सभी पढ़े' : 'Mark all read'}
+                                        </Button>
+                                    )}
+                                </div>
+                                {notifications.length > 0 ? (
+                                    <List
+                                        size="small"
+                                        dataSource={notifications}
+                                        renderItem={(item) => (
+                                            <List.Item
+                                                style={{
+                                                    padding: '12px 16px',
+                                                    background: item.isRead ? 'white' : '#FFF8F0',
+                                                    cursor: 'pointer'
+                                                }}
+                                                onClick={() => {
+                                                    if (!item.isRead) markAsRead(item._id);
+                                                    if (item.data?.actionUrl) navigate(item.data.actionUrl);
+                                                }}
+                                            >
+                                                <List.Item.Meta
+                                                    title={<Text style={{ fontSize: 13 }}>{isHindi ? item.titleHi || item.title : item.title}</Text>}
+                                                    description={
+                                                        <Text type="secondary" style={{ fontSize: 11 }}>
+                                                            {new Date(item.createdAt).toLocaleDateString()}
+                                                        </Text>
+                                                    }
+                                                />
+                                            </List.Item>
+                                        )}
+                                    />
+                                ) : (
+                                    <Empty
+                                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                        description={isHindi ? 'कोई सूचना नहीं' : 'No notifications'}
+                                        style={{ padding: 24 }}
+                                    />
+                                )}
+                                <Link to="/interests" style={{ display: 'block', textAlign: 'center', padding: '8px 16px', borderTop: '1px solid #f0f0f0' }}>
+                                    {isHindi ? 'सभी देखें' : 'View All'}
+                                </Link>
+                            </div>
+                        )}
+                    >
+                        <Badge count={unreadCount} size="small" offset={[-2, 2]}>
+                            <Button
+                                icon={<BellOutlined />}
+                                size="small"
+                                style={{
+                                    background: 'rgba(255,255,255,0.15)',
+                                    border: 'none',
+                                    color: 'white',
+                                }}
+                            />
+                        </Badge>
+                    </Dropdown>
+
+                    {/* User Avatar Dropdown */}
+                    <Dropdown
+                        menu={{
+                            items: [
+                                {
+                                    key: 'profile',
+                                    icon: <UserOutlined />,
+                                    label: isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profile',
+                                    onClick: () => navigate('/profile'),
+                                },
+                                {
+                                    key: 'interests',
+                                    icon: <HeartOutlined />,
+                                    label: isHindi ? 'मेरी रुचियाँ' : 'My Interests',
+                                    onClick: () => navigate('/interests'),
+                                },
+                                { type: 'divider' },
+                                {
+                                    key: 'logout',
+                                    icon: <LogoutOutlined />,
+                                    label: t.nav.logout,
+                                    danger: true,
+                                    onClick: handleLogout,
+                                },
+                            ],
+                        }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                    >
                         <Space size={8} style={{ cursor: 'pointer' }}>
                             <Avatar
                                 style={{
@@ -151,22 +294,11 @@ function Navbar() {
                             </Avatar>
                             <div style={{ lineHeight: 1.2 }}>
                                 <Text style={{ color: 'white', fontWeight: 500, display: 'block', fontSize: 12 }}>
-                                    {user?.name?.split(' ')[0]}
+                                    {user?.name?.split(' ')[0]} ▾
                                 </Text>
                             </div>
                         </Space>
-                    </Link>
-
-                    <Button
-                        icon={<LogoutOutlined />}
-                        onClick={handleLogout}
-                        size="small"
-                        style={{
-                            background: 'rgba(255,255,255,0.15)',
-                            border: 'none',
-                            color: 'white'
-                        }}
-                    />
+                    </Dropdown>
                 </div>
 
                 {/* Mobile Menu Button */}

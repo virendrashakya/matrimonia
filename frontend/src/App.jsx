@@ -18,6 +18,7 @@ import Search from './pages/Search';
 import ImportWhatsApp from './pages/ImportWhatsApp';
 import AdminPanel from './pages/AdminPanel';
 import UserProfile from './pages/UserProfile';
+import InterestsPage from './pages/InterestsPage';
 
 const { Content } = Layout;
 
@@ -86,6 +87,9 @@ function App() {
                     } />
                     <Route path="/profile" element={
                         <ProtectedRoute><UserProfile /></ProtectedRoute>
+                    } />
+                    <Route path="/interests" element={
+                        <ProtectedRoute><InterestsPage /></ProtectedRoute>
                     } />
 
                     {/* Fallback */}
