@@ -1,8 +1,10 @@
 {
-    "name": "Pehchan",
+    "name": "Pehchan - Matrimonial",
     "short_name": "Pehchan",
     "description": "जहाँ पहचान भरोसा बनती है - Where recognition turns into trust",
+    "id": "/",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
     "background_color": "#FFFBF5",
     "theme_color": "#A0153E",
@@ -26,5 +28,6 @@
         "social"
     ],
     "lang": "en",
-    "dir": "ltr"
+    "dir": "ltr",
+    "prefer_related_applications": false
 }
