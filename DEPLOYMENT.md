@@ -1,0 +1,202 @@
+# Deployment Guide: MERN Stack on AWS EC2
+
+This guide outlines the steps to deploy the Matrimonia application to an AWS EC2 instance running Ubuntu.
+
+## Prerequisites
+
+- AWS Account
+- Domain name (optional, but recommended for SSL)
+- SSH Key Pair for accessing the EC2 instance
+
+## 1. Launch EC2 Instance
+
+1.  **Log in to AWS Console** and navigate to EC2.
+2.  **Launch Instance**:
+    -   **Name**: `matrimonia-server`
+    -   **OS**: Ubuntu Server 22.04 LTS (HVM)
+    -   **Instance Type**: `t2.micro` or `t3.micro` (Free Tier eligible)
+    -   **Key Pair**: Create a new one or select an existing one. Download the `.pem` file.
+    -   **Network Settings**:
+        -   Allow SSH traffic from your IP (or Anywhere `0.0.0.0/0`).
+        -   Allow HTTP traffic from the internet.
+        -   Allow HTTPS traffic from the internet.
+3.  **Launch** and wait for the instance to be running.
+
+## 2. Connect to Instance
+
+Open your terminal and use the downloaded key pair:
+
+```bash
+chmod 400 keypair.pem
+ssh -i "keypair.pem" ubuntu@<your-ec2-public-ip>
+```
+
+## 3. Server Setup
+
+Update packages and install necessary tools:
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y curl git nginx
+```
+
+### Install Node.js (v18.x)
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+```
+
+### Install PM2 (Process Manager)
+
+```bash
+sudo npm install -g pm2
+```
+
+## 4. Clone Repository
+
+```bash
+cd ~
+git clone https://github.com/virendrashakya/matrimonia.git
+cd matrimonia
+```
+
+## 5. Backend Deployment
+
+1.  **Install Dependencies**:
+
+    ```bash
+    cd backend
+    npm install
+    ```
+
+2.  **Configure Environment**:
+    Create a `.env` file with your production secrets.
+
+    ```bash
+    nano .env
+    ```
+
+    Paste your environment variables (ensure `NODE_ENV=production`):
+
+    ```env
+    PORT=5000
+    MONGODB_URI=your_mongodb_connection_string
+    JWT_SECRET=your_strong_secret
+    NODE_ENV=production
+    CLOUDINARY_CLOUD_NAME=...
+    CLOUDINARY_API_KEY=...
+    CLOUDINARY_API_SECRET=...
+    CLIENT_URL=http://<your-domain-or-ip>
+    ```
+
+3.  **Start Backend**:
+
+    ```bash
+    pm2 start src/app.js --name "matrimonia-api"
+    pm2 save
+    pm2 startup
+    # Run the command displayed by pm2 startup to persist on reboot
+    ```
+
+## 6. Frontend Deployment
+
+1.  **Install Dependencies and Build**:
+
+    ```bash
+    cd ../frontend
+    npm install
+    
+    # Create production env file if needed
+    nano .env.production
+    # Add: VITE_API_URL=http://<your-domain-or-ip>/api
+    
+    npm run build
+    ```
+
+    This creates a `dist` folder. We will serve this using Nginx.
+
+2.  **Move Build Files** (Optional standard location):
+
+    ```bash
+    sudo mkdir -p /var/www/matrimonia
+    sudo cp -r dist/* /var/www/matrimonia/
+    # Grant permissions
+    sudo chown -R www-data:www-data /var/www/matrimonia
+    sudo chmod -R 755 /var/www/matrimonia
+    ```
+
+## 7. Configure Nginx
+
+Create a new configuration block:
+
+```bash
+sudo nano /etc/nginx/sites-available/matrimonia
+```
+
+Add the following (replace `<your-domain-or-ip>`):
+
+```nginx
+server {
+    listen 80;
+    server_name <your-domain-or-ip>;
+
+    root /var/www/matrimonia;
+    index index.html;
+
+    # Frontend
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Backend API Proxy
+    location /api {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+Enable the site and restart Nginx:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/matrimonia /etc/nginx/sites-enabled/
+sudo rm /etc/nginx/sites-enabled/default  # Remove default logic if this is the only site
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+## 8. SSL Configuration (Recommended)
+
+If you have a domain name pointing to your EC2 IP:
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d <your-domain-name>
+```
+
+Follow the prompts to enable HTTPS redirect.
+
+## Verification
+
+1.  Open your browser to `http://<your-ec2-public-ip>` (or your domain).
+2.  The frontend should load.
+3.  Test an API call (e.g., login or register) to ensure backend connectivity.
+
+## Maintenance
+
+-   **Logs**: `pm2 logs`
+-   **Restart Backend**: `pm2 restart matrimonia-api`
+-   **Update Code**:
+    ```bash
+    git pull origin main
+    # Rebuild frontend if needed
+    cd frontend && npm install && npm run build && sudo cp -r dist/* /var/www/matrimonia/
+    # Restart backend if needed
+    cd ../backend && npm install && pm2 restart matrimonia-api
+    ```
