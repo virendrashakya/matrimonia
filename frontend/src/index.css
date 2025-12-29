@@ -982,3 +982,139 @@ body {
     border: 1px solid #ccc !important;
   }
 }
+
+/* ================================
+   ACCESSIBILITY STYLES
+   For elder users
+================================ */
+
+/* Base font size variable */
+:root {
+  --base-font-size: 16px;
+}
+
+/* Apply base font size */
+html {
+  font-size: var(--base-font-size);
+}
+
+/* Scale all text elements */
+body.large-font .ant-card-head-title,
+body.large-font .ant-typography,
+body.large-font .ant-btn,
+body.large-font .ant-input,
+body.large-font .ant-select-selection-item {
+  font-size: inherit;
+}
+
+/* High Contrast Mode */
+body.high-contrast {
+  --bg-primary: #000000;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #262626;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-muted: #b0b0b0;
+  --border: #333;
+  --border-dark: #555;
+}
+
+body.high-contrast .ant-card {
+  background: #262626 !important;
+  border: 2px solid #fff !important;
+  color: #fff !important;
+}
+
+body.high-contrast .ant-typography {
+  color: #fff !important;
+}
+
+body.high-contrast .ant-btn-primary {
+  background: #FFD700 !important;
+  color: #000 !important;
+  border-color: #FFD700 !important;
+}
+
+body.high-contrast .ant-input,
+body.high-contrast .ant-select-selector {
+  background: #333 !important;
+  border-color: #fff !important;
+  color: #fff !important;
+}
+
+/* Larger touch targets for elders */
+.elder-friendly .ant-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 16px;
+}
+
+.elder-friendly .ant-card {
+  cursor: pointer;
+}
+
+/* Shortlist indicator */
+.shortlist-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #FFD700;
+  color: #000;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 10;
+}
+
+/* Profile comparison grid */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.comparison-card {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.3s;
+}
+
+.comparison-card:hover {
+  border-color: var(--primary);
+}
+
+.comparison-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.comparison-row:last-child {
+  border-bottom: none;
+}
+
+.comparison-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.comparison-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Created By badge */
+.created-by-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-dark);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}

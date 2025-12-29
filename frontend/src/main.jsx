@@ -7,6 +7,8 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
 import { ConfigProvider as AppConfigProvider } from './context/ConfigContext'
+import { AccessibilityProvider } from './context/AccessibilityContext'
+import { ShortlistProvider } from './context/ShortlistContext'
 import './index.css'
 
 // Matrimonial-themed Ant Design customization
@@ -91,26 +93,31 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <ConfigProvider theme={theme}>
                 <AppConfigProvider>
                     <LanguageProvider>
-                        <AuthProvider>
-                            <App />
-                            <Toaster
-                                position="top-center"
-                                toastOptions={{
-                                    duration: 4000,
-                                    style: {
-                                        fontSize: '14px',
-                                        padding: '12px 20px',
-                                        borderRadius: '8px',
-                                        background: '#FFFBF5',
-                                        border: '1px solid #F3E8D8',
-                                    }
-                                }}
-                            />
-                        </AuthProvider>
+                        <AccessibilityProvider>
+                            <ShortlistProvider>
+                                <AuthProvider>
+                                    <App />
+                                    <Toaster
+                                        position="top-center"
+                                        toastOptions={{
+                                            duration: 4000,
+                                            style: {
+                                                fontSize: '14px',
+                                                padding: '12px 20px',
+                                                borderRadius: '8px',
+                                                background: '#FFFBF5',
+                                                border: '1px solid #F3E8D8',
+                                            }
+                                        }}
+                                    />
+                                </AuthProvider>
+                            </ShortlistProvider>
+                        </AccessibilityProvider>
                     </LanguageProvider>
                 </AppConfigProvider>
             </ConfigProvider>
         </BrowserRouter>
     </React.StrictMode>
 )
+
 

@@ -279,9 +279,9 @@ function Dashboard() {
             </Row>
 
             {/* Stats Row */}
-            <Row gutter={24} style={{ marginBottom: 40 }}>
+            <Row gutter={[16, 16]} style={{ marginBottom: 40 }}>
                 <Col xs={12} sm={6}>
-                    <Card style={{ borderRadius: 12, borderLeft: '4px solid #D4AF37' }}>
+                    <Card style={{ borderRadius: 12, borderLeft: '4px solid #D4AF37', height: '100%' }}>
                         <Statistic
                             title={<Text style={{ color: '#8B7355' }}>{isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profiles'}</Text>}
                             value={dashboardStats?.myProfiles || 0}
@@ -290,7 +290,7 @@ function Dashboard() {
                     </Card>
                 </Col>
                 <Col xs={12} sm={6}>
-                    <Card style={{ borderRadius: 12, borderLeft: '4px solid #A0153E' }}>
+                    <Card style={{ borderRadius: 12, borderLeft: '4px solid #A0153E', height: '100%' }}>
                         <Statistic
                             title={<Text style={{ color: '#8B7355' }}>{isHindi ? 'दी गई पहचान' : 'Recognitions Given'}</Text>}
                             value={dashboardStats?.myRecognitions || 0}
@@ -301,7 +301,7 @@ function Dashboard() {
                 {isAdmin && (
                     <>
                         <Col xs={12} sm={6}>
-                            <Card style={{ borderRadius: 12, borderLeft: '4px solid #059669' }}>
+                            <Card style={{ borderRadius: 12, borderLeft: '4px solid #059669', height: '100%' }}>
                                 <Statistic
                                     title={<Text style={{ color: '#8B7355' }}>{isHindi ? 'कुल उपयोगकर्ता' : 'Total Users'}</Text>}
                                     value={dashboardStats?.totalUsers || 0}
@@ -310,7 +310,7 @@ function Dashboard() {
                             </Card>
                         </Col>
                         <Col xs={12} sm={6}>
-                            <Card style={{ borderRadius: 12, borderLeft: '4px solid #7C3AED' }}>
+                            <Card style={{ borderRadius: 12, borderLeft: '4px solid #7C3AED', height: '100%' }}>
                                 <Statistic
                                     title={<Text style={{ color: '#8B7355' }}>{isHindi ? 'कुल प्रोफ़ाइल' : 'Total Profiles'}</Text>}
                                     value={dashboardStats?.totalProfiles || 0}
@@ -323,7 +323,7 @@ function Dashboard() {
                 {isMatchmaker && (
                     <>
                         <Col xs={12} sm={6}>
-                            <Card style={{ borderRadius: 12, borderLeft: '4px solid #059669' }}>
+                            <Card style={{ borderRadius: 12, borderLeft: '4px solid #059669', height: '100%' }}>
                                 <Statistic
                                     title={<Text style={{ color: '#8B7355' }}>{isHindi ? 'कुल क्लाइंट' : 'Total Clients'}</Text>}
                                     value={dashboardStats?.totalClients || 0}

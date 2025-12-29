@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Card, Avatar, Tag, Typography, Space, Tooltip } from 'antd';
-import { UserOutlined, CheckCircleOutlined, WarningOutlined, CloseCircleOutlined, HeartOutlined, ManOutlined, WomanOutlined, GlobalOutlined, LockOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { Card, Avatar, Tag, Typography, Space, Tooltip, Button } from 'antd';
+import { UserOutlined, CheckCircleOutlined, WarningOutlined, CloseCircleOutlined, HeartOutlined, ManOutlined, WomanOutlined, GlobalOutlined, LockOutlined, EyeInvisibleOutlined, StarOutlined, StarFilled, WhatsAppOutlined } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
+import { useShortlist } from '../context/ShortlistContext';
+import { shareViaWhatsApp } from '../utils/whatsappShare';
 
 const { Text, Title } = Typography;
 
 function ProfileCard({ profile }) {
     const { t, isHindi } = useLanguage();
+    const { isShortlisted, addToShortlist, removeFromShortlist } = useShortlist();
 
     const levelConfig = {
         new: { color: 'default', label: t.profiles.new, gradient: 'linear-gradient(135deg, #9CA3AF, #6B7280)' },
@@ -327,6 +330,43 @@ function ProfileCard({ profile }) {
                             {riskConfig[riskLevel].icon}
                             <span>{riskConfig[riskLevel].text}</span>
                         </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div style={{
+                        display: 'flex',
+                        gap: 8,
+                        marginTop: 8,
+                        paddingTop: 8,
+                        borderTop: '1px solid #f0f0f0'
+                    }}>
+                        <Tooltip title={isShortlisted(profile._id) ? (isHindi ? 'शॉर्टलिस्ट से हटाएं' : 'Remove from shortlist') : (isHindi ? 'शॉर्टलिस्ट में जोड़ें' : 'Add to shortlist')}>
+                            <Button
+                                size="small"
+                                type={isShortlisted(profile._id) ? 'primary' : 'default'}
+                                icon={isShortlisted(profile._id) ? <StarFilled /> : <StarOutlined />}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    isShortlisted(profile._id)
+                                        ? removeFromShortlist(profile._id)
+                                        : addToShortlist(profile);
+                                }}
+                                style={isShortlisted(profile._id) ? { background: '#D4AF37', borderColor: '#D4AF37' } : {}}
+                            />
+                        </Tooltip>
+                        <Tooltip title={isHindi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}>
+                            <Button
+                                size="small"
+                                icon={<WhatsAppOutlined />}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    shareViaWhatsApp(profile, isHindi ? 'hi' : 'en');
+                                }}
+                                style={{ background: '#25D366', borderColor: '#25D366', color: 'white' }}
+                            />
+                        </Tooltip>
                     </div>
                 </div>
             </Card >

@@ -20,6 +20,7 @@ import AdminPanel from './pages/AdminPanel';
 import UserProfile from './pages/UserProfile';
 import InterestsPage from './pages/InterestsPage';
 import MatchmakerDashboard from './pages/MatchmakerDashboard';
+import ProfileComparison from './pages/ProfileComparison';
 
 const { Content } = Layout;
 
@@ -94,6 +95,9 @@ function App() {
                     } />
                     <Route path="/my-profiles" element={
                         <ProtectedRoute><MatchmakerDashboard /></ProtectedRoute>
+                    } />
+                    <Route path="/shortlist" element={
+                        <ProtectedRoute><ProfileComparison /></ProtectedRoute>
                     } />
 
                     {/* Fallback */}
