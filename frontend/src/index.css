@@ -1310,16 +1310,94 @@ body.dark-mode .ant-statistic-content {
    Clean, fresh, mobile-first
 ================================ */
 
-/* Modern Card Styles */
+/* Modern Card Styles - Enhanced Visibility */
 .ant-card {
-  border: none !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06) !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .ant-card:hover {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08) !important;
   transform: translateY(-2px);
+  border-color: rgba(160, 21, 62, 0.1) !important;
+}
+
+.ant-card-head {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.ant-card-head-title {
+  font-weight: 600 !important;
+  color: #1a1a1a !important;
+}
+
+/* Card Body Text */
+.ant-card-body {
+  color: #1a1a1a !important;
+}
+
+.ant-card-body * {
+  color: inherit;
+}
+
+/* Force dark text on ALL titles and headers */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.ant-typography h1,
+.ant-typography h2,
+.ant-typography h3,
+.ant-typography h4,
+.ant-typography h5 {
+  color: #1a1a1a !important;
+}
+
+/* Divider text */
+.ant-divider-inner-text {
+  color: #333333 !important;
+}
+
+/* Text visibility - darker colors */
+.ant-form-item-label>label {
+  color: #1a1a1a !important;
+  font-weight: 600 !important;
+}
+
+.ant-descriptions-item-label {
+  color: #555555 !important;
+  font-weight: 500 !important;
+}
+
+.ant-descriptions-item-content {
+  color: #1a1a1a !important;
+}
+
+.ant-typography,
+.ant-typography p {
+  color: #1a1a1a !important;
+}
+
+.ant-typography.ant-typography-secondary {
+  color: #555555 !important;
+}
+
+/* Input labels and placeholders */
+.ant-input::placeholder,
+.ant-select-selection-placeholder {
+  color: #999999 !important;
+}
+
+.ant-form-item-explain,
+.ant-form-item-extra {
+  color: #666666 !important;
 }
 
 /* Glassmorphism effect for modals */
