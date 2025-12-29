@@ -14,10 +14,16 @@ import {
     MenuOutlined,
     CloseOutlined,
     HeartOutlined,
-    BellOutlined
+    BellOutlined,
+    StarOutlined,
+    FontSizeOutlined,
+    MoonOutlined,
+    SunOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useShortlist } from '../context/ShortlistContext';
+import { useAccessibility } from '../context/AccessibilityContext';
 import api from '../services/api';
 
 const { Header } = Layout;
@@ -26,6 +32,9 @@ const { Text } = Typography;
 function Navbar() {
     const { user, logout, isElder } = useAuth();
     const { t, language, changeLanguage, languages, isHindi } = useLanguage();
+    const { count: shortlistCount } = useShortlist();
+    const { increaseFontSize, decreaseFontSize, darkMode, toggleDarkMode } = useAccessibility();
+
     const navigate = useNavigate();
     const isAdmin = user?.role === 'admin';
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -149,6 +158,71 @@ function Navbar() {
                         theme="dark"
                         selectedKeys={[]}
                     />
+
+                    {/* Font Size Controls */}
+                    <Space size={4}>
+                        <Button
+                            size="small"
+                            onClick={decreaseFontSize}
+                            style={{
+                                background: 'rgba(255,255,255,0.15)',
+                                border: 'none',
+                                color: 'white',
+                                width: 28,
+                                height: 28,
+                                padding: 0
+                            }}
+                            title={isHindi ? 'फ़ॉन्ट छोटा' : 'Smaller font'}
+                        >
+                            A-
+                        </Button>
+                        <Button
+                            size="small"
+                            onClick={increaseFontSize}
+                            style={{
+                                background: 'rgba(255,255,255,0.15)',
+                                border: 'none',
+                                color: 'white',
+                                width: 28,
+                                height: 28,
+                                padding: 0
+                            }}
+                            title={isHindi ? 'फ़ॉन्ट बड़ा' : 'Larger font'}
+                        >
+                            A+
+                        </Button>
+                    </Space>
+
+                    {/* Dark Mode Toggle */}
+                    <Button
+                        size="small"
+                        onClick={toggleDarkMode}
+                        icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
+                        style={{
+                            background: darkMode ? '#FFD700' : 'rgba(255,255,255,0.15)',
+                            border: 'none',
+                            color: darkMode ? '#000' : 'white',
+                            width: 32,
+                            height: 32
+                        }}
+                        title={isHindi ? (darkMode ? 'लाइट मोड' : 'डार्क मोड') : (darkMode ? 'Light mode' : 'Dark mode')}
+                    />
+
+                    {/* Shortlist Badge */}
+                    <Link to="/shortlist">
+                        <Badge count={shortlistCount} size="small" offset={[-2, 2]}>
+                            <Button
+                                icon={<StarOutlined />}
+                                size="small"
+                                style={{
+                                    background: shortlistCount > 0 ? '#D4AF37' : 'rgba(255,255,255,0.15)',
+                                    border: 'none',
+                                    color: 'white',
+                                }}
+                                title={isHindi ? 'शॉर्टलिस्ट' : 'Shortlist'}
+                            />
+                        </Badge>
+                    </Link>
 
                     {/* Language Switcher */}
                     <Dropdown menu={languageMenu} placement="bottomRight">

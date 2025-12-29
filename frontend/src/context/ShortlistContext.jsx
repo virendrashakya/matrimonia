@@ -77,7 +77,18 @@ export function ShortlistProvider({ children }) {
 export function useShortlist() {
     const context = useContext(ShortlistContext);
     if (!context) {
-        throw new Error('useShortlist must be used within ShortlistProvider');
+        // Return safe defaults if not in provider
+        return {
+            shortlist: [],
+            notes: {},
+            addToShortlist: () => { },
+            removeFromShortlist: () => { },
+            isShortlisted: () => false,
+            addNote: () => { },
+            getNote: () => '',
+            clearShortlist: () => { },
+            count: 0
+        };
     }
     return context;
 }

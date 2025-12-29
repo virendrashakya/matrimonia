@@ -1,5 +1,18 @@
 const Joi = require('joi');
 
+// Strong password policy: 8+ chars, uppercase, lowercase, number
+const passwordSchema = Joi.string()
+    .min(8)
+    .max(100)
+    .pattern(/[A-Z]/, 'uppercase letter')
+    .pattern(/[a-z]/, 'lowercase letter')
+    .pattern(/[0-9]/, 'number')
+    .required()
+    .messages({
+        'string.min': 'Password must be at least 8 characters',
+        'string.pattern.name': 'Password must contain at least one {#name}',
+    });
+
 /**
  * User registration validation
  */
@@ -7,7 +20,7 @@ const registerSchema = Joi.object({
     name: Joi.string().required().trim().max(100),
     phone: Joi.string().required().pattern(/^\+?[\d\s-]{10,15}$/),
     email: Joi.string().email().optional(),
-    password: Joi.string().required().min(6).max(100)
+    password: passwordSchema
 });
 
 /**

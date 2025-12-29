@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, Form, Input, Button, Typography, Space, Divider, Dropdown } from 'antd';
-import { LockOutlined, PhoneOutlined, GlobalOutlined } from '@ant-design/icons';
+import { LockOutlined, PhoneOutlined, GlobalOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAccessibility } from '../context/AccessibilityContext';
 
 const { Title, Text, Paragraph } = Typography;
 
 function Login() {
     const { login } = useAuth();
     const { t, language, languages, changeLanguage } = useLanguage();
+    const { increaseFontSize, decreaseFontSize, darkMode, toggleDarkMode } = useAccessibility();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
@@ -42,8 +44,18 @@ function Login() {
             display: 'flex',
             flexDirection: 'column',
         }}>
-            {/* Language Selector - Top Right */}
-            <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}>
+            {/* Accessibility & Language - Top Right */}
+            <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10, display: 'flex', gap: 8 }}>
+                <Space size={4}>
+                    <Button size="small" onClick={decreaseFontSize} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 28, height: 28, padding: 0 }}>A-</Button>
+                    <Button size="small" onClick={increaseFontSize} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 28, height: 28, padding: 0 }}>A+</Button>
+                </Space>
+                <Button
+                    size="small"
+                    onClick={toggleDarkMode}
+                    icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
+                    style={{ background: darkMode ? '#FFD700' : 'rgba(255,255,255,0.2)', border: 'none', color: darkMode ? '#000' : 'white', width: 32, height: 32 }}
+                />
                 <Dropdown menu={languageMenu} placement="bottomRight">
                     <Button icon={<GlobalOutlined />} style={{
                         background: 'rgba(255,255,255,0.2)',

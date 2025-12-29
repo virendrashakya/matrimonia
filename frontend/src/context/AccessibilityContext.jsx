@@ -18,6 +18,12 @@ export function AccessibilityProvider({ children }) {
         return localStorage.getItem('highContrast') === 'true';
     });
 
+    const [darkMode, setDarkMode] = useState(() => {
+        const saved = localStorage.getItem('darkMode');
+        if (saved !== null) return saved === 'true';
+        return false; // Default to light mode
+    });
+
     useEffect(() => {
         localStorage.setItem('fontSize', fontSize);
         document.documentElement.style.setProperty('--base-font-size', `${FONT_SIZES[fontSize].base}px`);
@@ -32,6 +38,15 @@ export function AccessibilityProvider({ children }) {
             document.body.classList.remove('high-contrast');
         }
     }, [highContrast]);
+
+    useEffect(() => {
+        localStorage.setItem('darkMode', darkMode);
+        if (darkMode) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+    }, [darkMode]);
 
     const increaseFontSize = () => {
         const sizes = Object.keys(FONT_SIZES);
@@ -53,6 +68,10 @@ export function AccessibilityProvider({ children }) {
         setHighContrast(!highContrast);
     };
 
+    const toggleDarkMode = () => {
+        setDarkMode(!darkMode);
+    };
+
     const value = {
         fontSize,
         setFontSize,
@@ -61,7 +80,9 @@ export function AccessibilityProvider({ children }) {
         increaseFontSize,
         decreaseFontSize,
         highContrast,
-        toggleHighContrast
+        toggleHighContrast,
+        darkMode,
+        toggleDarkMode
     };
 
     return (
@@ -74,7 +95,19 @@ export function AccessibilityProvider({ children }) {
 export function useAccessibility() {
     const context = useContext(AccessibilityContext);
     if (!context) {
-        throw new Error('useAccessibility must be used within AccessibilityProvider');
+        // Return safe defaults if not in provider
+        return {
+            fontSize: 'medium',
+            setFontSize: () => { },
+            fontSizeConfig: { base: 16, label: 'मध्यम', labelEn: 'Medium' },
+            FONT_SIZES: {},
+            increaseFontSize: () => { },
+            decreaseFontSize: () => { },
+            highContrast: false,
+            toggleHighContrast: () => { },
+            darkMode: false,
+            toggleDarkMode: () => { }
+        };
     }
     return context;
 }

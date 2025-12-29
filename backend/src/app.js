@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profiles');
@@ -120,6 +123,11 @@ const authLimiter = rateLimit({
 // Body parsing
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+
+// Security middleware
+app.use(mongoSanitize()); // Prevent NoSQL injection
+app.use(xss());           // Sanitize user input to prevent XSS
+app.use(hpp());           // Prevent HTTP parameter pollution
 
 // ======================
 // ROUTES

@@ -1118,3 +1118,189 @@ body.high-contrast .ant-select-selector {
   font-size: 11px;
   font-weight: 500;
 }
+
+/* ================================
+   DARK MODE THEME
+================================ */
+body.dark-mode {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-card: #0f3460;
+  --bg-highlight: #1a1a2e;
+  --text-primary: #eaeaea;
+  --text-secondary: #b8b8b8;
+  --text-muted: #888888;
+  --border: #2a2a4a;
+  --border-dark: #3a3a5a;
+  --gold: #FFD700;
+  --gold-light: #FFE066;
+  --gold-dark: #CCA000;
+}
+
+body.dark-mode .ant-layout {
+  background: var(--bg-secondary) !important;
+}
+
+body.dark-mode .ant-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .ant-card-head {
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .ant-typography {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .ant-input,
+body.dark-mode .ant-select-selector,
+body.dark-mode .ant-picker {
+  background: var(--bg-card) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .ant-select-dropdown,
+body.dark-mode .ant-dropdown-menu {
+  background: var(--bg-card) !important;
+}
+
+body.dark-mode .ant-modal-content {
+  background: var(--bg-card) !important;
+}
+
+body.dark-mode .ant-modal-header {
+  background: var(--bg-card) !important;
+  border-color: var(--border) !important;
+}
+
+body.dark-mode .ant-statistic-title {
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode .ant-statistic-content {
+  color: var(--text-primary) !important;
+}
+
+/* ================================
+   MOBILE RESPONSIVE STYLES
+================================ */
+@media (max-width: 768px) {
+
+  /* Larger touch targets for elders */
+  .ant-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 8px 16px !important;
+  }
+
+  .ant-btn-sm {
+    min-height: 36px !important;
+    min-width: 36px !important;
+    padding: 4px 12px !important;
+  }
+
+  /* Better form spacing */
+  .ant-form-item {
+    margin-bottom: 16px !important;
+  }
+
+  .ant-input,
+  .ant-select-selector,
+  .ant-picker {
+    min-height: 44px !important;
+    font-size: 16px !important;
+  }
+
+  /* Card improvements */
+  .ant-card {
+    border-radius: 12px !important;
+  }
+
+  .ant-card-body {
+    padding: 16px !important;
+  }
+
+  /* Content padding */
+  .ant-layout-content {
+    padding: 0 12px !important;
+  }
+
+  /* Typography scaling */
+  h1,
+  .ant-typography h1 {
+    font-size: 24px !important;
+    line-height: 1.3 !important;
+  }
+
+  h2,
+  .ant-typography h2 {
+    font-size: 20px !important;
+    line-height: 1.3 !important;
+  }
+
+  h3,
+  .ant-typography h3 {
+    font-size: 18px !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Profile grid */
+  .profile-grid {
+    gap: 12px !important;
+  }
+
+  /* Stats cards */
+  .ant-statistic-content-value {
+    font-size: 24px !important;
+  }
+
+  /* Bottom padding for mobile nav */
+  .ant-layout {
+    padding-bottom: 80px !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .ant-layout-content {
+    padding: 0 8px !important;
+  }
+
+  .ant-card-body {
+    padding: 12px !important;
+  }
+
+  /* Hide desktop elements */
+  .desktop-menu {
+    display: none !important;
+  }
+
+  /* Full width buttons */
+  .ant-btn-block {
+    width: 100% !important;
+  }
+}
+
+/* Touch-friendly spacing */
+@media (pointer: coarse) {
+
+  /* Coarse pointer = touch device */
+  .ant-btn,
+  .ant-tag,
+  .ant-checkbox-wrapper,
+  .ant-radio-wrapper {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  .clickable-row {
+    min-height: 48px;
+    padding: 12px;
+  }
+}
