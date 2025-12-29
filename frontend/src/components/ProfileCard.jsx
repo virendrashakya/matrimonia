@@ -358,13 +358,14 @@ function ProfileCard({ profile }) {
                         <Tooltip title={isHindi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}>
                             <Button
                                 size="small"
+                                type="primary"
+                                className="whatsapp-share-btn"
                                 icon={<WhatsAppOutlined />}
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     shareViaWhatsApp(profile, isHindi ? 'hi' : 'en');
                                 }}
-                                style={{ background: '#25D366', borderColor: '#25D366', color: 'white' }}
                             />
                         </Tooltip>
                     </div>

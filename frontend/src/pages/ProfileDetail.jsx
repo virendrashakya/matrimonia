@@ -384,13 +384,14 @@ function ProfileDetail() {
                         <Space direction="vertical" size={8} style={{ width: '100%' }}>
                             <Button
                                 block
+                                type="primary"
+                                className="whatsapp-share-btn"
                                 icon={<span style={{ marginRight: 8 }}>📱</span>}
                                 onClick={() => {
                                     const url = window.location.href;
                                     const text = `${isHindi ? 'इस प्रोफ़ाइल को देखें' : 'Check out this profile'}: ${profile.fullName}, ${profile.age} ${isHindi ? 'वर्ष' : 'yrs'}, ${profile.city}\n\n${url}`;
                                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                                 }}
-                                style={{ background: '#25D366', color: 'white', border: 'none' }}
                             >
                                 {isHindi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}
                             </Button>
@@ -412,9 +413,10 @@ function ProfileDetail() {
                             </Button>
                             <Button
                                 block
+                                type="primary"
+                                className="whatsapp-share-btn"
                                 icon={<WhatsAppOutlined />}
                                 onClick={() => setWhatsappVisible(true)}
-                                style={{ background: '#25D366', color: 'white', border: 'none' }}
                             >
                                 {isHindi ? 'WhatsApp शेयर' : 'WhatsApp Share'}
                             </Button>

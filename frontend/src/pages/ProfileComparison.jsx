@@ -88,9 +88,10 @@ function ProfileComparison() {
 
                 <Space wrap>
                     <Button
+                        type="primary"
+                        className="whatsapp-share-btn"
                         icon={<WhatsAppOutlined />}
                         onClick={() => shareMultipleProfiles(shortlist, isHindi ? 'hi' : 'en')}
-                        style={{ background: '#25D366', borderColor: '#25D366', color: 'white' }}
                     >
                         {isHindi ? 'WhatsApp पर भेजें' : 'Share on WhatsApp'}
                     </Button>
