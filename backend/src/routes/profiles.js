@@ -18,20 +18,26 @@ const {
 
 /**
  * GET /api/profiles
- * List profiles with pagination
+ * List profiles with pagination (excludes private profiles)
  */
 router.get('/', authenticate, async (req, res, next) => {
     try {
         const { page = 1, limit = 20 } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
+        // Only show public and restricted profiles (not private)
+        const query = {
+            status: 'active',
+            visibility: { $in: ['public', 'restricted'] }
+        };
+
         const [profiles, total] = await Promise.all([
-            Profile.find({ status: 'active' })
-                .select('fullName gender dateOfBirth caste city state education profession photos recognition fraudIndicators.phoneReused')
+            Profile.find(query)
+                .select('fullName gender dateOfBirth caste city state education profession photos recognition fraudIndicators.phoneReused visibility')
                 .sort({ 'recognition.score': -1 })
                 .skip(skip)
                 .limit(parseInt(limit)),
-            Profile.countDocuments({ status: 'active' })
+            Profile.countDocuments(query)
         ]);
 
         res.json({
@@ -94,8 +100,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
  * 
  * Role limits:
  * - admin/moderator: Cannot create profiles
- * - contributor/helper/unverified: 1 profile only
- * - matchmaker/elder: Unlimited profiles
+ * - matchmaker/enduser: Can create profiles (enduser for family members)
  */
 router.post('/', authenticate, validate(profileSchema), async (req, res, next) => {
     try {
@@ -109,21 +114,8 @@ router.post('/', authenticate, validate(profileSchema), async (req, res, next) =
             });
         }
 
-        // Check profile limit for normal users
-        if (['contributor', 'helper', 'unverified'].includes(role)) {
-            const existingCount = await Profile.countDocuments({
-                createdBy: req.user._id,
-                status: { $ne: 'deleted' }
-            });
-
-            if (existingCount >= 1) {
-                return res.status(403).json({
-                    error: 'You can only create one profile. Upgrade to matchmaker for unlimited profiles.',
-                    errorHi: 'आप केवल एक प्रोफ़ाइल बना सकते हैं। असीमित प्रोफ़ाइल के लिए मैचमेकर बनें।',
-                    existingCount
-                });
-            }
-        }
+        // All other roles (matchmaker, enduser) can create profiles
+        // EndUsers create for family: self, son, daughter, brother, sister, etc.
 
         const profileData = req.validatedBody;
 

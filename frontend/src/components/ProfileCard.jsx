@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Card, Avatar, Tag, Typography, Space } from 'antd';
-import { UserOutlined, CheckCircleOutlined, WarningOutlined, CloseCircleOutlined, HeartOutlined, ManOutlined, WomanOutlined } from '@ant-design/icons';
+import { Card, Avatar, Tag, Typography, Space, Tooltip } from 'antd';
+import { UserOutlined, CheckCircleOutlined, WarningOutlined, CloseCircleOutlined, HeartOutlined, ManOutlined, WomanOutlined, GlobalOutlined, LockOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
 
 const { Text, Title } = Typography;
@@ -42,6 +42,15 @@ function ProfileCard({ profile }) {
     };
     const genderStyle = genderConfig[profile.gender] || genderConfig.male;
 
+    // Visibility config
+    const visibilityConfig = {
+        public: { icon: <GlobalOutlined />, color: '#52c41a', label: '🌐' },
+        restricted: { icon: <LockOutlined />, color: '#fa8c16', label: '🔐' },
+        private: { icon: <EyeInvisibleOutlined />, color: '#ff4d4f', label: '🔒' }
+    };
+    const visibility = profile.visibility || 'public';
+    const visStyle = visibilityConfig[visibility];
+
     const primaryPhoto = profile.photos?.find(p => p.isPrimary)?.url || profile.photos?.[0]?.url;
 
     // Get display name based on language
@@ -52,6 +61,15 @@ function ProfileCard({ profile }) {
     const displayCity = isHindi && profile.localContent?.city
         ? profile.localContent.city
         : profile.city;
+
+    // Generate initials from name (e.g., "Virendra Shakya" -> "VS")
+    const getInitials = (name) => {
+        if (!name) return '?';
+        const words = name.trim().split(/\s+/);
+        if (words.length === 1) return words[0].charAt(0).toUpperCase();
+        return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+    };
+    const initials = getInitials(profile.fullName);
 
     return (
         <Link to={`/profiles/${profile._id}`} style={{ textDecoration: 'none' }}>
@@ -99,12 +117,16 @@ function ProfileCard({ profile }) {
                                 </div>
                                 <Avatar
                                     size={80}
-                                    icon={<UserOutlined />}
                                     style={{
                                         background: genderStyle.gradient,
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                        fontSize: 32,
+                                        fontWeight: 700,
+                                        color: 'white'
                                     }}
-                                />
+                                >
+                                    {initials}
+                                </Avatar>
                             </div>
                         )}
 
@@ -136,11 +158,33 @@ function ProfileCard({ profile }) {
                             </Tag>
                         </div>
 
+                        {/* Visibility badge */}
+                        {visibility !== 'public' && (
+                            <Tooltip title={visibility === 'restricted' ? 'Requires approval' : 'Private'}>
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 12,
+                                    right: 12,
+                                    background: 'rgba(255,255,255,0.9)',
+                                    borderRadius: '50%',
+                                    width: 28,
+                                    height: 28,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                    fontSize: 14
+                                }}>
+                                    {visStyle.label}
+                                </div>
+                            </Tooltip>
+                        )}
+
                         {/* Gender indicator */}
                         <div style={{
                             position: 'absolute',
                             top: 12,
-                            right: 12,
+                            right: visibility !== 'public' ? 48 : 12,
                             background: genderStyle.gradient,
                             color: 'white',
                             width: 32,
@@ -285,8 +329,8 @@ function ProfileCard({ profile }) {
                         </div>
                     </div>
                 </div>
-            </Card>
-        </Link>
+            </Card >
+        </Link >
     );
 }
 

@@ -30,8 +30,8 @@ const UserSchema = new mongoose.Schema({
     // Authorization
     role: {
         type: String,
-        enum: ['admin', 'moderator', 'matchmaker', 'elder', 'helper', 'contributor'],
-        default: 'contributor'
+        enum: ['admin', 'moderator', 'matchmaker', 'enduser'],
+        default: 'enduser'
     },
     isVerified: {
         type: Boolean,

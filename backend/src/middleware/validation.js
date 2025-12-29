@@ -30,6 +30,7 @@ const profileSchema = Joi.object({
     alternatePhone: Joi.string().optional().allow(''),
     email: Joi.string().email().optional().allow(''),
     maritalStatus: Joi.string().valid('never_married', 'divorced', 'widowed', 'awaiting_divorce').optional(),
+    createdFor: Joi.string().valid('self', 'son', 'daughter', 'brother', 'sister', 'nephew', 'niece', 'friend', 'relative', 'client').optional(),
 
     // Location & Demographics
     caste: Joi.string().required(),
@@ -108,7 +109,10 @@ const profileSchema = Joi.object({
         manglikStatus: Joi.array().items(Joi.string()).optional(),
         rashiCompatibility: Joi.boolean().optional(),
         aboutPartner: Joi.string().optional().allow('').max(500)
-    }).optional()
+    }).optional(),
+
+    // Visibility control
+    visibility: Joi.string().valid('public', 'restricted', 'private').optional()
 });
 
 /**

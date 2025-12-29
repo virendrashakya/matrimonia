@@ -1,567 +1,84 @@
 /**
- * Database Seed Script
- * Creates test users with all available roles and sample matrimonial profiles
+ * Database Seed Script - Comprehensive Sample Data
+ * Creates: 1 Admin, 2 Moderators, 3 Matchmakers (25 profiles each), 30 EndUsers (1 each)
+ * Total: 36 users, 105 profiles
  * 
  * Run: node src/scripts/seed.js
  */
 
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { User, Profile, Recognition, Configuration } = require('../models');
+const { User, Profile, Configuration } = require('../models');
 
-const USERS = [
-    {
-        name: 'Admin User',
-        phone: '9999999901',
-        password: 'admin123',
-        role: 'admin',
-        isVerified: true
-    },
-    {
-        name: 'Moderator User',
-        phone: '9999999902',
-        password: 'mod123',
-        role: 'moderator',
-        isVerified: true
-    },
-    {
-        name: 'Matchmaker Agency',
-        phone: '9999999903',
-        password: 'match123',
-        role: 'matchmaker',
-        isVerified: true,
-        agency: {
-            name: 'शुभ विवाह मैचमेकर्स',
-            city: 'Jaipur',
-            state: 'Rajasthan',
-            establishedYear: 2010,
-            description: 'Premium matchmaking services for all communities'
-        }
-    },
-    {
-        name: 'Elder Uncle',
-        phone: '9999999904',
-        password: 'elder123',
-        role: 'elder',
-        isVerified: true
-    },
-    {
-        name: 'Helper Friend',
-        phone: '9999999905',
-        password: 'helper123',
-        role: 'helper',
-        isVerified: true
-    },
-    {
-        name: 'Regular Contributor',
-        phone: '9999999906',
-        password: 'user123',
-        role: 'contributor',
-        isVerified: true
-    },
-    {
-        name: 'Unverified User',
-        phone: '9999999907',
-        password: 'unverified123',
-        role: 'contributor',
-        isVerified: false
-    }
+// Indian names and data
+const MALE_NAMES = [
+    'Rahul Sharma', 'Amit Verma', 'Vikram Singh', 'Arjun Patel', 'Sanjay Gupta',
+    'Deepak Kumar', 'Rajesh Agarwal', 'Sunil Yadav', 'Manoj Mishra', 'Anil Joshi',
+    'Vivek Reddy', 'Rohit Kapoor', 'Nitin Saxena', 'Pankaj Dubey', 'Ashish Tiwari',
+    'Gaurav Chauhan', 'Pradeep Pandey', 'Mukesh Thakur', 'Dinesh Goyal', 'Ramesh Bhatia',
+    'Naveen Rao', 'Sandeep Das', 'Rakesh Bansal', 'Vishal Mehta', 'Hemant Jain',
+    'Abhishek Kulkarni', 'Vikas Chaudhary', 'Suresh Shukla', 'Kamal Rathi', 'Anand Srivastava'
 ];
 
-// Generate unique phone numbers for profiles
-let phoneCounter = 8800000001;
+const FEMALE_NAMES = [
+    'Priya Sharma', 'Neha Agarwal', 'Ananya Singh', 'Kavita Patel', 'Sneha Iyer',
+    'Pooja Gupta', 'Ritu Verma', 'Swati Mishra', 'Anjali Yadav', 'Divya Kapoor',
+    'Meera Jain', 'Shreya Deshmukh', 'Sunita Reddy', 'Nisha Saxena', 'Rekha Tiwari',
+    'Vandana Pandey', 'Seema Thakur', 'Komal Goyal', 'Preeti Bhatia', 'Shweta Rao',
+    'Archana Das', 'Mamta Bansal', 'Kavya Mehta', 'Deepa Kulkarni', 'Aarti Chaudhary',
+    'Radha Shukla', 'Kiran Rathi', 'Nandini Srivastava', 'Pallavi Dubey', 'Suman Joshi'
+];
+
+const CASTES = ['Brahmin', 'Rajput', 'Agarwal', 'Gupta', 'Baniya', 'Jat', 'Kayastha', 'Yadav', 'Marwari', 'Patel'];
+const CITIES = ['Delhi', 'Mumbai', 'Bangalore', 'Chennai', 'Hyderabad', 'Pune', 'Jaipur', 'Lucknow', 'Kolkata', 'Ahmedabad'];
+const STATES = ['Delhi', 'Maharashtra', 'Karnataka', 'Tamil Nadu', 'Telangana', 'Maharashtra', 'Rajasthan', 'Uttar Pradesh', 'West Bengal', 'Gujarat'];
+const EDUCATIONS = ['B.Tech', 'MBA', 'MBBS', 'B.Com', 'CA', 'M.Tech', 'BBA', 'LLB', 'B.Sc', 'MA'];
+const PROFESSIONS = ['Software Engineer', 'Doctor', 'CA', 'Business Owner', 'Banker', 'Teacher', 'Government Job', 'Lawyer', 'Manager', 'Engineer'];
+const COMPANIES = ['TCS', 'Infosys', 'Wipro', 'Google', 'Microsoft', 'HDFC Bank', 'Government', 'Self-employed', 'Reliance', 'L&T'];
+const INCOMES = ['5-10 LPA', '10-15 LPA', '15-25 LPA', '25-40 LPA', '40+ LPA'];
+const VISIBILITIES = ['public', 'public', 'public', 'restricted', 'private']; // More public
+const RASHIS = ['mesh', 'vrishabh', 'mithun', 'kark', 'simha', 'kanya', 'tula', 'vrishchik', 'dhanu', 'makar', 'kumbh', 'meen'];
+
+const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+let phoneCounter = 9000000001;
 const getPhone = () => String(phoneCounter++);
 
-// Sample profile data with correct enum values
-const SAMPLE_PROFILES = [
-    // Male profiles
-    {
-        fullName: 'Rahul Sharma',
-        gender: 'male',
-        dateOfBirth: new Date('1995-03-15'),
+// Generate a random profile
+function generateProfile(gender, createdBy) {
+    const names = gender === 'male' ? MALE_NAMES : FEMALE_NAMES;
+    const name = random(names);
+    const cityIndex = randomInt(0, CITIES.length - 1);
+    const birthYear = randomInt(1988, 2000);
+
+    return {
+        fullName: name,
+        gender,
+        dateOfBirth: new Date(`${birthYear}-${randomInt(1, 12).toString().padStart(2, '0')}-${randomInt(1, 28).toString().padStart(2, '0')}`),
         phone: getPhone(),
         religion: 'Hindu',
-        caste: 'Brahmin',
-        city: 'Delhi',
-        state: 'Delhi',
-        education: 'B.Tech',
-        educationDetail: 'IIT Delhi - Computer Science',
-        profession: 'Software Engineer',
-        company: 'Google India',
-        annualIncome: '25-35 LPA',
-        heightCm: 175,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'mesh', nakshatra: 'ashwini' },
-        aboutMe: 'Passionate about technology and innovation. Love traveling and music.',
-        status: 'active'
-    },
-    {
-        fullName: 'Amit Verma',
-        gender: 'male',
-        dateOfBirth: new Date('1993-07-22'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Agarwal',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        education: 'MBA',
-        educationDetail: 'IIM Ahmedabad',
-        profession: 'Business Analyst',
-        company: 'McKinsey',
-        annualIncome: '30-40 LPA',
-        heightCm: 178,
-        complexion: 'wheatish',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'simha', nakshatra: 'magha' },
-        aboutMe: 'Family-oriented professional seeking a life partner who values tradition.',
-        status: 'active'
-    },
-    {
-        fullName: 'Vikram Singh',
-        gender: 'male',
-        dateOfBirth: new Date('1990-11-05'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Rajput',
-        city: 'Jaipur',
-        state: 'Rajasthan',
-        education: 'MBBS',
-        educationDetail: 'AIIMS Delhi',
-        profession: 'Doctor',
-        company: 'Apollo Hospitals',
-        annualIncome: '20-30 LPA',
-        heightCm: 180,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'dhanu', nakshatra: 'mula' },
-        aboutMe: 'Dedicated doctor serving communities. Looking for an understanding partner.',
-        status: 'active'
-    },
-    {
-        fullName: 'Arjun Patel',
-        gender: 'male',
-        dateOfBirth: new Date('1992-02-18'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Patel',
-        city: 'Ahmedabad',
-        state: 'Gujarat',
-        education: 'B.Com',
-        educationDetail: 'Gujarat University',
-        profession: 'Business Owner',
-        company: 'Family Business - Textiles',
-        annualIncome: '50-75 LPA',
-        heightCm: 172,
-        complexion: 'wheatish',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'vrishabh', nakshatra: 'rohini' },
-        aboutMe: 'Running family textile business. Traditional values with modern outlook.',
-        status: 'active'
-    },
-    {
-        fullName: 'Sanjay Gupta',
-        gender: 'male',
-        dateOfBirth: new Date('1988-09-12'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Gupta',
-        city: 'Lucknow',
-        state: 'Uttar Pradesh',
-        education: 'CA',
-        profession: 'Chartered Accountant',
-        company: 'Deloitte',
-        annualIncome: '18-25 LPA',
-        heightCm: 168,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'kanya', nakshatra: 'hasta' },
-        aboutMe: 'Finance professional with stable career. Family-oriented with simple lifestyle.',
-        status: 'active'
-    },
-    {
-        fullName: 'Mohammed Aziz',
-        gender: 'male',
-        dateOfBirth: new Date('1994-04-25'),
-        phone: getPhone(),
-        religion: 'Muslim',
-        caste: 'Syed',
-        city: 'Hyderabad',
-        state: 'Telangana',
-        education: 'M.Tech',
-        profession: 'Data Scientist',
-        company: 'Microsoft',
-        annualIncome: '28-35 LPA',
-        heightCm: 176,
-        complexion: 'wheatish',
-        maritalStatus: 'never_married',
-        aboutMe: 'Tech enthusiast working in AI/ML. Looking for educated, progressive partner.',
-        status: 'active'
-    },
-    {
-        fullName: 'Gurpreet Singh',
-        gender: 'male',
-        dateOfBirth: new Date('1991-06-30'),
-        phone: getPhone(),
-        religion: 'Sikh',
-        caste: 'Jat Sikh',
-        city: 'Chandigarh',
-        state: 'Punjab',
-        education: 'B.Tech',
-        profession: 'Civil Engineer',
-        company: 'L&T',
-        annualIncome: '15-20 LPA',
-        heightCm: 183,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'mithun', nakshatra: 'ardra' },
-        aboutMe: 'Simple Punjabi family, love sports and outdoor activities.',
-        status: 'active'
-    },
-    {
-        fullName: 'Ravi Kumar',
-        gender: 'male',
-        dateOfBirth: new Date('1989-12-08'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Yadav',
-        city: 'Patna',
-        state: 'Bihar',
-        education: 'IAS',
-        profession: 'IAS Officer',
-        company: 'Government of India',
-        annualIncome: '15-20 LPA',
-        heightCm: 170,
-        complexion: 'wheatish',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'makar', nakshatra: 'shravana' },
-        aboutMe: 'Civil servant dedicated to public service. Value honesty and simplicity.',
-        status: 'active'
-    },
-    {
-        fullName: 'Joseph Thomas',
-        gender: 'male',
-        dateOfBirth: new Date('1993-01-14'),
-        phone: getPhone(),
-        religion: 'Christian',
-        caste: 'Syrian Christian',
-        city: 'Kochi',
-        state: 'Kerala',
-        education: 'MBA',
-        profession: 'Marketing Manager',
-        company: 'Hindustan Unilever',
-        annualIncome: '22-28 LPA',
-        heightCm: 174,
-        complexion: 'wheatish',
-        maritalStatus: 'never_married',
-        aboutMe: 'Marketing professional with creative mindset. Love music and traveling.',
-        status: 'active'
-    },
-    {
-        fullName: 'Aditya Reddy',
-        gender: 'male',
-        dateOfBirth: new Date('1996-08-20'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Reddy',
-        city: 'Bangalore',
-        state: 'Karnataka',
-        education: 'B.Tech',
-        profession: 'Product Manager',
-        company: 'Amazon',
-        annualIncome: '35-45 LPA',
-        heightCm: 177,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'tula', nakshatra: 'swati' },
-        aboutMe: 'Product enthusiast at heart. Seeking partner who shares ambitious goals.',
-        status: 'active'
-    },
-    {
-        fullName: 'Deepak Joshi',
-        gender: 'male',
-        dateOfBirth: new Date('1987-05-11'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Brahmin',
-        city: 'Pune',
-        state: 'Maharashtra',
-        education: 'PhD',
-        profession: 'Research Scientist',
-        company: 'ISRO',
-        annualIncome: '18-22 LPA',
-        heightCm: 169,
-        complexion: 'fair',
-        maritalStatus: 'divorced',
-        horoscope: { rashi: 'kumbh', nakshatra: 'shatabhisha' },
-        aboutMe: 'Scientist working on space research. Looking for second chance at happiness.',
-        status: 'active'
-    },
-    // Female profiles
-    {
-        fullName: 'Priya Sharma',
-        gender: 'female',
-        dateOfBirth: new Date('1996-05-20'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Brahmin',
-        city: 'Bangalore',
-        state: 'Karnataka',
-        education: 'M.Tech',
-        educationDetail: 'IISc Bangalore',
-        profession: 'Software Engineer',
-        company: 'Microsoft',
-        annualIncome: '22-30 LPA',
-        heightCm: 165,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'mithun', nakshatra: 'mrigashira' },
-        aboutMe: 'Tech professional with traditional values. Love cooking and reading.',
-        status: 'active'
-    },
-    {
-        fullName: 'Neha Agarwal',
-        gender: 'female',
-        dateOfBirth: new Date('1994-09-10'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Agarwal',
-        city: 'Kolkata',
-        state: 'West Bengal',
-        education: 'MBA',
-        profession: 'HR Manager',
-        company: 'TCS',
-        annualIncome: '15-20 LPA',
-        heightCm: 160,
-        complexion: 'wheatish',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'kanya', nakshatra: 'uttara_phalguni' },
-        aboutMe: 'People-focused professional. Value family bonds and cultural traditions.',
-        status: 'active'
-    },
-    {
-        fullName: 'Ananya Singh',
-        gender: 'female',
-        dateOfBirth: new Date('1997-12-03'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Rajput',
-        city: 'Lucknow',
-        state: 'Uttar Pradesh',
-        education: 'MBBS',
-        profession: 'Doctor',
-        company: 'KGMU Hospital',
-        annualIncome: '12-18 LPA',
-        heightCm: 162,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'dhanu', nakshatra: 'purva_ashadha' },
-        aboutMe: 'Young doctor passionate about healthcare. Looking for supportive partner.',
-        status: 'active'
-    },
-    {
-        fullName: 'Kavita Patel',
-        gender: 'female',
-        dateOfBirth: new Date('1993-03-28'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Patel',
-        city: 'Surat',
-        state: 'Gujarat',
-        education: 'B.Pharm',
-        profession: 'Pharmacist',
-        company: 'Cipla',
-        annualIncome: '8-12 LPA',
-        heightCm: 158,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'mesh', nakshatra: 'bharani' },
-        aboutMe: 'Simple Gujarati girl from business family. Love cooking and art.',
-        status: 'active'
-    },
-    {
-        fullName: 'Sneha Iyer',
-        gender: 'female',
-        dateOfBirth: new Date('1995-07-17'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Iyer',
-        city: 'Chennai',
-        state: 'Tamil Nadu',
-        education: 'CA',
-        profession: 'Chartered Accountant',
-        company: 'EY',
-        annualIncome: '18-25 LPA',
-        heightCm: 163,
-        complexion: 'wheatish',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'kark', nakshatra: 'pushya' },
-        aboutMe: 'Finance professional who loves classical music and dance.',
-        status: 'active'
-    },
-    {
-        fullName: 'Fatima Khan',
-        gender: 'female',
-        dateOfBirth: new Date('1996-02-14'),
-        phone: getPhone(),
-        religion: 'Muslim',
-        caste: 'Khan',
-        city: 'Delhi',
-        state: 'Delhi',
-        education: 'B.Arch',
-        profession: 'Architect',
-        company: 'Self Employed',
-        annualIncome: '12-18 LPA',
-        heightCm: 167,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        aboutMe: 'Creative architect with passion for sustainable design. Religious and modern.',
-        status: 'active'
-    },
-    {
-        fullName: 'Harpreet Kaur',
-        gender: 'female',
-        dateOfBirth: new Date('1994-10-05'),
-        phone: getPhone(),
-        religion: 'Sikh',
-        caste: 'Khatri',
-        city: 'Amritsar',
-        state: 'Punjab',
-        education: 'MBA',
-        profession: 'Bank Manager',
-        company: 'HDFC Bank',
-        annualIncome: '15-20 LPA',
-        heightCm: 168,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        aboutMe: 'Independent woman from loving Punjabi family. Love cooking and singing.',
-        status: 'active'
-    },
-    {
-        fullName: 'Divya Nair',
-        gender: 'female',
-        dateOfBirth: new Date('1992-04-22'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Nair',
-        city: 'Trivandrum',
-        state: 'Kerala',
-        education: 'M.Sc',
-        profession: 'Data Analyst',
-        company: 'Infosys',
-        annualIncome: '10-15 LPA',
-        heightCm: 161,
-        complexion: 'wheatish',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'vrishabh', nakshatra: 'krittika' },
-        aboutMe: 'Simple Kerala girl with analytical mind. Love reading and nature.',
-        status: 'active'
-    },
-    {
-        fullName: 'Maria Joseph',
-        gender: 'female',
-        dateOfBirth: new Date('1995-11-30'),
-        phone: getPhone(),
-        religion: 'Christian',
-        caste: 'Catholic',
-        city: 'Goa',
-        state: 'Goa',
-        education: 'Hotel Management',
-        profession: 'Hotel Manager',
-        company: 'Taj Hotels',
-        annualIncome: '12-18 LPA',
-        heightCm: 164,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        aboutMe: 'Hospitality professional with cheerful personality. Love beaches and music.',
-        status: 'active'
-    },
-    {
-        fullName: 'Shreya Deshmukh',
-        gender: 'female',
-        dateOfBirth: new Date('1998-08-08'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Maratha',
-        city: 'Pune',
-        state: 'Maharashtra',
-        education: 'B.Tech',
-        profession: 'UI/UX Designer',
-        company: 'Flipkart',
-        annualIncome: '15-22 LPA',
-        heightCm: 160,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'simha', nakshatra: 'purva_phalguni' },
-        aboutMe: 'Creative designer who loves art and travel. Looking for adventurous partner.',
-        status: 'active'
-    },
-    {
-        fullName: 'Ritu Mishra',
-        gender: 'female',
-        dateOfBirth: new Date('1991-06-15'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Brahmin',
-        city: 'Varanasi',
-        state: 'Uttar Pradesh',
-        education: 'MA',
-        profession: 'Professor',
-        company: 'BHU',
-        annualIncome: '10-15 LPA',
-        heightCm: 159,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        horoscope: { rashi: 'mithun', nakshatra: 'punarvasu' },
-        aboutMe: 'Sanskrit and Hindi professor. Traditional upbringing with scholarly interests.',
-        status: 'active'
-    },
-    {
-        fullName: 'Pooja Rao',
-        gender: 'female',
-        dateOfBirth: new Date('1990-01-25'),
-        phone: getPhone(),
-        religion: 'Hindu',
-        caste: 'Rao',
-        city: 'Hyderabad',
-        state: 'Telangana',
-        education: 'MD',
-        profession: 'Doctor',
-        company: 'Care Hospitals',
-        annualIncome: '25-35 LPA',
-        heightCm: 166,
-        complexion: 'wheatish',
-        maritalStatus: 'divorced',
-        horoscope: { rashi: 'makar', nakshatra: 'dhanishta' },
-        aboutMe: 'Experienced dermatologist. Looking for mature, understanding partner.',
-        status: 'active'
-    },
-    {
-        fullName: 'Meera Jain',
-        gender: 'female',
-        dateOfBirth: new Date('1997-09-18'),
-        phone: getPhone(),
-        religion: 'Jain',
-        caste: 'Jain',
-        city: 'Indore',
-        state: 'Madhya Pradesh',
-        education: 'B.Com',
-        profession: 'Business Owner',
-        company: 'Family Business - Jewelry',
-        annualIncome: '20-30 LPA',
-        heightCm: 157,
-        complexion: 'fair',
-        maritalStatus: 'never_married',
-        diet: 'jain',
-        horoscope: { rashi: 'kanya', nakshatra: 'chitra' },
-        aboutMe: 'From traditional Jain business family. Value simplicity and ethics.',
-        status: 'active'
-    }
-];
+        caste: random(CASTES),
+        city: CITIES[cityIndex],
+        state: STATES[cityIndex],
+        education: random(EDUCATIONS),
+        profession: random(PROFESSIONS),
+        company: random(COMPANIES),
+        annualIncome: random(INCOMES),
+        heightCm: gender === 'male' ? randomInt(165, 185) : randomInt(150, 170),
+        complexion: random(['fair', 'wheatish', 'wheatish_brown']),
+        maritalStatus: Math.random() > 0.9 ? 'divorced' : 'never_married',
+        horoscope: { rashi: random(RASHIS) },
+        aboutMe: `Looking for a suitable life partner. Family-oriented with modern values.`,
+        visibility: random(VISIBILITIES),
+        status: 'active',
+        createdBy
+    };
+}
 
 async function seed() {
     try {
-        console.log('🌱 Starting database seed...\n');
+        console.log('🌱 Starting comprehensive database seed...\n');
 
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('✅ Connected to MongoDB\n');
@@ -569,121 +86,143 @@ async function seed() {
         // Initialize config
         console.log('📋 Initializing configuration...');
         await Configuration.getConfig();
-        console.log('   Config initialized with defaults\n');
+        console.log('   Config initialized\n');
 
-        // Delete all test users first
-        console.log('🗑️  Deleting existing test data...');
-        for (const userData of USERS) {
-            await User.deleteOne({ phone: userData.phone });
-        }
-        // Delete sample profiles by phone range
-        await Profile.deleteMany({ phone: { $gte: '8800000001', $lte: '8800000100' } });
+        // Clear existing data
+        console.log('🗑️  Clearing existing test data...');
+        await User.deleteMany({ phone: { $gte: '9000000001', $lte: '9000000999' } });
+        await Profile.deleteMany({ phone: { $gte: '9000000001', $lte: '9000999999' } });
         console.log('   Done\n');
 
-        // Create users - password will be hashed by User model pre-save hook
-        console.log('👥 Creating test users...\n');
-        const createdUsers = {};
+        const createdUsers = [];
+        let profileCount = 0;
 
-        for (const userData of USERS) {
-            const user = await User.create({
-                name: userData.name,
-                phone: userData.phone,
-                passwordHash: userData.password, // Plain text - pre-save hook will hash
-                role: userData.role,
-                isVerified: userData.isVerified,
-                agency: userData.agency
+        // ============================
+        // 1. CREATE ADMIN (1)
+        // ============================
+        console.log('👑 Creating Admin...');
+        const admin = await User.create({
+            name: 'Admin User',
+            phone: '9000000001',
+            passwordHash: 'admin123',
+            role: 'admin',
+            isVerified: true
+        });
+        createdUsers.push(admin);
+        console.log('   ✅ Admin: 9000000001 / admin123\n');
+
+        // ============================
+        // 2. CREATE MODERATORS (2)
+        // ============================
+        console.log('🛡️  Creating Moderators...');
+        for (let i = 1; i <= 2; i++) {
+            const mod = await User.create({
+                name: `Moderator ${i}`,
+                phone: `900000000${i + 1}`,
+                passwordHash: 'mod123',
+                role: 'moderator',
+                isVerified: true
             });
-            createdUsers[userData.role] = user;
-            console.log(`   ✅ ${userData.role.padEnd(12)} - ${userData.phone} / ${userData.password}`);
+            createdUsers.push(mod);
+            console.log(`   ✅ Moderator ${i}: 900000000${i + 1} / mod123`);
         }
+        console.log('');
 
-        // Create sample profiles
-        console.log('\n📝 Creating sample matrimonial profiles...\n');
-
-        // Distribute profiles among different users
-        const profileCreators = [
-            { role: 'matchmaker', count: 8 },
-            { role: 'elder', count: 5 },
-            { role: 'contributor', count: 6 },
-            { role: 'helper', count: 5 }
+        // ============================
+        // 3. CREATE MATCHMAKERS (3) with 25 profiles each
+        // ============================
+        console.log('💼 Creating Matchmakers with 25 profiles each...');
+        const matchmakerAgencies = [
+            { name: 'शुभ विवाह', city: 'Delhi' },
+            { name: 'Premium Matches', city: 'Mumbai' },
+            { name: 'Divine Matrimony', city: 'Bangalore' }
         ];
 
-        let profileIndex = 0;
-        const createdProfiles = [];
+        for (let m = 0; m < 3; m++) {
+            const matchmaker = await User.create({
+                name: matchmakerAgencies[m].name,
+                phone: `900000010${m + 1}`,
+                passwordHash: 'match123',
+                role: 'matchmaker',
+                isVerified: true,
+                agency: {
+                    name: matchmakerAgencies[m].name,
+                    city: matchmakerAgencies[m].city,
+                    establishedYear: 2010 + m
+                }
+            });
+            createdUsers.push(matchmaker);
+            console.log(`   ✅ Matchmaker ${m + 1}: 900000010${m + 1} / match123`);
 
-        for (const { role, count } of profileCreators) {
-            const creator = createdUsers[role];
-            if (!creator) continue;
+            // Create 25 profiles for this matchmaker
+            for (let p = 0; p < 25; p++) {
+                const gender = p < 12 ? 'male' : 'female';
+                const profile = await Profile.create(generateProfile(gender, matchmaker._id));
+                profileCount++;
+            }
+            console.log(`      Created 25 profiles for ${matchmakerAgencies[m].name}`);
+        }
+        console.log('');
 
-            for (let i = 0; i < count && profileIndex < SAMPLE_PROFILES.length; i++) {
-                const profileData = SAMPLE_PROFILES[profileIndex];
-                const profile = await Profile.create({
-                    ...profileData,
-                    createdBy: creator._id,
-                    recognition: {
-                        count: Math.floor(Math.random() * 5),
-                        score: Math.floor(Math.random() * 50)
-                    }
-                });
-                createdProfiles.push(profile);
-                console.log(`   ✅ ${profileData.fullName} (by ${role})`);
-                profileIndex++;
+        // ============================
+        // 4. CREATE ENDUSERS (30) with 1 profile each
+        // ============================
+        console.log('👤 Creating EndUsers with 1 profile each...');
+        for (let u = 0; u < 30; u++) {
+            const gender = u < 15 ? 'male' : 'female';
+            const names = gender === 'male' ? MALE_NAMES : FEMALE_NAMES;
+
+            const enduser = await User.create({
+                name: names[u % names.length],
+                phone: `900000020${u.toString().padStart(2, '0')}`,
+                passwordHash: 'user123',
+                role: 'enduser',
+                isVerified: u < 25 // 5 unverified users
+            });
+            createdUsers.push(enduser);
+
+            // Create 1 profile for this enduser
+            const profile = await Profile.create(generateProfile(gender, enduser._id));
+            profileCount++;
+
+            if (u < 5 || u >= 25) {
+                console.log(`   ✅ EndUser ${u + 1}: 900000020${u.toString().padStart(2, '0')} / user123`);
             }
         }
+        console.log(`   ... and 25 more endusers`);
+        console.log('');
 
-        // Create some sample recognitions
-        console.log('\n🤝 Creating sample recognitions...\n');
-        const adminUser = createdUsers['admin'];
-        const modUser = createdUsers['moderator'];
-
-        for (const profile of createdProfiles.slice(0, 5)) {
-            try {
-                await Recognition.create({
-                    profile: profile._id,
-                    givenBy: adminUser._id,
-                    relationshipType: 'family_friend',
-                    yearsKnown: Math.floor(Math.random() * 10) + 1,
-                    vouches: {
-                        identity: true,
-                        familyBackground: true,
-                        character: Math.random() > 0.3
-                    }
-                });
-            } catch (e) {
-                // Ignore duplicate recognition errors
-            }
-        }
-
-        for (const profile of createdProfiles.slice(5, 10)) {
-            try {
-                await Recognition.create({
-                    profile: profile._id,
-                    givenBy: modUser._id,
-                    relationshipType: 'neighbor',
-                    yearsKnown: Math.floor(Math.random() * 5) + 1,
-                    vouches: {
-                        identity: true,
-                        familyBackground: Math.random() > 0.5
-                    }
-                });
-            } catch (e) {
-                // Ignore duplicate recognition errors
-            }
-        }
-        console.log('   ✅ Created sample recognitions\n');
-
+        // ============================
+        // SUMMARY
+        // ============================
         console.log('\n========================================');
         console.log('🎉 SEED COMPLETE!');
         console.log('========================================\n');
-        console.log('TEST ACCOUNTS (phone / password):\n');
-        console.log('┌──────────────┬─────────────┬───────────────┐');
-        console.log('│ Role         │ Phone       │ Password      │');
-        console.log('├──────────────┼─────────────┼───────────────┤');
-        USERS.forEach(u => {
-            console.log(`│ ${u.role.padEnd(12)} │ ${u.phone} │ ${u.password.padEnd(13)} │`);
-        });
-        console.log('└──────────────┴─────────────┴───────────────┘');
-        console.log(`\n📊 Created ${createdProfiles.length} sample profiles`);
+
+        console.log('📊 DATA SUMMARY:');
+        console.log('┌──────────────┬───────┬───────────┐');
+        console.log('│ Role         │ Users │ Profiles  │');
+        console.log('├──────────────┼───────┼───────────┤');
+        console.log('│ Admin        │   1   │     0     │');
+        console.log('│ Moderator    │   2   │     0     │');
+        console.log('│ Matchmaker   │   3   │    75     │');
+        console.log('│ EndUser      │  30   │    30     │');
+        console.log('├──────────────┼───────┼───────────┤');
+        console.log(`│ TOTAL        │  36   │   ${profileCount}     │`);
+        console.log('└──────────────┴───────┴───────────┘');
+
+        console.log('\n🔑 TEST ACCOUNTS:');
+        console.log('┌──────────────┬─────────────┬───────────┐');
+        console.log('│ Role         │ Phone       │ Password  │');
+        console.log('├──────────────┼─────────────┼───────────┤');
+        console.log('│ Admin        │ 9000000001  │ admin123  │');
+        console.log('│ Moderator 1  │ 9000000002  │ mod123    │');
+        console.log('│ Moderator 2  │ 9000000003  │ mod123    │');
+        console.log('│ Matchmaker 1 │ 9000001001  │ match123  │');
+        console.log('│ Matchmaker 2 │ 9000001002  │ match123  │');
+        console.log('│ Matchmaker 3 │ 9000001003  │ match123  │');
+        console.log('│ EndUser      │ 9000002000  │ user123   │');
+        console.log('└──────────────┴─────────────┴───────────┘');
         console.log('');
 
     } catch (error) {

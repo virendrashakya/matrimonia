@@ -28,6 +28,9 @@ router.post('/view/:profileId', authenticate, async (req, res) => {
         // Record the view
         await ProfileView.recordView(viewerId, profileId, profile.createdBy, source);
 
+        // Increment viewCount on the profile
+        await Profile.findByIdAndUpdate(profileId, { $inc: { viewCount: 1 } });
+
         // Create notification for profile owner (debounced - only if not notified in last 24 hours)
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const existingNotification = await Notification.findOne({

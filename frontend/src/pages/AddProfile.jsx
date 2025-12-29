@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Form, Input, Select, DatePicker, InputNumber, Button, Row, Col, Typography, Divider, Space, Steps, Alert, Checkbox, TimePicker, Progress, Spin } from 'antd';
-import { GlobalOutlined, HeartOutlined, UserOutlined, HomeOutlined, BookOutlined, StarOutlined, ArrowLeftOutlined, ArrowRightOutlined, CheckOutlined } from '@ant-design/icons';
+import { Card, Form, Input, Select, DatePicker, InputNumber, Button, Row, Col, Typography, Divider, Space, Steps, Alert, Checkbox, TimePicker, Progress, Spin, Radio, Tooltip } from 'antd';
+import { GlobalOutlined, HeartOutlined, UserOutlined, HomeOutlined, BookOutlined, StarOutlined, ArrowLeftOutlined, ArrowRightOutlined, CheckOutlined, LockOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../context/LanguageContext';
 import { useConfig } from '../context/ConfigContext';
@@ -151,6 +151,28 @@ function AddProfile() {
     // Step 1: Basic Information
     const BasicStep = () => (
         <Card title={<><UserOutlined /> Basic Information / मूल जानकारी</>}>
+            {/* Who is this profile for? */}
+            <Form.Item
+                name="createdFor"
+                label="Creating Profile For / किसके लिए प्रोफ़ाइल बना रहे हैं?"
+                rules={[{ required: true, message: 'Please select whom this profile is for' }]}
+            >
+                <Select placeholder="Select relationship">
+                    <Option value="self">👤 Self / स्वयं</Option>
+                    <Option value="son">👦 Son / बेटा</Option>
+                    <Option value="daughter">👧 Daughter / बेटी</Option>
+                    <Option value="brother">👨 Brother / भाई</Option>
+                    <Option value="sister">👩 Sister / बहन</Option>
+                    <Option value="nephew">👦 Nephew / भतीजा</Option>
+                    <Option value="niece">👧 Niece / भतीजी</Option>
+                    <Option value="friend">🤝 Friend / मित्र</Option>
+                    <Option value="relative">👥 Relative / रिश्तेदार</Option>
+                    <Option value="client">📋 Client / ग्राहक</Option>
+                </Select>
+            </Form.Item>
+
+            <Divider />
+
             <BilingualInput name="fullName" label="Full Name" labelHi="पूरा नाम" placeholder="Enter full name" placeholderHi="पूरा नाम दर्ज करें" required />
 
             <Row gutter={24}>
@@ -191,6 +213,51 @@ function AddProfile() {
                     </Form.Item>
                 </Col>
             </Row>
+
+            {/* Visibility Control */}
+            <Divider>Profile Visibility / प्रोफ़ाइल दृश्यता</Divider>
+            <Form.Item
+                name="visibility"
+                label={<span><LockOutlined /> Who can view this profile?</span>}
+            >
+                <Radio.Group style={{ width: '100%' }}>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Radio value="public" style={{ padding: '8px 12px', background: '#f6ffed', borderRadius: 8, width: '100%' }}>
+                            <Space>
+                                <GlobalOutlined style={{ color: '#52c41a' }} />
+                                <div>
+                                    <strong>Public / सार्वजनिक</strong>
+                                    <div style={{ fontSize: 12, color: '#666' }}>
+                                        Everyone can see full profile
+                                    </div>
+                                </div>
+                            </Space>
+                        </Radio>
+                        <Radio value="restricted" style={{ padding: '8px 12px', background: '#fff7e6', borderRadius: 8, width: '100%' }}>
+                            <Space>
+                                <EyeOutlined style={{ color: '#fa8c16' }} />
+                                <div>
+                                    <strong>Restricted / प्रतिबंधित</strong>
+                                    <div style={{ fontSize: 12, color: '#666' }}>
+                                        Preview visible, full access requires approval
+                                    </div>
+                                </div>
+                            </Space>
+                        </Radio>
+                        <Radio value="private" style={{ padding: '8px 12px', background: '#fff1f0', borderRadius: 8, width: '100%' }}>
+                            <Space>
+                                <EyeInvisibleOutlined style={{ color: '#ff4d4f' }} />
+                                <div>
+                                    <strong>Private / निजी</strong>
+                                    <div style={{ fontSize: 12, color: '#666' }}>
+                                        Hidden from search, only you can see
+                                    </div>
+                                </div>
+                            </Space>
+                        </Radio>
+                    </Space>
+                </Radio.Group>
+            </Form.Item>
         </Card>
     );
 
@@ -715,6 +782,7 @@ function AddProfile() {
                     diet: 'vegetarian',
                     smoking: 'no',
                     drinking: 'no',
+                    visibility: 'public',
                 }}
             >
                 <CurrentStepComponent />

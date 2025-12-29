@@ -18,6 +18,13 @@ const ProfileSchema = new mongoose.Schema({
         required: [true, 'Date of birth is required']
     },
 
+    // Relationship to profile creator
+    createdFor: {
+        type: String,
+        enum: ['self', 'son', 'daughter', 'brother', 'sister', 'nephew', 'niece', 'friend', 'relative', 'client'],
+        default: 'self'
+    },
+
     // Contact
     phone: {
         type: String,
@@ -313,6 +320,7 @@ const ProfileSchema = new mongoose.Schema({
     firstSeenAt: { type: Date, default: Date.now },
     lastSeenAt: { type: Date, default: Date.now },
     timesReferred: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0, index: true },
 
     // Audit
     createdBy: {
@@ -328,7 +336,19 @@ const ProfileSchema = new mongoose.Schema({
     deletedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }
+    },
+
+    // Visibility & Access Control
+    visibility: {
+        type: String,
+        enum: ['public', 'restricted', 'private'],
+        default: 'public',
+        index: true
+    },
+    allowedViewers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 
 }, { timestamps: true });
 

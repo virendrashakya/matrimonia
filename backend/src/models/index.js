@@ -6,6 +6,7 @@ const Configuration = require('./Configuration');
 const Interest = require('./Interest');
 const Notification = require('./Notification');
 const ProfileView = require('./ProfileView');
+const AccessRequest = require('./AccessRequest');
 
 module.exports = {
     User,
@@ -15,5 +16,6 @@ module.exports = {
     Configuration,
     Interest,
     Notification,
-    ProfileView
+    ProfileView,
+    AccessRequest
 };
