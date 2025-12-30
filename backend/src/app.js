@@ -205,7 +205,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 console.log('\n' + '='.repeat(60));
-console.log('🪔 MATRIMONIA SERVER');
+console.log('🪔 PEHCHAN SERVER');
 console.log('='.repeat(60));
 console.log(`📅 Started: ${new Date().toISOString()}`);
 console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

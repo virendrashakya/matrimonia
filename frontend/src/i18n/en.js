@@ -20,7 +20,7 @@ const en = {
         login: 'Sign In',
         register: 'Create Account',
         welcomeBack: 'Welcome Back',
-        signInToContinue: 'Sign in to continue to Matrimonia',
+        signInToContinue: 'Sign in to continue to Pehchan',
         createAccount: 'Create your account',
         joinCommunity: 'Join our matrimonial community',
         phone: 'Phone Number',
@@ -43,7 +43,7 @@ const en = {
     // Dashboard
     dashboard: {
         namaste: 'Namaste',
-        welcome: 'Welcome back to Matrimonia - your trusted community platform',
+        welcome: 'Welcome back to Pehchan - your trusted community platform',
         verifiedMember: 'Verified Member',
         awaitingVerification: 'Awaiting Verification',
         addProfile: 'Add Profile',

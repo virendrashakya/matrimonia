@@ -22,6 +22,8 @@ import InterestsPage from './pages/InterestsPage';
 import MatchmakerDashboard from './pages/MatchmakerDashboard';
 import ProfileComparison from './pages/ProfileComparison';
 import AuthCallback from './pages/AuthCallback';
+import NotFound from './pages/NotFound';
+import ServerError from './pages/ServerError';
 
 const { Content } = Layout;
 
@@ -104,8 +106,11 @@ function App() {
                         <ProtectedRoute><ProfileComparison /></ProtectedRoute>
                     } />
 
+                    {/* Error Routes */}
+                    <Route path="/500" element={<ServerError />} />
+
                     {/* Fallback */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={<NotFound />} />
                 </Routes>
             </Content>
         </Layout>

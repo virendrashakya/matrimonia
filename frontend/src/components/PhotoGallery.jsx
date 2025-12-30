@@ -72,14 +72,16 @@ function PhotoGallery({ profileId, photos = [], onPhotosUpdated, editable = fals
                             overflow: 'hidden'
                         }}
                     >
-                        <Image
-                            src={photo.url}
-                            width={150}
-                            height={180}
-                            style={{ objectFit: 'cover', cursor: 'pointer' }}
-                            preview={false}
-                            onClick={() => handlePreview(photo.url)}
-                        />
+                        <div className="watermarked-image-container">
+                            <Image
+                                src={photo.url}
+                                width={150}
+                                height={180}
+                                style={{ objectFit: 'cover', cursor: 'pointer' }}
+                                preview={false}
+                                onClick={() => handlePreview(photo.url)}
+                            />
+                        </div>
                         {photo.isPrimary && (
                             <div style={{
                                 position: 'absolute',
@@ -157,7 +159,9 @@ function PhotoGallery({ profileId, photos = [], onPhotosUpdated, editable = fals
                 footer={null}
                 onCancel={() => setPreviewOpen(false)}
             >
-                <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+                <div className="watermarked-image-container">
+                    <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+                </div>
             </Modal>
 
             {photos.length === 0 && !editable && (

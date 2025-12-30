@@ -31,7 +31,7 @@ ${profile.gender === 'male' ? '👨 पुरुष' : '👩 महिला'}${
 🔗 पूरी प्रोफ़ाइल देखें:
 ${profileUrl}
 
-📱 *मैट्रिमोनिया* ऐप से साझा किया गया`;
+📱 *पहचान* ऐप से साझा किया गया`;
     }
 
     return `🙏 *Marriage Proposal*
@@ -50,7 +50,7 @@ ${profile.gender === 'male' ? '👨 Male' : '👩 Female'}${age ? `, ${age} year
 🔗 View Full Profile:
 ${profileUrl}
 
-📱 Shared via *Matrimonia* App`;
+📱 Shared via *Pehchan* App`;
 }
 
 /**
@@ -98,8 +98,8 @@ ${age} yrs | ${profile.city} | ${profile.education}
     }).join('\n\n');
 
     const footer = language === 'hi'
-        ? '\n\n📱 *मैट्रिमोनिया* ऐप से साझा किया गया'
-        : '\n\n📱 Shared via *Matrimonia* App';
+        ? '\n\n📱 *पहचान* ऐप से साझा किया गया'
+        : '\n\n📱 Shared via *Pehchan* App';
 
     const message = header + profileSummaries + footer;
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;

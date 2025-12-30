@@ -94,21 +94,23 @@ function ProfileCard({ profile }) {
                 <div style={{ display: 'flex', gap: 16, marginBottom: 16, position: 'relative' }}>
                     {/* Avatar Area */}
                     <div style={{ position: 'relative' }}>
-                        <Avatar
-                            size={84}
-                            src={primaryPhoto}
-                            style={{
-                                background: genderStyle.gradient,
-                                border: '3px solid white',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                fontSize: 28,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >
-                            {initials}
-                        </Avatar>
+                        <div className="watermarked-image-container" style={{ borderRadius: '50%', overflow: 'hidden', width: 84, height: 84, display: 'flex' }}>
+                            <Avatar
+                                size={84}
+                                src={primaryPhoto}
+                                style={{
+                                    background: genderStyle.gradient,
+                                    border: '3px solid white',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                    fontSize: 28,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                {initials}
+                            </Avatar>
+                        </div>
 
                         {/* Gender Badge on Avatar */}
                         <div style={{

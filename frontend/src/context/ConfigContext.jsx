@@ -80,8 +80,8 @@ export function ConfigProvider({ children }) {
         casteOptions: config?.casteOptions || [],
 
         // App branding
-        appName: config?.appName || 'Matrimonia',
-        appNameHi: config?.appNameHi || 'मैट्रिमोनिया',
+        appName: config?.appName || 'Pehchan',
+        appNameHi: config?.appNameHi || 'पहचान',
         tagline: config?.tagline || 'Where Families Connect',
         taglineHi: config?.taglineHi || 'जहाँ परिवार मिलते हैं',
         logoUrl: config?.logoUrl || '/logo.png',
@@ -99,8 +99,8 @@ export function ConfigProvider({ children }) {
 // Default config to use before fetching
 function getDefaultConfig() {
     return {
-        appName: 'Matrimonia',
-        appNameHi: 'मैट्रिमोनिया',
+        appName: 'Pehchan',
+        appNameHi: 'पहचान',
         logoUrl: '/logo.png',
         rashiOptions: [],
         nakshatraOptions: [],

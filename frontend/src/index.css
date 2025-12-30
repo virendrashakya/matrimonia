@@ -48,7 +48,12 @@
 
 body {
   font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  /* Premium textured background */
+  background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(197, 160, 89, 0.08) 0%, transparent 25%),
+    radial-gradient(circle at 0% 100%, rgba(160, 21, 62, 0.05) 0%, transparent 25%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C5A059' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -307,6 +312,10 @@ body {
 /* Matrimony Card with hover effects */
 .matrimony-card {
   background: var(--bg-card);
+  /* Subtle luxurious watermark for cards */
+  background-image:
+    radial-gradient(circle at 100% 100%, rgba(197, 160, 89, 0.1) 0%, transparent 20%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C5A059' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(44, 24, 16, 0.08);
   border: 1px solid var(--border);
@@ -583,6 +592,38 @@ a:hover {
 
 .ant-spin-text {
   color: var(--primary) !important;
+}
+
+/* =====================================================
+   IMAGE WATERMARK PROTECTION
+   ===================================================== */
+
+.watermarked-image-container {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+}
+
+.watermarked-image-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.25;
+  background-image: url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='16' font-weight='bold' fill='%23ffffff' text-anchor='middle' transform='rotate(-45 75 75)'%3EPehchan Protected%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Darker watermark for light images if needed */
+.watermarked-image-container.dark-watermark::after {
+  background-image: url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='16' font-weight='bold' fill='%23000000' text-anchor='middle' transform='rotate(-45 75 75)'%3EPehchan Protected%3C/text%3E%3C/svg%3E");
+  opacity: 0.15;
 }
 
 /* =====================================================
