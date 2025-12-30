@@ -7,6 +7,7 @@ This guide outlines the steps to deploy the Matrimonia application to an AWS EC2
 - AWS Account
 - Domain name (optional, but recommended for SSL)
 - SSH Key Pair for accessing the EC2 instance
+- **Configuration Details**: See [CONFIGURATION.md](./CONFIGURATION.md) for required environment variables.
 
 ## 1. Launch EC2 Instance
 
@@ -80,15 +81,19 @@ cd matrimonia
 
     Paste your environment variables (ensure `NODE_ENV=production`):
 
+    > See [CONFIGURATION.md](./CONFIGURATION.md) for a full list of available keys.
+
     ```env
     PORT=5000
     MONGODB_URI=your_mongodb_connection_string
     JWT_SECRET=your_strong_secret
     NODE_ENV=production
+    FRONTEND_URL=http://<your-domain-or-ip>
+    
+    # External Services (Recommended)
     CLOUDINARY_CLOUD_NAME=...
     CLOUDINARY_API_KEY=...
     CLOUDINARY_API_SECRET=...
-    CLIENT_URL=http://<your-domain-or-ip>
     ```
 
 3.  **Start Backend**:
