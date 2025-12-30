@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, Form, Input, Button, Typography, Space, Divider, Dropdown } from 'antd';
-import { UserOutlined, LockOutlined, PhoneOutlined, GlobalOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, PhoneOutlined, GlobalOutlined, MoonOutlined, SunOutlined, GoogleOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -50,22 +50,27 @@ function Register() {
             flexDirection: 'column',
         }}>
             {/* Accessibility & Language - Top Right */}
+            {/* Accessibility & Language - Top Right */}
             <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10, display: 'flex', gap: 8 }}>
                 <Space size={4}>
-                    <Button size="small" onClick={decreaseFontSize} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 28, height: 28, padding: 0 }}>A-</Button>
-                    <Button size="small" onClick={increaseFontSize} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 28, height: 28, padding: 0 }}>A+</Button>
+                    <Button type="text" size="small" onClick={decreaseFontSize} style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', width: 32, height: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>A-</Button>
+                    <Button type="text" size="small" onClick={increaseFontSize} style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', width: 32, height: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>A+</Button>
                 </Space>
                 <Button
+                    type="text"
                     size="small"
                     onClick={toggleDarkMode}
                     icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
-                    style={{ background: darkMode ? '#FFD700' : 'rgba(255,255,255,0.2)', border: 'none', color: darkMode ? '#000' : 'white', width: 32, height: 32 }}
+                    style={{ background: darkMode ? '#FFD700' : 'rgba(255,255,255,0.15)', border: darkMode ? 'none' : '1px solid rgba(255,255,255,0.3)', color: darkMode ? '#000' : 'white', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 />
                 <Dropdown menu={languageMenu} placement="bottomRight">
-                    <Button icon={<GlobalOutlined />} style={{
-                        background: 'rgba(255,255,255,0.2)',
-                        border: 'none',
-                        color: 'white'
+                    <Button type="text" icon={<GlobalOutlined />} style={{
+                        background: 'rgba(255,255,255,0.15)',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
                     }}>
                         {languages[language]?.nativeName}
                     </Button>
@@ -188,6 +193,24 @@ function Register() {
                                 </Button>
                             </Form.Item>
                         </Form>
+
+                        <Divider plain>
+                            <Text type="secondary" style={{ fontSize: 13 }}>OR</Text>
+                        </Divider>
+
+                        <Button
+                            block
+                            size="large"
+                            icon={<GoogleOutlined />}
+                            onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/google`}
+                            style={{
+                                borderRadius: 12,
+                                height: 48,
+                                fontWeight: 500
+                            }}
+                        >
+                            Sign up with Google
+                        </Button>
 
                         <Divider style={{ margin: '4px 0' }}>
                             <Text type="secondary" style={{ fontSize: 13 }}>{t.auth.haveAccount}</Text>

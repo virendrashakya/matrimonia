@@ -9,6 +9,7 @@ const {
     registerSchema,
     loginSchema
 } = require('../middleware');
+const passport = require('passport');
 
 /**
  * POST /api/auth/register
@@ -346,5 +347,29 @@ router.patch('/users/:userId/status', authenticate, requireRole('admin'), async 
         next(error);
     }
 });
+
+
+/**
+ * GET /api/auth/google
+ * Initiate Google OAuth
+ */
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+/**
+ * GET /api/auth/google/callback
+ * Handle Google OAuth callback
+ */
+router.get('/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login', session: false }),
+    (req, res) => {
+        // Generate token
+        const token = generateToken(req.user._id);
+
+        // Redirect to frontend with token
+        // Use process.env.FRONTEND_URL if available, otherwise default to localhost
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+    }
+);
 
 module.exports = router;

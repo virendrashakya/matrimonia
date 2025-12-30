@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const passport = require('./config/passport');
 
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profiles');
@@ -127,7 +128,9 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 // Security middleware
 app.use(mongoSanitize()); // Prevent NoSQL injection
 app.use(xss());           // Sanitize user input to prevent XSS
+app.use(xss());           // Sanitize user input to prevent XSS
 app.use(hpp());           // Prevent HTTP parameter pollution
+app.use(passport.initialize());
 
 // ======================
 // ROUTES

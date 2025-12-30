@@ -9,11 +9,21 @@ const UserSchema = new mongoose.Schema({
         trim: true,
         maxLength: 100
     },
+
     phone: {
         type: String,
-        required: [true, 'Phone is required'],
         unique: true,
+        sparse: true, // Allow null/undefined to be non-unique (for OAuth users who might not have phone initially)
         index: true
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+        index: true
+    },
+    avatar: {
+        type: String
     },
     email: {
         type: String,
@@ -23,7 +33,7 @@ const UserSchema = new mongoose.Schema({
     },
     passwordHash: {
         type: String,
-        required: true,
+        required: function () { return !this.googleId; }, // Required only if not signing in with Google
         select: false // Don't include in queries by default
     },
 
@@ -76,7 +86,7 @@ UserSchema.index({ role: 1, isVerified: 1 });
 
 // Hash password before saving
 UserSchema.pre('save', async function (next) {
-    if (!this.isModified('passwordHash')) return next();
+    if (!this.isModified('passwordHash') || !this.passwordHash) return next();
     this.passwordHash = await bcrypt.hash(this.passwordHash, 12);
     next();
 });
