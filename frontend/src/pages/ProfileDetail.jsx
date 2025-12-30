@@ -382,19 +382,7 @@ function ProfileDetail() {
                     {/* Share Profile Card */}
                     <Card title={isHindi ? '📤 शेयर करें' : '📤 Share Profile'} size="small" style={{ marginBottom: 16 }}>
                         <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                            <Button
-                                block
-                                type="primary"
-                                className="whatsapp-share-btn"
-                                icon={<span style={{ marginRight: 8 }}>📱</span>}
-                                onClick={() => {
-                                    const url = window.location.href;
-                                    const text = `${isHindi ? 'इस प्रोफ़ाइल को देखें' : 'Check out this profile'}: ${profile.fullName}, ${profile.age} ${isHindi ? 'वर्ष' : 'yrs'}, ${profile.city}\n\n${url}`;
-                                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                                }}
-                            >
-                                {isHindi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}
-                            </Button>
+
                             <Button
                                 block
                                 onClick={() => {
