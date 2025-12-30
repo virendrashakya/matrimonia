@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Typography, Spin, Empty, Pagination, Space, Card, Row, Col } from 'antd';
-import { PlusOutlined, TeamOutlined } from '@ant-design/icons';
+import { Button, Typography, Spin, Empty, Pagination, Space, Card, Row, Col, Segmented } from 'antd';
+import { PlusOutlined, TeamOutlined, AppstoreOutlined, BarsOutlined } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
 import ProfileCard from '../components/ProfileCard';
 import api from '../services/api';
@@ -13,6 +13,7 @@ function Profiles() {
     const [profiles, setProfiles] = useState([]);
     const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
     useEffect(() => {
         fetchProfiles(1);
@@ -52,19 +53,36 @@ function Profiles() {
                         {pagination.total} {t.profiles.activeMatrimonial}
                     </Text>
                 </div>
-                <Link to="/profiles/new">
-                    <Button type="primary" icon={<PlusOutlined />} style={{ borderRadius: 8 }}>
-                        {t.profiles.addNew}
-                    </Button>
-                </Link>
+                <Space>
+                    <Segmented
+                        options={[
+                            { value: 'grid', icon: <AppstoreOutlined /> },
+                            { value: 'list', icon: <BarsOutlined /> },
+                        ]}
+                        value={viewMode}
+                        onChange={setViewMode}
+                    />
+                    <Link to="/profiles/new">
+                        <Button type="primary" icon={<PlusOutlined />} style={{ borderRadius: 8 }}>
+                            {t.profiles.addNew}
+                        </Button>
+                    </Link>
+                </Space>
             </div>
 
             {profiles.length > 0 ? (
                 <>
                     <Row gutter={[24, 24]}>
                         {profiles.map(profile => (
-                            <Col xs={24} sm={12} md={8} lg={8} xl={6} key={profile._id}>
-                                <ProfileCard profile={profile} />
+                            <Col
+                                xs={24}
+                                sm={viewMode === 'list' ? 24 : 12}
+                                md={viewMode === 'list' ? 24 : 8}
+                                lg={viewMode === 'list' ? 24 : 8}
+                                xl={viewMode === 'list' ? 24 : 6}
+                                key={profile._id}
+                            >
+                                <ProfileCard profile={profile} viewMode={viewMode} />
                             </Col>
                         ))}
                     </Row>

@@ -75,7 +75,37 @@ router.get('/:id', authenticate, async (req, res, next) => {
 
         // Update lastSeenAt
         profile.lastSeenAt = new Date();
+
+        // Increment View Count & Track Visitor (if not owner)
+        const isOwner = profile.createdBy._id.toString() === req.user._id.toString();
+
+        if (!isOwner) {
+            profile.viewCount = (profile.viewCount || 0) + 1;
+
+            // Add/Update visitor
+            if (!profile.visitors) {
+                profile.visitors = [];
+            }
+            const visitorIndex = profile.visitors.findIndex(v => v.user.toString() === req.user._id.toString());
+            if (visitorIndex > -1) {
+                profile.visitors[visitorIndex].visitedAt = new Date();
+            } else {
+                profile.visitors.push({ user: req.user._id, visitedAt: new Date() });
+            }
+
+            // Limit to last 50 visitors
+            if (profile.visitors.length > 50) {
+                profile.visitors.sort((a, b) => b.visitedAt - a.visitedAt);
+                profile.visitors.splice(50);
+            }
+        }
+
         await profile.save();
+
+        // Populate visitors if owner
+        if (isOwner) {
+            await profile.populate('visitors.user', 'name');
+        }
 
         // Get fraud risk
         const fraudRisk = await computeFraudRisk(profile._id);
@@ -85,6 +115,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
             data: {
                 profile: {
                     ...profile.toObject(),
+                    visitors: isOwner ? profile.visitors : undefined, // Only send visitors to owner
                     fraudRisk
                 }
             }

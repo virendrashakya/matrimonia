@@ -321,6 +321,10 @@ const ProfileSchema = new mongoose.Schema({
     lastSeenAt: { type: Date, default: Date.now },
     timesReferred: { type: Number, default: 0 },
     viewCount: { type: Number, default: 0, index: true },
+    visitors: [{
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        visitedAt: { type: Date, default: Date.now }
+    }],
 
     // Audit
     createdBy: {

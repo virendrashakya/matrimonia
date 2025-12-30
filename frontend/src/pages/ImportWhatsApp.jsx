@@ -18,7 +18,7 @@ function ImportWhatsApp() {
 
     const handleFileChange = (info) => {
         const selectedFile = info.file;
-        const validExtensions = ['.txt', '.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
+        const validExtensions = ['.txt', '.zip'];
         const isValid = validExtensions.some(ext => selectedFile?.name.toLowerCase().endsWith(ext));
 
         if (selectedFile && isValid) {
@@ -26,85 +26,17 @@ function ImportWhatsApp() {
             setPreview(null);
             setImportResult(null);
             setCurrentStep(1);
-
-            if (!selectedFile.name.endsWith('.txt')) {
-                toast('PDF/DOC/Image parsing requires AI integration (coming soon)', { icon: 'ℹ️' });
-            }
         } else {
-            toast.error('Please select a supported file format');
+            toast.error('Please select .txt or .zip file');
         }
         return false; // Prevent auto upload
     };
 
-    const handlePreview = async () => {
-        if (!file) return;
-        setLoading(true);
-
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await api.post('/import/whatsapp?preview=true', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-
-            setPreview(response.data.data);
-            setCurrentStep(2);
-            toast.success(`Found ${response.data.data.count} biodata entries`);
-        } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to parse file');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleImport = async () => {
-        if (!file) return;
-        setLoading(true);
-
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await api.post('/import/whatsapp', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-
-            setImportResult(response.data.data);
-            setCurrentStep(3);
-            toast.success(`Imported ${response.data.data.imported} profiles!`);
-        } catch (error) {
-            toast.error(error.response?.data?.error || 'Import failed');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const columns = [
-        { title: 'Name', dataIndex: 'fullName', key: 'fullName', render: (v) => v || 'Unknown' },
-        { title: 'Gender', dataIndex: 'gender', key: 'gender', render: (v) => v || '-' },
-        { title: 'Caste', dataIndex: 'caste', key: 'caste', render: (v) => v || '-' },
-        { title: 'City', dataIndex: 'city', key: 'city', render: (v) => v || '-' },
-        { title: 'Education', dataIndex: 'education', key: 'education', render: (v) => v || '-' },
-    ];
+    // ... (keep handlePreview and handleImport same)
 
     return (
         <div style={{ padding: '24px 0' }}>
-            <Title level={2}>Import Profiles</Title>
-            <Paragraph type="secondary" style={{ marginBottom: 32 }}>
-                Upload files to import matrimonial profiles in bulk
-            </Paragraph>
-
-            <Steps
-                current={currentStep}
-                items={[
-                    { title: 'Upload File' },
-                    { title: 'Preview' },
-                    { title: 'Import' },
-                    { title: 'Complete' },
-                ]}
-                style={{ marginBottom: 32 }}
-            />
+            {/* ... title ... */}
 
             {/* Step 1: Instructions */}
             <Card title="How to Export from WhatsApp" style={{ marginBottom: 24 }}>
@@ -113,8 +45,9 @@ function ImportWhatsApp() {
                     dataSource={[
                         'Open your WhatsApp matrimonial group',
                         'Tap the group name → More → Export chat',
-                        'Choose "Without media" for faster export',
-                        'Save the .txt file to your device',
+                        'Choose "Attach Media" to include Biodata PDFs (will output a ZIP file)',
+                        'Or choose "Without Media" for faster text-only export',
+                        'Upload the .zip or .txt file here'
                     ]}
                     renderItem={(item, index) => (
                         <List.Item>
@@ -127,7 +60,7 @@ function ImportWhatsApp() {
             {/* Step 2: Upload */}
             <Card title="Upload File" style={{ marginBottom: 24 }}>
                 <Dragger
-                    accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    accept=".txt,.zip"
                     beforeUpload={handleFileChange}
                     showUploadList={false}
                     disabled={loading}
@@ -139,10 +72,10 @@ function ImportWhatsApp() {
                         {file ? file.name : 'Click or drag file to upload'}
                     </p>
                     <p className="ant-upload-hint">
-                        Supported: .txt (WhatsApp), .pdf, .doc, images
+                        Supported: .txt (Text Chat), .zip (Chat with Media/PDFs)
                     </p>
-                    <Text type="warning" style={{ fontSize: 12 }}>
-                        Note: PDF/DOC/images require AI (coming soon)
+                    <Text type="success" style={{ fontSize: 12 }}>
+                        ✨ AI Parsing is active for PDFs inside ZIP files!
                     </Text>
                 </Dragger>
 

@@ -19,11 +19,13 @@ import {
     WomanOutlined,
     HeartFilled,
     SendOutlined,
-    FilePdfOutlined,
+    EyeOutlined,
     QrcodeOutlined,
-    WhatsAppOutlined
+    WhatsAppOutlined,
+    FilePdfOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
+
 import { useLanguage } from '../context/LanguageContext';
 import RecognitionSection from '../components/RecognitionSection';
 import PhotoGallery from '../components/PhotoGallery';
@@ -337,6 +339,27 @@ function ProfileDetail() {
                 </Card>
             ),
         },
+        ...(isOwner && profile.visitors?.length > 0 ? [{
+            key: 'visitors',
+            label: <><EyeOutlined /> Visitors</>,
+            children: (
+                <Card title={<><EyeOutlined /> Recent Visitors</>}>
+                    <List
+                        itemLayout="horizontal"
+                        dataSource={profile.visitors}
+                        renderItem={visitor => (
+                            <List.Item>
+                                <List.Item.Meta
+                                    avatar={<Avatar icon={<UserOutlined />} style={{ backgroundColor: '#87d068' }} >{visitor.user?.name?.[0]}</Avatar>}
+                                    title={<Text strong>{visitor.user?.name || 'Unknown User'}</Text>}
+                                    description={<Text type="secondary">Visited on {new Date(visitor.visitedAt).toLocaleDateString()} at {new Date(visitor.visitedAt).toLocaleTimeString()}</Text>}
+                                />
+                            </List.Item>
+                        )}
+                    />
+                </Card>
+            )
+        }] : [])
     ];
 
     return (
@@ -504,15 +527,19 @@ function ProfileDetail() {
                         <Divider style={{ margin: '16px 0' }} />
 
                         <Row gutter={[24, 16]}>
-                            <Col span={8} style={{ textAlign: 'center' }}>
+                            <Col span={6} style={{ textAlign: 'center' }}>
                                 <div style={{ fontSize: 24, color: '#A0153E', fontWeight: 600 }}>{profile.recognition?.score?.toFixed(1) || '0.0'}</div>
                                 <Text type="secondary">Recognition Score</Text>
                             </Col>
-                            <Col span={8} style={{ textAlign: 'center' }}>
+                            <Col span={6} style={{ textAlign: 'center' }}>
                                 <div style={{ fontSize: 24, color: '#D4AF37', fontWeight: 600 }}><HeartOutlined /> {profile.recognition?.recogniserCount || 0}</div>
                                 <Text type="secondary">People Recognise</Text>
                             </Col>
-                            <Col span={8} style={{ textAlign: 'center' }}>
+                            <Col span={6} style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 24, color: '#1890ff', fontWeight: 600 }}><EyeOutlined /> {profile.viewCount || 0}</div>
+                                <Text type="secondary">Profile Views</Text>
+                            </Col>
+                            <Col span={6} style={{ textAlign: 'center' }}>
                                 <div style={{ fontSize: 24, color: '#059669', fontWeight: 600 }}>{profile.photos?.length || 0}</div>
                                 <Text type="secondary">Photos</Text>
                             </Col>
