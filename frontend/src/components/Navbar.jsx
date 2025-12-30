@@ -37,6 +37,8 @@ function Navbar() {
 
     const navigate = useNavigate();
     const isAdmin = user?.role === 'admin';
+    const isModerator = user?.role === 'moderator';
+    const canCreateProfile = !['admin', 'moderator'].includes(user?.role);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -72,7 +74,7 @@ function Navbar() {
         { key: 'dashboard', icon: <HomeOutlined />, label: <Link to="/dashboard">{t.nav.home}</Link> },
         { key: 'profiles', icon: <UserOutlined />, label: <Link to="/profiles">{t.nav.profiles}</Link> },
         { key: 'search', icon: <SearchOutlined />, label: <Link to="/search">{t.nav.search}</Link> },
-        { key: 'new', icon: <PlusOutlined />, label: <Link to="/profiles/new">{t.nav.addProfile}</Link> },
+        ...(canCreateProfile ? [{ key: 'new', icon: <PlusOutlined />, label: <Link to="/profiles/new">{t.nav.addProfile}</Link> }] : []),
         ...(isElder ? [{ key: 'import', icon: <ImportOutlined />, label: <Link to="/import">{t.nav.import}</Link> }] : []),
         ...(isAdmin ? [{ key: 'admin', icon: <SettingOutlined />, label: <Link to="/admin">{t.nav.admin}</Link> }] : []),
     ];
@@ -102,7 +104,7 @@ function Navbar() {
         { key: 'dashboard', icon: <HomeOutlined />, label: t.nav.home, path: '/dashboard' },
         { key: 'profiles', icon: <UserOutlined />, label: t.nav.profiles, path: '/profiles' },
         { key: 'search', icon: <SearchOutlined />, label: t.nav.search, path: '/search' },
-        { key: 'new', icon: <PlusOutlined />, label: t.nav.addProfile, path: '/profiles/new' },
+        ...(canCreateProfile ? [{ key: 'new', icon: <PlusOutlined />, label: t.nav.addProfile, path: '/profiles/new' }] : []),
         { key: 'my-profile', icon: <UserOutlined />, label: isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profile', path: '/profile' },
         { key: 'interests', icon: <HeartOutlined />, label: isHindi ? 'मेरी रुचियाँ' : 'My Interests', path: '/interests' },
         ...(isElder ? [{ key: 'import', icon: <ImportOutlined />, label: t.nav.import, path: '/import' }] : []),

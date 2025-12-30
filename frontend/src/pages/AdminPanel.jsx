@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Table, Button, Tag, Space, Typography, Modal, Form, Select, Input, Tabs, Spin, message, Popconfirm, Badge, Statistic } from 'antd';
-import { UserOutlined, SafetyOutlined, CheckCircleOutlined, StopOutlined, SearchOutlined } from '@ant-design/icons';
+import { UserOutlined, SafetyOutlined, CheckCircleOutlined, StopOutlined, SearchOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -15,6 +15,10 @@ function AdminPanel() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
     const [searchText, setSearchText] = useState('');
+    const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+    const [resettingPassword, setResettingPassword] = useState(false);
+    const [resetForm] = Form.useForm();
+    const [userToReset, setUserToReset] = useState(null);
 
     useEffect(() => {
         fetchUsers();
@@ -58,6 +62,36 @@ function AdminPanel() {
             fetchUsers();
         } catch (error) {
             message.error(error.response?.data?.error || 'Failed to update status');
+        }
+    };
+
+    const initiatePasswordReset = (user) => {
+        setUserToReset(user);
+        setPasswordModalOpen(true);
+    };
+
+    const handlePasswordReset = async (values) => {
+        setResettingPassword(true);
+        try {
+            await api.put(`/auth/users/${userToReset._id}/password`, { newPassword: values.newPassword });
+            message.success(`Password reset for ${userToReset.name}`);
+            setPasswordModalOpen(false);
+            resetForm.resetFields();
+            setUserToReset(null);
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to reset password');
+        } finally {
+            setResettingPassword(false);
+        }
+    };
+
+    const handleReset2FA = async (user) => {
+        try {
+            await api.put(`/auth/users/${user._id}/2fa/reset`);
+            message.success(`2FA reset for ${user.name}`);
+            fetchUsers();
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to reset 2FA');
         }
     };
 
@@ -148,6 +182,25 @@ function AdminPanel() {
                             <Button danger={record.isActive} size="small">
                                 {record.isActive ? 'Deactivate' : 'Activate'}
                             </Button>
+                        </Popconfirm>
+                    )}
+                    <Button
+                        size="small"
+                        icon={<LockOutlined />}
+                        onClick={() => initiatePasswordReset(record)}
+                        title="Reset Password"
+                    />
+                    {record.isTwoFactorEnabled && (
+                        <Popconfirm
+                            title="Reset 2FA for this user?"
+                            onConfirm={() => handleReset2FA(record)}
+                        >
+                            <Button
+                                size="small"
+                                icon={<SafetyOutlined />}
+                                danger
+                                title="Reset 2FA"
+                            />
                         </Popconfirm>
                     )}
                 </Space>
@@ -246,8 +299,48 @@ function AdminPanel() {
                     <li>Edit and moderate profiles</li>
                     <li>Flag suspicious profiles</li>
                     <li>Add recognitions with higher weight</li>
+                    <li>Reset user passwords</li>
                 </ul>
             </Card>
+
+            {/* Password Reset Modal */}
+            <Modal
+                title={`Reset Password for ${userToReset?.name}`}
+                open={passwordModalOpen}
+                onCancel={() => {
+                    setPasswordModalOpen(false);
+                    resetForm.resetFields();
+                    setUserToReset(null);
+                }}
+                footer={null}
+            >
+                <Form form={resetForm} layout="vertical" onFinish={handlePasswordReset}>
+                    <Form.Item
+                        name="newPassword"
+                        label="New Password"
+                        rules={[
+                            { required: true, message: 'New password is required' },
+                            { min: 6, message: 'At least 6 characters' }
+                        ]}
+                    >
+                        <Input.Password placeholder="Enter new password" />
+                    </Form.Item>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                        <Button
+                            onClick={() => {
+                                setPasswordModalOpen(false);
+                                resetForm.resetFields();
+                                setUserToReset(null);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="primary" htmlType="submit" loading={resettingPassword} danger>
+                            Reset Password
+                        </Button>
+                    </div>
+                </Form>
+            </Modal>
         </div>
     );
 }

@@ -47,6 +47,15 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    // Two Factor Authentication
+    twoFactorSecret: {
+        type: Object, // Stores { ascii, hex, base32, otpauth_url }
+        select: false
+    },
+    isTwoFactorEnabled: {
+        type: Boolean,
+        default: false
+    },
     verifiedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

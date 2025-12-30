@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Card, Form, Input, Button, Typography, Space, Divider, Dropdown } from 'antd';
+import { Card, Form, Input, Button, Typography, Space, Divider, Dropdown, Modal } from 'antd';
 import { LockOutlined, PhoneOutlined, GlobalOutlined, MoonOutlined, SunOutlined, GoogleOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -16,6 +16,11 @@ function Login() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
+    // 2FA State
+    const [twoFARequired, setTwoFARequired] = useState(false);
+    const [otp, setOtp] = useState('');
+    const [currentCredentials, setCurrentCredentials] = useState(null);
+
     const handleSubmit = async (values) => {
         setLoading(true);
         try {
@@ -23,8 +28,27 @@ function Login() {
             toast.success(t.dashboard.namaste + '!');
             navigate('/dashboard');
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Login failed');
+            if (error.response?.status === 403 && error.response?.data?.require2FA) {
+                setCurrentCredentials(values);
+                setTwoFARequired(true);
+            } else {
+                toast.error(error.response?.data?.error || 'Login failed');
+            }
         } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOTPSubmit = async () => {
+        if (!otp || otp.length !== 6) return;
+        setLoading(true);
+        try {
+            await login(currentCredentials.phone, currentCredentials.password, otp);
+            toast.success(t.dashboard.namaste + '!');
+            setTwoFARequired(false);
+            navigate('/dashboard');
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Invalid OTP');
             setLoading(false);
         }
     };
@@ -280,6 +304,44 @@ function Login() {
                     }
                 }
             `}</style>
+
+            {/* 2FA Modal */}
+            <Modal
+                title="Two-Factor Authentication"
+                open={twoFARequired}
+                onCancel={() => { setTwoFARequired(false); setLoading(false); }}
+                footer={null}
+                centered
+            >
+                <div style={{ padding: 16, textAlign: 'center' }}>
+                    <Text>Please enter the 6-digit code from your authenticator app.</Text>
+                    <div style={{ margin: '24px 0' }}>
+                        <Input
+                            value={otp}
+                            onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                            maxLength={6}
+                            style={{
+                                letterSpacing: 8,
+                                textAlign: 'center',
+                                fontSize: 24,
+                                height: 50,
+                                width: 200
+                            }}
+                            autoFocus
+                        />
+                    </div>
+                    <Button
+                        type="primary"
+                        size="large"
+                        block
+                        onClick={handleOTPSubmit}
+                        loading={loading}
+                        disabled={otp.length !== 6}
+                    >
+                        Verify & Login
+                    </Button>
+                </div>
+            </Modal>
         </div>
     );
 }

@@ -12,8 +12,10 @@ import {
     HeartOutlined,
     GlobalOutlined,
     ShopOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    SafetyOutlined
 } from '@ant-design/icons';
+import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
@@ -42,6 +44,14 @@ function UserProfile() {
     const [saving, setSaving] = useState(false);
     const [passwordModalVisible, setPasswordModalVisible] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
+
+    // 2FA State
+    const [twoFAModalVisible, setTwoFAModalVisible] = useState(false);
+    const [qrData, setQrData] = useState(null);
+    const [verifyCode, setVerifyCode] = useState('');
+    const [verifying2FA, setVerifying2FA] = useState(false);
+    const [checking2FA, setChecking2FA] = useState(false); // For disabling
+    const [disable2FAPassword, setDisable2FAPassword] = useState('');
 
     const isHindi = language === 'hi';
 
@@ -85,7 +95,7 @@ function UserProfile() {
     const handleChangePassword = async (values) => {
         setChangingPassword(true);
         try {
-            await api.put('/user/change-password', values);
+            await api.put('/auth/me/password', values);
             message.success(isHindi ? 'पासवर्ड बदल गया' : 'Password changed successfully');
             setPasswordModalVisible(false);
             passwordForm.resetFields();
@@ -104,6 +114,49 @@ function UserProfile() {
             message.success(lang === 'hi' ? 'भाषा हिंदी में बदली गई' : 'Language changed to English');
         } catch (error) {
             console.error('Error changing language:', error);
+        }
+    };
+
+    const handleEnable2FA = async () => {
+        try {
+            const res = await api.post('/auth/2fa/setup');
+            setQrData(res.data.data);
+            setTwoFAModalVisible(true);
+        } catch (error) {
+            message.error('Failed to initiate 2FA setup');
+        }
+    };
+
+    const handleVerify2FA = async () => {
+        if (!verifyCode) return;
+        setVerifying2FA(true);
+        try {
+            await api.post('/auth/2fa/verify', { token: verifyCode });
+            message.success('2FA Enabled Successfully');
+            setTwoFAModalVisible(false);
+            setVerifyCode('');
+            // Refresh profile to update UI
+            fetchUserProfile();
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Invalid Code');
+        } finally {
+            setVerifying2FA(false);
+        }
+    };
+
+    const handleDisable2FA = async () => {
+        if (!disable2FAPassword) return;
+        setChecking2FA(true);
+        try {
+            await api.post('/auth/2fa/disable', { password: disable2FAPassword });
+            message.success('2FA Disabled Successfully');
+            setTwoFAModalVisible(false);
+            setDisable2FAPassword('');
+            fetchUserProfile();
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Incorrect Password');
+        } finally {
+            setChecking2FA(false);
         }
     };
 
@@ -416,8 +469,112 @@ function UserProfile() {
                             </div>
                         </div>
                     </Col>
+                    <Col xs={24} sm={12}>
+                        <div style={{ padding: 16, background: '#f9f9f9', borderRadius: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <SafetyOutlined style={{ fontSize: 24, color: userData?.isTwoFactorEnabled ? '#059669' : '#D4AF37' }} />
+                                    <div>
+                                        <Text strong>Two-Factor Auth</Text>
+                                        <div>
+                                            <Text type="secondary">
+                                                {userData?.isTwoFactorEnabled
+                                                    ? (isHindi ? 'सक्रिय है' : 'Enabled')
+                                                    : (isHindi ? 'अक्षम है' : 'Disabled')}
+                                            </Text>
+                                        </div>
+                                    </div>
+                                </div>
+                                <Button
+                                    onClick={() => {
+                                        if (userData?.isTwoFactorEnabled) {
+                                            setQrData(null); // Mode: Disable
+                                            setTwoFAModalVisible(true);
+                                        } else {
+                                            handleEnable2FA(); // Mode: Enable
+                                        }
+                                    }}
+                                    type={userData?.isTwoFactorEnabled ? 'default' : 'primary'}
+                                    danger={userData?.isTwoFactorEnabled}
+                                >
+                                    {userData?.isTwoFactorEnabled ? (isHindi ? 'बंद करें' : 'Disable') : (isHindi ? 'चालू करें' : 'Enable')}
+                                </Button>
+                            </div>
+                        </div>
+                    </Col>
                 </Row>
             </Card>
+
+            {/* 2FA Modal */}
+            <Modal
+                title={userData?.isTwoFactorEnabled ? 'Disable 2FA' : 'Enable Two-Factor Authentication'}
+                open={twoFAModalVisible}
+                onCancel={() => {
+                    setTwoFAModalVisible(false);
+                    setVerifyCode('');
+                    setDisable2FAPassword('');
+                }}
+                footer={null}
+            >
+                {userData?.isTwoFactorEnabled ? (
+                    // Disable Flow
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <Text>To disable 2FA, please enter your account password.</Text>
+                        <Input.Password
+                            placeholder="Current Password"
+                            value={disable2FAPassword}
+                            onChange={e => setDisable2FAPassword(e.target.value)}
+                        />
+                        <Button
+                            type="primary"
+                            danger
+                            loading={checking2FA}
+                            onClick={handleDisable2FA}
+                            disabled={!disable2FAPassword}
+                        >
+                            Disable 2FA
+                        </Button>
+                    </div>
+                ) : (
+                    // Enable Flow
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: 16 }}>
+                        {qrData ? (
+                            <>
+                                <div style={{ background: 'white', padding: 16, borderRadius: 8, border: '1px solid #eee' }}>
+                                    <QRCodeSVG value={qrData.otpauth_url} size={200} />
+                                </div>
+                                <div style={{ textAlign: 'center' }}>
+                                    <Text strong>Scan this QR code with Google Authenticator</Text>
+                                    <br />
+                                    <Text type="secondary" style={{ fontSize: 12 }}>Or manually enter secret: <Text code>{qrData.base32}</Text></Text>
+                                </div>
+                                <div style={{ width: '100%', maxWidth: 300 }}>
+                                    <Input
+                                        placeholder="Enter the 6-digit code"
+                                        size="large"
+                                        style={{ textAlign: 'center', letterSpacing: 4, height: 50, fontSize: 18 }}
+                                        maxLength={6}
+                                        value={verifyCode}
+                                        onChange={e => setVerifyCode(e.target.value.replace(/\D/g, ''))}
+                                    />
+                                </div>
+                                <Button
+                                    type="primary"
+                                    size="large"
+                                    block
+                                    loading={verifying2FA}
+                                    onClick={handleVerify2FA}
+                                    disabled={verifyCode.length !== 6}
+                                >
+                                    Verify & Enable
+                                </Button>
+                            </>
+                        ) : (
+                            <Spin size="large" />
+                        )}
+                    </div>
+                )}
+            </Modal>
 
             {/* Password Change Modal */}
             <Modal
