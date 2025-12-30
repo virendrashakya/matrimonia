@@ -40,7 +40,7 @@ const UserSchema = new mongoose.Schema({
     // Authorization
     role: {
         type: String,
-        enum: ['admin', 'moderator', 'matchmaker', 'enduser'],
+        enum: ['admin', 'moderator', 'reviewer', 'matchmaker', 'enduser'],
         default: 'enduser'
     },
     isVerified: {

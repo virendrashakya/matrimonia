@@ -24,6 +24,7 @@ import ProfileComparison from './pages/ProfileComparison';
 import AuthCallback from './pages/AuthCallback';
 import NotFound from './pages/NotFound';
 import ServerError from './pages/ServerError';
+import PublicProfile from './pages/PublicProfile';
 
 const { Content } = Layout;
 
@@ -64,9 +65,12 @@ function App() {
                     <Route path="/register" element={
                         isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
                     } />
+
+
                     <Route path="/auth/callback" element={
                         isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthCallback />
                     } />
+                    <Route path="/public/:customId" element={<PublicProfile />} />
 
                     {/* Protected routes */}
                     <Route path="/dashboard" element={

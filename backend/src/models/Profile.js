@@ -316,6 +316,16 @@ const ProfileSchema = new mongoose.Schema({
         index: true
     },
 
+    // Identification & Verification
+    customId: { type: String, unique: true, index: true }, // generated e.g., PEH-123456
+    verificationStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected', 'changes_requested'],
+        default: 'pending',
+        index: true
+    },
+    rejectionReason: String,
+
     // Tracking
     firstSeenAt: { type: Date, default: Date.now },
     lastSeenAt: { type: Date, default: Date.now },
@@ -373,6 +383,20 @@ ProfileSchema.virtual('age').get(function () {
         age--;
     }
     return age;
+});
+
+// Generate Custom ID before save
+ProfileSchema.pre('save', async function (next) {
+    if (!this.customId) {
+        // Generate random 6-char string (upper case alphanumeric)
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // excluded I, O, 0, 1 to avoid ambiguity
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        this.customId = `PEH-${result}`;
+    }
+    next();
 });
 
 // Include virtuals in JSON

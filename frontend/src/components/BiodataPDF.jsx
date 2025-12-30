@@ -559,6 +559,18 @@ function BiodataPDF({ profile, visible, onClose }) {
                                         </div>
                                     </div>
 
+
+                                    {/* QR Code */}
+                                    {/* QR Code */}
+                                    <div style={{ marginLeft: 16, textAlign: 'center' }}>
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/public/' + (profile.customId || profile._id))}`}
+                                            alt="Profile QR"
+                                            style={{ width: 100, height: 100, border: '1px solid #ddd', padding: 4 }}
+                                        />
+                                        <div style={{ fontSize: 9, marginTop: 4 }}>Scan to View</div>
+                                    </div>
+
                                     {/* Right: Photo */}
                                     {includePhoto && primaryPhoto && (
                                         <div className="profile-photo" style={{ marginLeft: 16 }}>
@@ -573,6 +585,21 @@ function BiodataPDF({ profile, visible, onClose }) {
                                                     border: `2px solid ${selectedHeader.primaryColor}`
                                                 }}
                                             />
+                                            {/* Profile ID Badge */}
+                                            {profile.customId && (
+                                                <div style={{
+                                                    marginTop: 4,
+                                                    fontSize: 10,
+                                                    fontWeight: 'bold',
+                                                    color: '#2C1810',
+                                                    background: '#FFF8F0',
+                                                    padding: '2px 4px',
+                                                    borderRadius: 4,
+                                                    border: '1px dashed #A0153E'
+                                                }}>
+                                                    ID: {profile.customId}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -623,9 +650,11 @@ function BiodataPDF({ profile, visible, onClose }) {
                                     );
                                 })}
 
-                                {/* Footer */}
-                                <div className="footer">
-                                    Generated via Pehchan • {new Date().toLocaleDateString()}
+                                {/* Footer with QR */}
+                                <div className="footer" style={{ marginTop: 32, textAlign: 'center', borderTop: '1px solid #eee', paddingTop: 8 }}>
+                                    <div style={{ color: '#8B7355', fontSize: 10 }}>
+                                        Generated via Pehchan • {new Date().toLocaleDateString()} • www.pehchan.app
+                                    </div>
                                 </div>
                             </div>
                         );

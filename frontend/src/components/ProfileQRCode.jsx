@@ -14,7 +14,7 @@ function ProfileQRCode({ profile, visible, onClose }) {
     const { isHindi } = useLanguage();
     const qrRef = useRef(null);
 
-    const profileUrl = `${window.location.origin}/profiles/${profile?._id}`;
+    const profileUrl = `${window.location.origin}/public/${profile?.customId || profile?._id}`;
 
     const handleDownload = () => {
         const svg = qrRef.current?.querySelector('svg');

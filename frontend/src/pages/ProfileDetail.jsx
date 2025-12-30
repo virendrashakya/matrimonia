@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, Row, Col, Typography, Tag, Spin, Empty, Descriptions, Avatar, Divider, List, Button, Space, Tabs, Badge, message } from 'antd';
+import { Card, Row, Col, Typography, Tag, Spin, Empty, Descriptions, Avatar, Divider, List, Button, Space, Tabs, Badge, message, Grid } from 'antd';
 import {
     UserOutlined,
     ArrowLeftOutlined,
@@ -22,7 +22,8 @@ import {
     EyeOutlined,
     QrcodeOutlined,
     WhatsAppOutlined,
-    FilePdfOutlined
+    FilePdfOutlined,
+    CopyOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 
@@ -53,6 +54,7 @@ const RASHI_LABELS = {
 };
 
 function ProfileDetail() {
+    const screens = Grid.useBreakpoint();
     const { id } = useParams();
     const { isVerified, user } = useAuth();
     const { t, isHindi } = useLanguage();
@@ -107,6 +109,12 @@ function ProfileDetail() {
         } finally {
             setSendingInterest(false);
         }
+    };
+
+    const handleCopyLink = () => {
+        const link = `${window.location.origin}/public/${profile.customId || profile._id}`;
+        navigator.clipboard.writeText(link);
+        message.success(isHindi ? 'सार्वजनिक लिंक कॉपी किया गया!' : 'Public link copied to clipboard!');
     };
 
     const riskConfig = {
@@ -464,7 +472,7 @@ function ProfileDetail() {
                 <Col xs={24} md={16}>
                     {/* Header Card */}
                     <Card style={{ borderRadius: 12, marginBottom: 24, background: 'linear-gradient(135deg, #FFFBF5, #FFF8F0)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', flexDirection: !screens.md ? 'column' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: !screens.md ? 16 : 0 }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                                     {profile.gender === 'male' ? <ManOutlined style={{ fontSize: 24, color: '#1890ff' }} /> : <WomanOutlined style={{ fontSize: 24, color: '#eb2f96' }} />}
@@ -489,6 +497,14 @@ function ProfileDetail() {
                                 >
                                     {isHindi ? 'बायोडाटा' : 'Biodata PDF'}
                                 </Button>
+
+                                <Button
+                                    icon={<CopyOutlined />}
+                                    onClick={handleCopyLink}
+                                >
+                                    {isHindi ? 'सार्वजनिक लिंक' : 'Copy Public Link'}
+                                </Button>
+
 
                                 {/* Express Interest Button - show only if not owner and allowed */}
                                 {!isOwner && canExpressInterest && (
@@ -562,13 +578,15 @@ function ProfileDetail() {
             </Row>
 
             {/* Biodata PDF Modal */}
-            {profile && (
-                <BiodataPDF
-                    profile={profile}
-                    visible={biodataPDFVisible}
-                    onClose={() => setBiodataPDFVisible(false)}
-                />
-            )}
+            {
+                profile && (
+                    <BiodataPDF
+                        profile={profile}
+                        visible={biodataPDFVisible}
+                        onClose={() => setBiodataPDFVisible(false)}
+                    />
+                )
+            }
 
             {/* QR Code Modal */}
             <ProfileQRCode
@@ -583,7 +601,7 @@ function ProfileDetail() {
                 visible={whatsappVisible}
                 onClose={() => setWhatsappVisible(false)}
             />
-        </div>
+        </div >
     );
 }
 

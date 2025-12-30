@@ -17,6 +17,40 @@ const {
 } = require('../services');
 
 /**
+ * GET /api/profiles/public/:customId
+ * Public limited view via QR Code/Link
+ */
+router.get('/public/:customId', async (req, res, next) => {
+    try {
+        const profile = await Profile.findOne({ customId: req.params.customId, status: 'active' });
+        if (!profile) return res.status(404).json({ error: 'Profile not found' });
+
+        // Return limited data
+        const limited = {
+            _id: profile._id, // Needed for redirecting to full view
+            customId: profile.customId,
+            // Security: Mask full name (e.g., "Ramesh K.")
+            fullName: profile.fullName ? profile.fullName.split(' ')[0] + (profile.fullName.split(' ').length > 1 ? ' ' + profile.fullName.split(' ')[1][0] + '.' : '') : 'Member',
+            profession: profile.profession,
+            city: profile.city,
+            state: profile.state,
+            age: profile.age,
+            primaryPhoto: profile.photos?.find(p => p.isPrimary)?.url || profile.photos?.[0]?.url
+        };
+
+        // Apply blur transformation if Cloudinary image
+        if (limited.primaryPhoto && limited.primaryPhoto.includes('cloudinary') && limited.primaryPhoto.includes('/upload/')) {
+            const parts = limited.primaryPhoto.split('/upload/');
+            limited.primaryPhoto = `${parts[0]}/upload/e_blur:2000,f_auto/${parts[1]}`;
+        }
+
+        res.json({ success: true, data: limited });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
  * GET /api/profiles
  * List profiles with pagination (excludes private profiles)
  */
@@ -30,6 +64,14 @@ router.get('/', authenticate, async (req, res, next) => {
             status: 'active',
             visibility: { $in: ['public', 'restricted'] }
         };
+
+        // Reviewers/Admins see everything. Others see only approved profiles (or their own).
+        if (!['admin', 'moderator', 'reviewer'].includes(req.user.role)) {
+            query.$or = [
+                { verificationStatus: 'approved' },
+                { createdBy: req.user._id }
+            ];
+        }
 
         const [profiles, total] = await Promise.all([
             Profile.find(query)
@@ -55,6 +97,71 @@ router.get('/', authenticate, async (req, res, next) => {
                 }
             }
         });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * GET /api/profiles/pending
+ * List pending profiles for review
+ */
+router.get('/pending', authenticate, async (req, res, next) => {
+    try {
+        if (!['admin', 'moderator', 'reviewer'].includes(req.user.role)) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const profiles = await Profile.find({
+            verificationStatus: { $in: ['pending', 'changes_requested'] },
+            status: 'active'
+        })
+            .populate('createdBy', 'name email phone')
+            .sort({ createdAt: 1 });
+
+        res.json({ success: true, data: profiles });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * PUT /api/profiles/:id/verify
+ * Update verification status (Approve/Reject/Duplicate/etc)
+ */
+router.put('/:id/verify', authenticate, async (req, res, next) => {
+    try {
+        if (!['admin', 'moderator', 'reviewer'].includes(req.user.role)) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const { status, reason, isDuplicate } = req.body;
+
+        if (status && !['approved', 'rejected', 'changes_requested'].includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+
+        const profile = await Profile.findById(req.params.id);
+        if (!profile) return res.status(404).json({ error: 'Profile not found' });
+
+        if (status) profile.verificationStatus = status;
+        if (reason) profile.rejectionReason = reason;
+        if (isDuplicate !== undefined) profile.isDuplicate = isDuplicate;
+
+        await profile.save();
+
+        // Audit log
+        await AuditLog.create({
+            action: 'profile_verify',
+            targetType: 'profile',
+            targetId: profile._id,
+            performedBy: req.user._id,
+            changes: { status, reason, isDuplicate },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        res.json({ success: true, data: profile });
     } catch (error) {
         next(error);
     }
