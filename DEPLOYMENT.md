@@ -200,3 +200,18 @@ Follow the prompts to enable HTTPS redirect.
     # Restart backend if needed
     cd ../backend && npm install && pm2 restart matrimonia-api
     ```
+
+## 9. Automated Deployment (GitHub Actions)
+
+To enable "push-to-deploy", configure the following secrets in your GitHub Repository settings (**Settings** > **Secrets and variables** > **Actions** > **New repository secret**):
+
+| Secret Name | Description |
+| :--- | :--- |
+| `EC2_HOST` | The Public IP address of your EC2 instance. |
+| `EC2_USER` | The username for SSH access (usually `ubuntu`). |
+| `EC2_SSH_KEY` | The **entire content** of your `.pem` key file (including `-----BEGIN RSA PRIVATE KEY-----`). |
+
+**Workflow:**
+1.  Push code to the `main` branch.
+2.  GitHub Actions will automatically SSH into your server, pull the latest code, install dependencies, build the frontend, and restart the backend.
+
