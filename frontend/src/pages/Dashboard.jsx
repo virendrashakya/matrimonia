@@ -23,7 +23,7 @@ import ProfileCard from '../components/ProfileCard';
 import api from '../services/api';
 
 const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
+
 
 // Role-specific labels
 const roleLabels = {
@@ -383,145 +383,153 @@ function Dashboard() {
                 onChange={setActiveTab}
                 size="large"
                 style={{ marginBottom: 24 }}
-            >
-                <TabPane
-                    tab={
-                        <span>
-                            <EyeOutlined /> {isHindi ? 'हाल की प्रोफ़ाइल' : 'Recent Profiles'}
-                        </span>
+                items={[
+                    {
+                        key: 'overview',
+                        label: (
+                            <span>
+                                <EyeOutlined /> {isHindi ? 'हाल की प्रोफ़ाइल' : 'Recent Profiles'}
+                            </span>
+                        ),
+                        children: (
+                            <>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                                    <Title level={4} style={{ margin: 0 }}>{t.dashboard.recentProfiles}</Title>
+                                    <Link to="/profiles">
+                                        <Button type="primary" ghost style={{ borderRadius: 8 }}>{t.dashboard.viewAll} →</Button>
+                                    </Link>
+                                </div>
+
+                                {recentProfiles.length > 0 ? (
+                                    <div className="profile-grid">
+                                        {recentProfiles.map(profile => (
+                                            <ProfileCard key={profile._id} profile={profile} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
+                                        <Empty
+                                            image={<div style={{ fontSize: 64 }}>💍</div>}
+                                            description={
+                                                <Space direction="vertical">
+                                                    <Title level={4} style={{ color: '#8B7355' }}>{t.dashboard.noProfiles}</Title>
+                                                    <Text type="secondary">{t.dashboard.beFirst}</Text>
+                                                </Space>
+                                            }
+                                        >
+                                            <Link to="/profiles/new">
+                                                <Button type="primary" icon={<PlusOutlined />}>{t.dashboard.addFirstProfile}</Button>
+                                            </Link>
+                                        </Empty>
+                                    </Card>
+                                )}
+                            </>
+                        )
+                    },
+                    {
+                        key: 'my-profiles',
+                        label: (
+                            <span>
+                                <Badge count={myProfiles.length} size="small" offset={[8, 0]}>
+                                    <TeamOutlined /> {isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profiles'}
+                                </Badge>
+                            </span>
+                        ),
+                        children: (
+                            <>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                                    <Title level={4} style={{ margin: 0 }}>{isHindi ? 'मेरी बनाई प्रोफ़ाइल' : 'Profiles I Created'}</Title>
+                                    <Link to="/profiles/new">
+                                        <Button type="primary" icon={<PlusOutlined />} style={{ borderRadius: 8 }}>
+                                            {t.dashboard.addProfile}
+                                        </Button>
+                                    </Link>
+                                </div>
+
+                                {myProfiles.length > 0 ? (
+                                    <div className="profile-grid">
+                                        {myProfiles.map(profile => (
+                                            <ProfileCard key={profile._id} profile={profile} showEdit />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
+                                        <Empty
+                                            image={<div style={{ fontSize: 64 }}>📝</div>}
+                                            description={
+                                                <Space direction="vertical">
+                                                    <Title level={4} style={{ color: '#8B7355' }}>
+                                                        {isHindi ? 'आपने अभी तक कोई प्रोफ़ाइल नहीं बनाई' : 'You haven\'t created any profiles yet'}
+                                                    </Title>
+                                                    <Text type="secondary">
+                                                        {isHindi ? 'परिवार या मित्र की शादी के लिए प्रोफ़ाइल जोड़ें' : 'Add a profile for family or friends looking for a match'}
+                                                    </Text>
+                                                </Space>
+                                            }
+                                        >
+                                            <Link to="/profiles/new">
+                                                <Button type="primary" icon={<PlusOutlined />}>{t.dashboard.addFirstProfile}</Button>
+                                            </Link>
+                                        </Empty>
+                                    </Card>
+                                )}
+                            </>
+                        )
+                    },
+                    {
+                        key: 'recommendations',
+                        label: (
+                            <span>
+                                <HeartOutlined /> {isHindi ? 'सुझाव' : 'Recommendations'}
+                            </span>
+                        ),
+                        children: (
+                            <>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                                    <Title level={4} style={{ margin: 0 }}>
+                                        {isHindi ? 'आपके लिए सुझाई गई प्रोफ़ाइल' : 'Recommended for You'}
+                                    </Title>
+                                    <Link to="/search">
+                                        <Button type="primary" ghost style={{ borderRadius: 8 }}>
+                                            <SearchOutlined /> {isHindi ? 'और खोजें' : 'Search More'}
+                                        </Button>
+                                    </Link>
+                                </div>
+
+                                {recommendations.length > 0 ? (
+                                    <div className="profile-grid">
+                                        {recommendations.map(profile => (
+                                            <ProfileCard key={profile._id} profile={profile} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
+                                        <Empty
+                                            image={<div style={{ fontSize: 64 }}>💫</div>}
+                                            description={
+                                                <Space direction="vertical">
+                                                    <Title level={4} style={{ color: '#8B7355' }}>
+                                                        {isHindi ? 'अभी कोई सुझाव नहीं' : 'No recommendations yet'}
+                                                    </Title>
+                                                    <Text type="secondary">
+                                                        {isHindi ? 'प्रोफ़ाइल ब्राउज़ करें और पहचान दें' : 'Browse profiles and give recognitions to get personalized suggestions'}
+                                                    </Text>
+                                                </Space>
+                                            }
+                                        >
+                                            <Link to="/profiles">
+                                                <Button type="primary" icon={<SearchOutlined />}>
+                                                    {isHindi ? 'प्रोफ़ाइल देखें' : 'Browse Profiles'}
+                                                </Button>
+                                            </Link>
+                                        </Empty>
+                                    </Card>
+                                )}
+                            </>
+                        )
                     }
-                    key="overview"
-                >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <Title level={4} style={{ margin: 0 }}>{t.dashboard.recentProfiles}</Title>
-                        <Link to="/profiles">
-                            <Button type="primary" ghost style={{ borderRadius: 8 }}>{t.dashboard.viewAll} →</Button>
-                        </Link>
-                    </div>
-
-                    {recentProfiles.length > 0 ? (
-                        <div className="profile-grid">
-                            {recentProfiles.map(profile => (
-                                <ProfileCard key={profile._id} profile={profile} />
-                            ))}
-                        </div>
-                    ) : (
-                        <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
-                            <Empty
-                                image={<div style={{ fontSize: 64 }}>💍</div>}
-                                description={
-                                    <Space direction="vertical">
-                                        <Title level={4} style={{ color: '#8B7355' }}>{t.dashboard.noProfiles}</Title>
-                                        <Text type="secondary">{t.dashboard.beFirst}</Text>
-                                    </Space>
-                                }
-                            >
-                                <Link to="/profiles/new">
-                                    <Button type="primary" icon={<PlusOutlined />}>{t.dashboard.addFirstProfile}</Button>
-                                </Link>
-                            </Empty>
-                        </Card>
-                    )}
-                </TabPane>
-
-                <TabPane
-                    tab={
-                        <span>
-                            <Badge count={myProfiles.length} size="small" offset={[8, 0]}>
-                                <TeamOutlined /> {isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profiles'}
-                            </Badge>
-                        </span>
-                    }
-                    key="my-profiles"
-                >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <Title level={4} style={{ margin: 0 }}>{isHindi ? 'मेरी बनाई प्रोफ़ाइल' : 'Profiles I Created'}</Title>
-                        <Link to="/profiles/new">
-                            <Button type="primary" icon={<PlusOutlined />} style={{ borderRadius: 8 }}>
-                                {t.dashboard.addProfile}
-                            </Button>
-                        </Link>
-                    </div>
-
-                    {myProfiles.length > 0 ? (
-                        <div className="profile-grid">
-                            {myProfiles.map(profile => (
-                                <ProfileCard key={profile._id} profile={profile} showEdit />
-                            ))}
-                        </div>
-                    ) : (
-                        <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
-                            <Empty
-                                image={<div style={{ fontSize: 64 }}>📝</div>}
-                                description={
-                                    <Space direction="vertical">
-                                        <Title level={4} style={{ color: '#8B7355' }}>
-                                            {isHindi ? 'आपने अभी तक कोई प्रोफ़ाइल नहीं बनाई' : 'You haven\'t created any profiles yet'}
-                                        </Title>
-                                        <Text type="secondary">
-                                            {isHindi ? 'परिवार या मित्र की शादी के लिए प्रोफ़ाइल जोड़ें' : 'Add a profile for family or friends looking for a match'}
-                                        </Text>
-                                    </Space>
-                                }
-                            >
-                                <Link to="/profiles/new">
-                                    <Button type="primary" icon={<PlusOutlined />}>{t.dashboard.addFirstProfile}</Button>
-                                </Link>
-                            </Empty>
-                        </Card>
-                    )}
-                </TabPane>
-
-                <TabPane
-                    tab={
-                        <span>
-                            <HeartOutlined /> {isHindi ? 'सुझाव' : 'Recommendations'}
-                        </span>
-                    }
-                    key="recommendations"
-                >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <Title level={4} style={{ margin: 0 }}>
-                            {isHindi ? 'आपके लिए सुझाई गई प्रोफ़ाइल' : 'Recommended for You'}
-                        </Title>
-                        <Link to="/search">
-                            <Button type="primary" ghost style={{ borderRadius: 8 }}>
-                                <SearchOutlined /> {isHindi ? 'और खोजें' : 'Search More'}
-                            </Button>
-                        </Link>
-                    </div>
-
-                    {recommendations.length > 0 ? (
-                        <div className="profile-grid">
-                            {recommendations.map(profile => (
-                                <ProfileCard key={profile._id} profile={profile} />
-                            ))}
-                        </div>
-                    ) : (
-                        <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
-                            <Empty
-                                image={<div style={{ fontSize: 64 }}>💫</div>}
-                                description={
-                                    <Space direction="vertical">
-                                        <Title level={4} style={{ color: '#8B7355' }}>
-                                            {isHindi ? 'अभी कोई सुझाव नहीं' : 'No recommendations yet'}
-                                        </Title>
-                                        <Text type="secondary">
-                                            {isHindi ? 'प्रोफ़ाइल ब्राउज़ करें और पहचान दें' : 'Browse profiles and give recognitions to get personalized suggestions'}
-                                        </Text>
-                                    </Space>
-                                }
-                            >
-                                <Link to="/profiles">
-                                    <Button type="primary" icon={<SearchOutlined />}>
-                                        {isHindi ? 'प्रोफ़ाइल देखें' : 'Browse Profiles'}
-                                    </Button>
-                                </Link>
-                            </Empty>
-                        </Card>
-                    )}
-                </TabPane>
-            </Tabs>
+                ]}
+            />
         </div>
     );
 }

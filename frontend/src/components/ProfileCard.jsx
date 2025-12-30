@@ -96,13 +96,15 @@ function ProfileCard({ profile, viewMode = 'grid' }) {
                     display: 'flex',
                     flexDirection: 'column'
                 }}
-                bodyStyle={{
-                    padding: 16,
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: cardFlexDir,
-                    gap: contentGap,
-                    alignItems: isList && !isMobile ? 'center' : 'stretch'
+                styles={{
+                    body: {
+                        padding: 16,
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: cardFlexDir,
+                        gap: contentGap,
+                        alignItems: isList && !isMobile ? 'center' : 'stretch'
+                    }
                 }}
                 className="profile-card-hover"
             >

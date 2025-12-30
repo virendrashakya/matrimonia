@@ -51,6 +51,7 @@ const notificationSchema = new mongoose.Schema({
     data: {
         profileId: mongoose.Schema.Types.ObjectId,
         interestId: mongoose.Schema.Types.ObjectId,
+        viewerId: mongoose.Schema.Types.ObjectId,
         actionUrl: String,
     },
     // Read status

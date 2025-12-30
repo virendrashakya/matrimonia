@@ -37,7 +37,7 @@ router.post('/view/:profileId', authenticate, async (req, res) => {
             userId: profile.createdBy,
             type: 'profile_viewed',
             relatedProfile: profileId,
-            'metadata.viewerId': viewerId,
+            'data.viewerId': viewerId,
             createdAt: { $gte: oneDayAgo }
         });
 
@@ -45,17 +45,14 @@ router.post('/view/:profileId', authenticate, async (req, res) => {
             await Notification.create({
                 userId: profile.createdBy,
                 type: 'profile_viewed',
-                title: {
-                    en: 'Someone viewed your profile',
-                    hi: 'किसी ने आपकी प्रोफ़ाइल देखी'
-                },
-                message: {
-                    en: `Your profile was viewed by someone`,
-                    hi: `आपकी प्रोफ़ाइल किसी ने देखी`
-                },
-                relatedProfile: profileId,
-                metadata: {
-                    viewerId: viewerId
+                title: 'Someone viewed your profile',
+                titleHi: 'किसी ने आपकी प्रोफ़ाइल देखी',
+                message: 'Your profile was viewed by someone',
+                messageHi: 'आपकी प्रोफ़ाइल किसी ने देखी',
+                data: {
+                    profileId: profileId,
+                    viewerId: viewerId,
+                    actionUrl: `/profiles/${profileId}`
                 }
             });
         }

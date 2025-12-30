@@ -231,7 +231,7 @@ function Landing() {
                                     borderRadius: 16,
                                     border: '1px solid #F3E8D8',
                                 }}
-                                bodyStyle={{ padding: 24 }}
+                                styles={{ body: { padding: 24 } }}
                             >
                                 <div style={{
                                     width: 64,

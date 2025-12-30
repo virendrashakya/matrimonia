@@ -245,7 +245,7 @@ function Navbar() {
                     <Dropdown
                         trigger={['click']}
                         placement="bottomRight"
-                        dropdownRender={() => (
+                        popupRender={() => (
                             <div style={{
                                 background: 'white',
                                 borderRadius: 12,

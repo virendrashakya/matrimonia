@@ -24,7 +24,7 @@ import { useLanguage } from '../context/LanguageContext';
 import api from '../services/api';
 
 const { Title, Text, Paragraph } = Typography;
-const { TabPane } = Tabs;
+
 const { TextArea } = Input;
 
 function InterestsPage() {
@@ -156,287 +156,280 @@ function InterestsPage() {
                 onChange={setActiveTab}
                 size="large"
                 tabBarStyle={{ marginBottom: 24 }}
-            >
-                {/* Received Interests */}
-                <TabPane
-                    tab={
-                        <Badge count={pendingCount} offset={[10, 0]}>
-                            <span><InboxOutlined /> {isHindi ? 'प्राप्त रुचियाँ' : 'Received'}</span>
-                        </Badge>
-                    }
-                    key="received"
-                >
-                    {receivedInterests.length > 0 ? (
-                        <List
-                            itemLayout="horizontal"
-                            dataSource={receivedInterests}
-                            renderItem={(interest) => (
-                                <Card
-                                    style={{ marginBottom: 16, borderRadius: 12 }}
-                                    styles={{ body: { padding: 16 } }}
-                                >
-                                    <List.Item
-                                        actions={
-                                            interest.status === 'pending' ? [
-                                                <Button
-                                                    type="primary"
-                                                    icon={<CheckCircleOutlined />}
-                                                    onClick={() => handleRespond(interest._id, 'accept')}
-                                                >
-                                                    {isHindi ? 'स्वीकारें' : 'Accept'}
-                                                </Button>,
-                                                <Button
-                                                    danger
-                                                    icon={<CloseCircleOutlined />}
-                                                    onClick={() => handleRespond(interest._id, 'reject')}
-                                                >
-                                                    {isHindi ? 'अस्वीकार' : 'Decline'}
-                                                </Button>
-                                            ] : [getStatusTag(interest.status)]
-                                        }
-                                    >
-                                        <List.Item.Meta
-                                            avatar={
-                                                <Link to={`/profiles/${interest.fromProfile?._id}`}>
-                                                    <Avatar
-                                                        size={64}
-                                                        src={getPhoto(interest.fromProfile)}
-                                                        icon={<UserOutlined />}
-                                                        style={{ backgroundColor: '#E5D4C0' }}
-                                                    />
-                                                </Link>
-                                            }
-                                            title={
-                                                <Link to={`/profiles/${interest.fromProfile?._id}`}>
-                                                    <Space>
-                                                        <Text strong style={{ fontSize: 16 }}>
-                                                            {interest.fromProfile?.fullName}
-                                                        </Text>
-                                                        <Text type="secondary">
-                                                            {interest.fromProfile?.gender === 'male' ? '♂️' : '♀️'}
-                                                        </Text>
-                                                    </Space>
-                                                </Link>
-                                            }
-                                            description={
-                                                <Space direction="vertical" size={4}>
-                                                    <Text type="secondary">
-                                                        {interest.fromProfile?.age} {isHindi ? 'वर्ष' : 'yrs'} • {interest.fromProfile?.city}
-                                                    </Text>
-                                                    {interest.message && (
-                                                        <Text italic style={{ color: '#8B7355' }}>
-                                                            "{interest.message}"
-                                                        </Text>
-                                                    )}
-                                                    <Text type="secondary" style={{ fontSize: 12 }}>
-                                                        {new Date(interest.createdAt).toLocaleDateString()}
-                                                    </Text>
-                                                </Space>
-                                            }
-                                        />
-                                    </List.Item>
-                                </Card>
-                            )}
-                        />
-                    ) : (
-                        <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
-                            <Empty
-                                image={<div style={{ fontSize: 64 }}>💌</div>}
-                                description={
-                                    <Space direction="vertical">
-                                        <Title level={4} style={{ color: '#8B7355' }}>
-                                            {isHindi ? 'कोई नई रुचियाँ नहीं' : 'No interests received yet'}
-                                        </Title>
-                                        <Text type="secondary">
-                                            {isHindi
-                                                ? 'जब कोई आपकी प्रोफ़ाइल में रुचि लेगा, वह यहाँ दिखाई देगी'
-                                                : 'When someone expresses interest in your profile, it will appear here'}
-                                        </Text>
-                                    </Space>
-                                }
-                            />
-                        </Card>
-                    )}
-                </TabPane>
-
-                {/* Sent Interests */}
-                <TabPane
-                    tab={<span><SendOutlined /> {isHindi ? 'भेजी गई रुचियाँ' : 'Sent'}</span>}
-                    key="sent"
-                >
-                    {sentInterests.length > 0 ? (
-                        <List
-                            itemLayout="horizontal"
-                            dataSource={sentInterests}
-                            renderItem={(interest) => (
-                                <Card
-                                    style={{ marginBottom: 16, borderRadius: 12 }}
-                                    styles={{ body: { padding: 16 } }}
-                                >
-                                    <List.Item
-                                        actions={[getStatusTag(interest.status)]}
-                                    >
-                                        <List.Item.Meta
-                                            avatar={
-                                                <Link to={`/profiles/${interest.toProfile?._id}`}>
-                                                    <Avatar
-                                                        size={64}
-                                                        src={getPhoto(interest.toProfile)}
-                                                        icon={<UserOutlined />}
-                                                        style={{ backgroundColor: '#E5D4C0' }}
-                                                    />
-                                                </Link>
-                                            }
-                                            title={
-                                                <Link to={`/profiles/${interest.toProfile?._id}`}>
-                                                    <Space>
-                                                        <Text strong style={{ fontSize: 16 }}>
-                                                            {interest.toProfile?.fullName}
-                                                        </Text>
-                                                        <Text type="secondary">
-                                                            {interest.toProfile?.gender === 'male' ? '♂️' : '♀️'}
-                                                        </Text>
-                                                    </Space>
-                                                </Link>
-                                            }
-                                            description={
-                                                <Space direction="vertical" size={4}>
-                                                    <Text type="secondary">
-                                                        {interest.toProfile?.city}
-                                                    </Text>
-                                                    <Text type="secondary" style={{ fontSize: 12 }}>
-                                                        {isHindi ? 'भेजा गया' : 'Sent'}: {new Date(interest.createdAt).toLocaleDateString()}
-                                                    </Text>
-                                                </Space>
-                                            }
-                                        />
-                                    </List.Item>
-                                </Card>
-                            )}
-                        />
-                    ) : (
-                        <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
-                            <Empty
-                                image={<div style={{ fontSize: 64 }}>💝</div>}
-                                description={
-                                    <Space direction="vertical">
-                                        <Title level={4} style={{ color: '#8B7355' }}>
-                                            {isHindi ? 'कोई रुचियाँ नहीं भेजी' : 'No interests sent yet'}
-                                        </Title>
-                                        <Text type="secondary">
-                                            {isHindi
-                                                ? 'प्रोफ़ाइल ब्राउज़ करें और अपनी पसंद का प्रोफ़ाइल खोजें'
-                                                : 'Browse profiles and express interest in ones you like'}
-                                        </Text>
-                                    </Space>
-                                }
-                            >
-                                <Link to="/profiles">
-                                    <Button type="primary">
-                                        {isHindi ? 'प्रोफ़ाइल देखें' : 'Browse Profiles'}
-                                    </Button>
-                                </Link>
-                            </Empty>
-                        </Card>
-                    )}
-                </TabPane>
-
-                {/* Matches */}
-                <TabPane
-                    tab={
-                        <Badge count={matches.length} style={{ backgroundColor: '#059669' }} offset={[10, 0]}>
-                            <span><HeartFilled style={{ color: '#A0153E' }} /> {isHindi ? 'मैच' : 'Matches'}</span>
-                        </Badge>
-                    }
-                    key="matches"
-                >
-                    {matches.length > 0 ? (
-                        <Row gutter={[16, 16]}>
-                            {matches.map((match) => (
-                                <Col xs={24} sm={12} md={8} key={match.profile?._id}>
+                items={[
+                    {
+                        key: 'received',
+                        label: (
+                            <Badge count={pendingCount} offset={[10, 0]}>
+                                <span><InboxOutlined /> {isHindi ? 'प्राप्त रुचियाँ' : 'Received'}</span>
+                            </Badge>
+                        ),
+                        children: receivedInterests.length > 0 ? (
+                            <List
+                                itemLayout="horizontal"
+                                dataSource={receivedInterests}
+                                renderItem={(interest) => (
                                     <Card
-                                        hoverable
-                                        style={{ borderRadius: 12, overflow: 'hidden' }}
-                                        cover={
-                                            <div style={{ position: 'relative' }}>
-                                                {getPhoto(match.profile) ? (
-                                                    <img
-                                                        alt={match.profile?.fullName}
-                                                        src={getPhoto(match.profile)}
-                                                        style={{ height: 200, width: '100%', objectFit: 'cover' }}
-                                                    />
-                                                ) : (
-                                                    <div style={{
-                                                        height: 200,
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        background: 'linear-gradient(135deg, #FFF5EB, #FFF8F0)'
-                                                    }}>
-                                                        <Avatar size={80} icon={<UserOutlined />} />
-                                                    </div>
-                                                )}
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    top: 12,
-                                                    right: 12,
-                                                    background: 'linear-gradient(135deg, #059669, #047857)',
-                                                    color: 'white',
-                                                    padding: '4px 12px',
-                                                    borderRadius: 16,
-                                                    fontSize: 12,
-                                                    fontWeight: 600
-                                                }}>
-                                                    <StarOutlined /> {isHindi ? 'मैच!' : 'Match!'}
-                                                </div>
-                                            </div>
-                                        }
+                                        style={{ marginBottom: 16, borderRadius: 12 }}
+                                        styles={{ body: { padding: 16 } }}
                                     >
-                                        <Card.Meta
-                                            title={
-                                                <Link to={`/profiles/${match.profile?._id}`}>
-                                                    {match.profile?.fullName}
-                                                </Link>
+                                        <List.Item
+                                            actions={
+                                                interest.status === 'pending' ? [
+                                                    <Button
+                                                        type="primary"
+                                                        icon={<CheckCircleOutlined />}
+                                                        onClick={() => handleRespond(interest._id, 'accept')}
+                                                    >
+                                                        {isHindi ? 'स्वीकारें' : 'Accept'}
+                                                    </Button>,
+                                                    <Button
+                                                        danger
+                                                        icon={<CloseCircleOutlined />}
+                                                        onClick={() => handleRespond(interest._id, 'reject')}
+                                                    >
+                                                        {isHindi ? 'अस्वीकार' : 'Decline'}
+                                                    </Button>
+                                                ] : [getStatusTag(interest.status)]
                                             }
-                                            description={
-                                                <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                                                    <Text>{match.profile?.age} {isHindi ? 'वर्ष' : 'yrs'} • {match.profile?.city}</Text>
-                                                    {match.profile?.phone && (
-                                                        <Tag color="green" icon={<PhoneOutlined />}>
-                                                            {match.profile.phone}
-                                                        </Tag>
-                                                    )}
-                                                    <Text type="secondary" style={{ fontSize: 11 }}>
-                                                        {isHindi ? 'मैच किया' : 'Matched'}: {new Date(match.matchedAt).toLocaleDateString()}
-                                                    </Text>
-                                                </Space>
-                                            }
-                                        />
+                                        >
+                                            <List.Item.Meta
+                                                avatar={
+                                                    <Link to={`/profiles/${interest.fromProfile?._id}`}>
+                                                        <Avatar
+                                                            size={64}
+                                                            src={getPhoto(interest.fromProfile)}
+                                                            icon={<UserOutlined />}
+                                                            style={{ backgroundColor: '#E5D4C0' }}
+                                                        />
+                                                    </Link>
+                                                }
+                                                title={
+                                                    <Link to={`/profiles/${interest.fromProfile?._id}`}>
+                                                        <Space>
+                                                            <Text strong style={{ fontSize: 16 }}>
+                                                                {interest.fromProfile?.fullName}
+                                                            </Text>
+                                                            <Text type="secondary">
+                                                                {interest.fromProfile?.gender === 'male' ? '♂️' : '♀️'}
+                                                            </Text>
+                                                        </Space>
+                                                    </Link>
+                                                }
+                                                description={
+                                                    <Space direction="vertical" size={4}>
+                                                        <Text type="secondary">
+                                                            {interest.fromProfile?.age} {isHindi ? 'वर्ष' : 'yrs'} • {interest.fromProfile?.city}
+                                                        </Text>
+                                                        {interest.message && (
+                                                            <Text italic style={{ color: '#8B7355' }}>
+                                                                "{interest.message}"
+                                                            </Text>
+                                                        )}
+                                                        <Text type="secondary" style={{ fontSize: 12 }}>
+                                                            {new Date(interest.createdAt).toLocaleDateString()}
+                                                        </Text>
+                                                    </Space>
+                                                }
+                                            />
+                                        </List.Item>
                                     </Card>
-                                </Col>
-                            ))}
-                        </Row>
-                    ) : (
-                        <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
-                            <Empty
-                                image={<div style={{ fontSize: 64 }}>💞</div>}
-                                description={
-                                    <Space direction="vertical">
-                                        <Title level={4} style={{ color: '#8B7355' }}>
-                                            {isHindi ? 'अभी तक कोई मैच नहीं' : 'No matches yet'}
-                                        </Title>
-                                        <Text type="secondary">
-                                            {isHindi
-                                                ? 'जब आप और कोई दोनों एक-दूसरे में रुचि लेंगे, तो यह एक मैच होगा!'
-                                                : 'When you and someone both express interest in each other, it\'s a match!'}
-                                        </Text>
-                                    </Space>
-                                }
+                                )}
                             />
-                        </Card>
-                    )}
-                </TabPane>
-            </Tabs>
+                        ) : (
+                            <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
+                                <Empty
+                                    image={<div style={{ fontSize: 64 }}>💌</div>}
+                                    description={
+                                        <Space direction="vertical">
+                                            <Title level={4} style={{ color: '#8B7355' }}>
+                                                {isHindi ? 'कोई नई रुचियाँ नहीं' : 'No interests received yet'}
+                                            </Title>
+                                            <Text type="secondary">
+                                                {isHindi
+                                                    ? 'जब कोई आपकी प्रोफ़ाइल में रुचि लेगा, वह यहाँ दिखाई देगी'
+                                                    : 'When someone expresses interest in your profile, it will appear here'}
+                                            </Text>
+                                        </Space>
+                                    }
+                                />
+                            </Card>
+                        )
+                    },
+                    {
+                        key: 'sent',
+                        label: <span><SendOutlined /> {isHindi ? 'भेजी गई रुचियाँ' : 'Sent'}</span>,
+                        children: sentInterests.length > 0 ? (
+                            <List
+                                itemLayout="horizontal"
+                                dataSource={sentInterests}
+                                renderItem={(interest) => (
+                                    <Card
+                                        style={{ marginBottom: 16, borderRadius: 12 }}
+                                        styles={{ body: { padding: 16 } }}
+                                    >
+                                        <List.Item
+                                            actions={[getStatusTag(interest.status)]}
+                                        >
+                                            <List.Item.Meta
+                                                avatar={
+                                                    <Link to={`/profiles/${interest.toProfile?._id}`}>
+                                                        <Avatar
+                                                            size={64}
+                                                            src={getPhoto(interest.toProfile)}
+                                                            icon={<UserOutlined />}
+                                                            style={{ backgroundColor: '#E5D4C0' }}
+                                                        />
+                                                    </Link>
+                                                }
+                                                title={
+                                                    <Link to={`/profiles/${interest.toProfile?._id}`}>
+                                                        <Space>
+                                                            <Text strong style={{ fontSize: 16 }}>
+                                                                {interest.toProfile?.fullName}
+                                                            </Text>
+                                                            <Text type="secondary">
+                                                                {interest.toProfile?.gender === 'male' ? '♂️' : '♀️'}
+                                                            </Text>
+                                                        </Space>
+                                                    </Link>
+                                                }
+                                                description={
+                                                    <Space direction="vertical" size={4}>
+                                                        <Text type="secondary">
+                                                            {interest.toProfile?.city}
+                                                        </Text>
+                                                        <Text type="secondary" style={{ fontSize: 12 }}>
+                                                            {isHindi ? 'भेजा गया' : 'Sent'}: {new Date(interest.createdAt).toLocaleDateString()}
+                                                        </Text>
+                                                    </Space>
+                                                }
+                                            />
+                                        </List.Item>
+                                    </Card>
+                                )}
+                            />
+                        ) : (
+                            <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
+                                <Empty
+                                    image={<div style={{ fontSize: 64 }}>💝</div>}
+                                    description={
+                                        <Space direction="vertical">
+                                            <Title level={4} style={{ color: '#8B7355' }}>
+                                                {isHindi ? 'कोई रुचियाँ नहीं भेजी' : 'No interests sent yet'}
+                                            </Title>
+                                            <Text type="secondary">
+                                                {isHindi
+                                                    ? 'प्रोफ़ाइल ब्राउज़ करें और अपनी पसंद का प्रोफ़ाइल खोजें'
+                                                    : 'Browse profiles and express interest in ones you like'}
+                                            </Text>
+                                        </Space>
+                                    }
+                                >
+                                    <Link to="/profiles">
+                                        <Button type="primary">
+                                            {isHindi ? 'प्रोफ़ाइल देखें' : 'Browse Profiles'}
+                                        </Button>
+                                    </Link>
+                                </Empty>
+                            </Card>
+                        )
+                    },
+                    {
+                        key: 'matches',
+                        label: (
+                            <Badge count={matches.length} style={{ backgroundColor: '#059669' }} offset={[10, 0]}>
+                                <span><HeartFilled style={{ color: '#A0153E' }} /> {isHindi ? 'मैच' : 'Matches'}</span>
+                            </Badge>
+                        ),
+                        children: matches.length > 0 ? (
+                            <Row gutter={[16, 16]}>
+                                {matches.map((match) => (
+                                    <Col xs={24} sm={12} md={8} key={match.profile?._id}>
+                                        <Card
+                                            hoverable
+                                            style={{ borderRadius: 12, overflow: 'hidden' }}
+                                            cover={
+                                                <div style={{ position: 'relative' }}>
+                                                    {getPhoto(match.profile) ? (
+                                                        <img
+                                                            alt={match.profile?.fullName}
+                                                            src={getPhoto(match.profile)}
+                                                            style={{ height: 200, width: '100%', objectFit: 'cover' }}
+                                                        />
+                                                    ) : (
+                                                        <div style={{
+                                                            height: 200,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            background: 'linear-gradient(135deg, #FFF5EB, #FFF8F0)'
+                                                        }}>
+                                                            <Avatar size={80} icon={<UserOutlined />} />
+                                                        </div>
+                                                    )}
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: 12,
+                                                        right: 12,
+                                                        background: 'linear-gradient(135deg, #059669, #047857)',
+                                                        color: 'white',
+                                                        padding: '4px 12px',
+                                                        borderRadius: 16,
+                                                        fontSize: 12,
+                                                        fontWeight: 600
+                                                    }}>
+                                                        <StarOutlined /> {isHindi ? 'मैच!' : 'Match!'}
+                                                    </div>
+                                                </div>
+                                            }
+                                        >
+                                            <Card.Meta
+                                                title={
+                                                    <Link to={`/profiles/${match.profile?._id}`}>
+                                                        {match.profile?.fullName}
+                                                    </Link>
+                                                }
+                                                description={
+                                                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                                                        <Text>{match.profile?.age} {isHindi ? 'वर्ष' : 'yrs'} • {match.profile?.city}</Text>
+                                                        {match.profile?.phone && (
+                                                            <Tag color="green" icon={<PhoneOutlined />}>
+                                                                {match.profile.phone}
+                                                            </Tag>
+                                                        )}
+                                                        <Text type="secondary" style={{ fontSize: 11 }}>
+                                                            {isHindi ? 'मैच किया' : 'Matched'}: {new Date(match.matchedAt).toLocaleDateString()}
+                                                        </Text>
+                                                    </Space>
+                                                }
+                                            />
+                                        </Card>
+                                    </Col>
+                                ))}
+                            </Row>
+                        ) : (
+                            <Card style={{ borderRadius: 12, textAlign: 'center', padding: 40 }}>
+                                <Empty
+                                    image={<div style={{ fontSize: 64 }}>💞</div>}
+                                    description={
+                                        <Space direction="vertical">
+                                            <Title level={4} style={{ color: '#8B7355' }}>
+                                                {isHindi ? 'अभी तक कोई मैच नहीं' : 'No matches yet'}
+                                            </Title>
+                                            <Text type="secondary">
+                                                {isHindi
+                                                    ? 'जब आप और कोई दोनों एक-दूसरे में रुचि लेंगे, तो यह एक मैच होगा!'
+                                                    : 'When you and someone both express interest in each other, it\'s a match!'}
+                                            </Text>
+                                        </Space>
+                                    }
+                                />
+                            </Card>
+                        )
+                    }
+                ]}
+            />
         </div>
     );
 }

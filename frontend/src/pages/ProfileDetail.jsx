@@ -424,7 +424,7 @@ function ProfileDetail() {
                     {/* Risk Card */}
                     <Card
                         style={{ borderRadius: 12, background: riskConfig[riskLevel].bgColor, border: 'none', marginBottom: 16 }}
-                        bodyStyle={{ textAlign: 'center', padding: 16 }}
+                        styles={{ body: { textAlign: 'center', padding: 16 } }}
                     >
                         <div style={{ fontSize: 28, marginBottom: 4, color: riskConfig[riskLevel].color }}>
                             {riskConfig[riskLevel].icon}
