@@ -80,192 +80,114 @@ function ProfileCard({ profile }) {
                 hoverable
                 style={{
                     borderRadius: 16,
-                    overflow: 'hidden',
                     border: 'none',
-                    boxShadow: '0 4px 20px rgba(160, 21, 62, 0.08)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
                     transition: 'all 0.3s ease',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
                 }}
-                bodyStyle={{ padding: 0 }}
+                bodyStyle={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}
                 className="profile-card-hover"
-                cover={
+            >
+                {/* Header Section: Avatar + Basic Info */}
+                <div style={{ display: 'flex', gap: 16, marginBottom: 16, position: 'relative' }}>
+                    {/* Avatar Area */}
                     <div style={{ position: 'relative' }}>
-                        {primaryPhoto ? (
-                            <img
-                                alt={displayName}
-                                src={primaryPhoto}
-                                style={{
-                                    height: 220,
-                                    width: '100%',
-                                    objectFit: 'cover',
-                                }}
-                            />
-                        ) : (
-                            <div style={{
-                                height: 220,
+                        <Avatar
+                            size={84}
+                            src={primaryPhoto}
+                            style={{
+                                background: genderStyle.gradient,
+                                border: '3px solid white',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                fontSize: 28,
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
-                                background: genderStyle.lightGradient,
-                                position: 'relative'
-                            }}>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    fontSize: 100,
-                                    opacity: 0.08
-                                }}>
-                                    💍
-                                </div>
-                                <Avatar
-                                    size={80}
-                                    style={{
-                                        background: genderStyle.gradient,
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                        fontSize: 32,
-                                        fontWeight: 700,
-                                        color: 'white'
-                                    }}
-                                >
-                                    {initials}
-                                </Avatar>
-                            </div>
-                        )}
+                                justifyContent: 'center'
+                            }}
+                        >
+                            {initials}
+                        </Avatar>
 
-                        {/* Gradient overlay for text readability */}
+                        {/* Gender Badge on Avatar */}
                         <div style={{
                             position: 'absolute',
                             bottom: 0,
-                            left: 0,
                             right: 0,
-                            height: 80,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
-                        }} />
-
-                        {/* Recognition badge */}
-                        <div style={{ position: 'absolute', top: 12, left: 12 }}>
-                            <Tag
-                                style={{
-                                    background: levelConfig[level].gradient,
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: 20,
-                                    padding: '4px 12px',
-                                    fontWeight: 600,
-                                    fontSize: 11,
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                                }}
-                            >
-                                ✨ {levelConfig[level].label}
-                            </Tag>
-                        </div>
-
-                        {/* Visibility badge */}
-                        {visibility !== 'public' && (
-                            <Tooltip title={visibility === 'restricted' ? 'Requires approval' : 'Private'}>
-                                <div style={{
-                                    position: 'absolute',
-                                    top: 12,
-                                    right: 12,
-                                    background: 'rgba(255,255,255,0.9)',
-                                    borderRadius: '50%',
-                                    width: 28,
-                                    height: 28,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                                    fontSize: 14
-                                }}>
-                                    {visStyle.label}
-                                </div>
-                            </Tooltip>
-                        )}
-
-                        {/* Gender indicator */}
-                        <div style={{
-                            position: 'absolute',
-                            top: 12,
-                            right: visibility !== 'public' ? 48 : 12,
-                            background: genderStyle.gradient,
-                            color: 'white',
-                            width: 32,
-                            height: 32,
+                            background: 'white',
                             borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 16,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                        }}>
-                            {genderStyle.icon}
-                        </div>
-
-                        {/* Photo count */}
-                        {profile.photos?.length > 1 && (
-                            <div style={{
-                                position: 'absolute',
-                                bottom: 50,
-                                right: 12,
-                                background: 'rgba(255,255,255,0.9)',
-                                color: '#2C1810',
-                                padding: '4px 10px',
-                                borderRadius: 12,
-                                fontSize: 11,
-                                fontWeight: 600,
-                                backdropFilter: 'blur(4px)',
-                            }}>
-                                📷 {profile.photos.length}
-                            </div>
-                        )}
-
-                        {/* Name & Age on photo */}
-                        <div style={{
-                            position: 'absolute',
-                            bottom: 12,
-                            left: 12,
-                            right: 12,
+                            padding: 2,
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                         }}>
                             <div style={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: '50%',
+                                background: genderStyle.gradient,
+                                color: 'white',
                                 display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-end',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 12
                             }}>
-                                <div>
-                                    <div style={{
-                                        color: 'white',
-                                        fontSize: 16,
-                                        fontWeight: 700,
-                                        textShadow: '0 1px 3px rgba(0,0,0,0.5)'
-                                    }}>
-                                        {displayName}
-                                    </div>
-                                    <div style={{
-                                        color: 'rgba(255,255,255,0.9)',
-                                        fontSize: 12,
-                                        textShadow: '0 1px 2px rgba(0,0,0,0.3)'
-                                    }}>
-                                        {displayCity}
-                                    </div>
-                                </div>
-                                <div style={{
-                                    background: 'linear-gradient(135deg, #A0153E, #7A0F2E)',
-                                    color: 'white',
-                                    padding: '6px 14px',
-                                    borderRadius: 20,
-                                    fontSize: 13,
-                                    fontWeight: 700,
-                                    boxShadow: '0 2px 8px rgba(160,21,62,0.4)',
-                                }}>
-                                    {profile.age} {t.profiles.years}
-                                </div>
+                                {genderStyle.icon}
                             </div>
                         </div>
                     </div>
-                }
-            >
-                <div style={{ padding: 16 }}>
+
+                    {/* Info Area */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                            <div style={{ flex: 1, marginRight: 8, minWidth: 0 }}>
+                                <Text strong style={{ fontSize: 18, color: '#1F2937', display: 'block', lineHeight: 1.2, marginBottom: 2, width: '100%' }} ellipsis>
+                                    {displayName}
+                                </Text>
+                                <Text type="secondary" style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <span style={{ fontSize: 14, flexShrink: 0 }}>📍</span>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <Text style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.45)', width: '100%', display: 'block' }} ellipsis>
+                                            {displayCity}
+                                        </Text>
+                                    </div>
+                                </Text>
+                            </div>
+
+                            {/* Recognition Badge (Compact) */}
+                            <Tooltip title={levelConfig[level].label}>
+                                <Tag color={levelConfig[level].color === 'default' ? 'default' : levelConfig[level].color} style={{ margin: 0, borderRadius: 12, fontSize: 10, fontWeight: 600 }}>
+                                    {level === 'new' ? '✨ NEW' : '✨ ' + levelConfig[level].label.toUpperCase()}
+                                </Tag>
+                            </Tooltip>
+                        </div>
+
+                        {/* Age & ID */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                            <Tag style={{
+                                margin: 0,
+                                borderRadius: 20,
+                                background: '#FFF0F5',
+                                border: 'none',
+                                color: '#A0153E',
+                                fontWeight: 600,
+                                padding: '0 10px'
+                            }}>
+                                {profile.age} {t.profiles.years}
+                            </Tag>
+
+                            {/* Photo Count if any */}
+                            {profile.photos?.length > 1 && (
+                                <div style={{ fontSize: 12, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#D1D5DB' }} />
+                                    <span>📷 {profile.photos.length}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Content Section (Push to bottom if needed, or keep standard) */}
+                <div style={{ flex: 1 }}>
                     {/* Caste & Education */}
                     <div style={{
                         background: 'linear-gradient(135deg, #FFF8F0, #FFF5EB)',
@@ -274,34 +196,44 @@ function ProfileCard({ profile }) {
                         marginBottom: 12,
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                            <span style={{ fontSize: 14 }}>🛕</span>
-                            <Text strong style={{ fontSize: 13, color: '#A0153E' }}>
-                                {profile.caste}
-                            </Text>
+                            <span style={{ fontSize: 14, flexShrink: 0 }}>🛕</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text strong style={{ fontSize: 13, color: '#A0153E', width: '100%', display: 'block' }} ellipsis>
+                                    {profile.caste}
+                                </Text>
+                            </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                            <span style={{ fontSize: 14 }}>🎓</span>
-                            <Text style={{ fontSize: 12, color: '#6B7280' }}>
-                                {isHindi && profile.localContent?.education ? profile.localContent.education : profile.education}
-                            </Text>
+                            <span style={{ fontSize: 14, flexShrink: 0 }}>🎓</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text style={{ fontSize: 12, color: '#6B7280', width: '100%', display: 'block' }} ellipsis>
+                                    {isHindi && profile.localContent?.education ? profile.localContent.education : profile.education}
+                                </Text>
+                            </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontSize: 14 }}>💼</span>
-                            <Text style={{ fontSize: 12, color: '#6B7280' }}>
-                                {isHindi && profile.localContent?.profession ? profile.localContent.profession : profile.profession}
-                            </Text>
+                            <span style={{ fontSize: 14, flexShrink: 0 }}>💼</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text style={{ fontSize: 12, color: '#6B7280', width: '100%', display: 'block' }} ellipsis>
+                                    {isHindi && profile.localContent?.profession ? profile.localContent.profession : profile.profession}
+                                </Text>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Footer */}
+                    {/* Footer: Stats & Actions Merged */}
                     <div style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: 12,
+                        marginTop: 12,
                         paddingTop: 12,
                         borderTop: '1px dashed #E5D4C0'
                     }}>
-                        <Space size={6}>
+                        {/* Stats / Risk */}
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                             <div style={{
                                 background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
                                 borderRadius: 8,
@@ -315,59 +247,54 @@ function ProfileCard({ profile }) {
                                     {profile.recognition?.recogniserCount || 0}
                                 </Text>
                             </div>
-                        </Space>
-                        <div style={{
-                            background: riskConfig[riskLevel].bg,
-                            color: riskConfig[riskLevel].color,
-                            fontSize: 11,
-                            padding: '4px 10px',
-                            borderRadius: 8,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            fontWeight: 600
-                        }}>
-                            {riskConfig[riskLevel].icon}
-                            <span>{riskConfig[riskLevel].text}</span>
-                        </div>
-                    </div>
 
-                    {/* Quick Actions */}
-                    <div style={{
-                        display: 'flex',
-                        gap: 8,
-                        marginTop: 8,
-                        paddingTop: 8,
-                        borderTop: '1px solid #f0f0f0'
-                    }}>
-                        <Tooltip title={isShortlisted(profile._id) ? (isHindi ? 'शॉर्टलिस्ट से हटाएं' : 'Remove from shortlist') : (isHindi ? 'शॉर्टलिस्ट में जोड़ें' : 'Add to shortlist')}>
-                            <Button
-                                size="small"
-                                type={isShortlisted(profile._id) ? 'primary' : 'default'}
-                                icon={isShortlisted(profile._id) ? <StarFilled /> : <StarOutlined />}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    isShortlisted(profile._id)
-                                        ? removeFromShortlist(profile._id)
-                                        : addToShortlist(profile);
-                                }}
-                                style={isShortlisted(profile._id) ? { background: '#D4AF37', borderColor: '#D4AF37' } : {}}
-                            />
-                        </Tooltip>
-                        <Tooltip title={isHindi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}>
-                            <Button
-                                size="small"
-                                type="primary"
-                                className="whatsapp-share-btn"
-                                icon={<WhatsAppOutlined />}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    shareViaWhatsApp(profile, isHindi ? 'hi' : 'en');
-                                }}
-                            />
-                        </Tooltip>
+                            <div style={{
+                                background: riskConfig[riskLevel].bg,
+                                color: riskConfig[riskLevel].color,
+                                fontSize: 11,
+                                padding: '4px 10px',
+                                borderRadius: 8,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                fontWeight: 600
+                            }}>
+                                {riskConfig[riskLevel].icon}
+                                <span>{riskConfig[riskLevel].text}</span>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', gap: 6 }}>
+                            <Tooltip title={isShortlisted(profile._id) ? (isHindi ? 'शॉर्टलिस्ट से हटाएं' : 'Remove from shortlist') : (isHindi ? 'शॉर्टलिस्ट में जोड़ें' : 'Add to shortlist')}>
+                                <Button
+                                    size="small"
+                                    type={isShortlisted(profile._id) ? 'primary' : 'default'}
+                                    icon={isShortlisted(profile._id) ? <StarFilled /> : <StarOutlined />}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        isShortlisted(profile._id)
+                                            ? removeFromShortlist(profile._id)
+                                            : addToShortlist(profile);
+                                    }}
+                                    style={isShortlisted(profile._id) ? { background: '#D4AF37', borderColor: '#D4AF37' } : {}}
+                                />
+                            </Tooltip>
+                            <Tooltip title={isHindi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}>
+                                <Button
+                                    size="small"
+                                    type="primary"
+                                    className="whatsapp-share-btn"
+                                    icon={<WhatsAppOutlined />}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        shareViaWhatsApp(profile, isHindi ? 'hi' : 'en');
+                                    }}
+                                />
+                            </Tooltip>
+                        </div>
                     </div>
                 </div>
             </Card >

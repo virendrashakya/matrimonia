@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Typography, Spin, Empty, Pagination, Space, Card } from 'antd';
+import { Button, Typography, Spin, Empty, Pagination, Space, Card, Row, Col } from 'antd';
 import { PlusOutlined, TeamOutlined } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
 import ProfileCard from '../components/ProfileCard';
@@ -42,7 +42,7 @@ function Profiles() {
     return (
         <div style={{ padding: '32px 0' }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
                 <div>
                     <Title level={2} style={{ margin: 0 }}>
                         <TeamOutlined style={{ marginRight: 12, color: '#A0153E' }} />
@@ -61,11 +61,13 @@ function Profiles() {
 
             {profiles.length > 0 ? (
                 <>
-                    <div className="profile-grid">
+                    <Row gutter={[24, 24]}>
                         {profiles.map(profile => (
-                            <ProfileCard key={profile._id} profile={profile} />
+                            <Col xs={24} sm={12} md={8} lg={8} xl={6} key={profile._id}>
+                                <ProfileCard profile={profile} />
+                            </Col>
                         ))}
-                    </div>
+                    </Row>
 
                     {pagination.pages > 1 && (
                         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 48, padding: 24, background: '#FFFBF5', borderRadius: 12 }}>

@@ -144,70 +144,81 @@ function Dashboard() {
             {/* Welcome Section */}
             <Card
                 style={{
-                    marginBottom: 32,
+                    marginBottom: 24,
                     background: 'linear-gradient(135deg, #A0153E 0%, #7A0F2E 100%)',
-                    borderRadius: 16,
+                    borderRadius: 12,
                     border: 'none',
                     overflow: 'hidden',
                     position: 'relative',
                 }}
-                styles={{ body: { padding: 32 } }}
+                styles={{ body: { padding: '20px 24px' } }}
             >
                 <div style={{
                     position: 'absolute',
-                    top: -50,
-                    right: -50,
-                    width: 200,
-                    height: 200,
+                    top: -30,
+                    right: -30,
+                    width: 120,
+                    height: 120,
                     borderRadius: '50%',
                     background: 'rgba(212, 175, 55, 0.1)',
                 }} />
 
-                <Row align="middle" gutter={24}>
-                    <Col flex="auto">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                            <Title level={2} style={{ color: 'white', margin: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                            <Title level={3} style={{ color: 'white', margin: 0, fontSize: 20 }}>
                                 {t.dashboard.namaste}, {user?.name?.split(' ')[0]}! 🙏
                             </Title>
                             <Tag
                                 style={{
                                     background: 'rgba(212, 175, 55, 0.2)',
-                                    border: '1px solid rgba(212, 175, 55, 0.4)',
+                                    border: 'none',
                                     color: '#F4D160',
-                                    fontSize: 12
+                                    fontSize: 11,
+                                    borderRadius: 12,
+                                    margin: 0
                                 }}
                             >
                                 {roleInfo.icon} {isHindi ? roleInfo.labelHi : roleInfo.label}
                             </Tag>
                         </div>
-                        <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: 16, margin: 0 }}>
+                        <Paragraph style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, margin: '4px 0 0 0' }}>
                             {t.dashboard.welcome}
                         </Paragraph>
-                    </Col>
-                    <Col>
+                    </div>
+
+                    <div>
                         {isVerified ? (
-                            <div style={{
-                                background: 'rgba(5, 150, 105, 0.2)',
-                                border: '1px solid rgba(5, 150, 105, 0.4)',
-                                borderRadius: 12,
-                                padding: '12px 20px',
-                                color: '#A7F3D0',
+                            <Tag style={{
+                                background: '#FFFFFF',
+                                border: 'none',
+                                borderRadius: 20,
+                                padding: '4px 12px',
+                                color: '#059669',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                margin: 0
                             }}>
                                 <CheckCircleOutlined /> {t.dashboard.verifiedMember}
-                            </div>
+                            </Tag>
                         ) : (
-                            <div style={{
+                            <Tag style={{
                                 background: 'rgba(217, 119, 6, 0.2)',
-                                border: '1px solid rgba(217, 119, 6, 0.4)',
-                                borderRadius: 12,
-                                padding: '12px 20px',
+                                border: '1px solid rgba(217, 119, 6, 0.3)',
+                                borderRadius: 20,
+                                padding: '4px 12px',
                                 color: '#FDE68A',
+                                fontSize: 12,
+                                margin: 0
                             }}>
                                 {t.dashboard.awaitingVerification}
-                            </div>
+                            </Tag>
                         )}
-                    </Col>
-                </Row>
+                    </div>
+                </div>
             </Card>
 
             {/* Admin/Moderator Alert Stats */}
