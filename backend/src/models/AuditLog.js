@@ -10,7 +10,7 @@ const AuditLogSchema = new mongoose.Schema({
         enum: [
             'user_register', 'user_login', 'user_verify',
             'user_role_change', 'user_activate', 'user_deactivate',
-            'user_password_change', 'user_password_reset',
+            'user_password_change', 'user_password_reset', 'user_delete',
             '2fa_enable', '2fa_disable', '2fa_reset_admin',
             'profile_create', 'profile_update', 'profile_delete', 'profile_status_change',
             'recognition_add',

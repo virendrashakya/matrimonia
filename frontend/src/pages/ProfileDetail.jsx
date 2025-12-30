@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, Row, Col, Typography, Tag, Spin, Empty, Descriptions, Avatar, Divider, List, Button, Space, Tabs, Badge, message, Grid } from 'antd';
+import { Card, Row, Col, Typography, Tag, Spin, Empty, Descriptions, Avatar, Divider, List, Button, Space, Tabs, Badge, message, Grid, Popconfirm } from 'antd';
 import {
     UserOutlined,
     ArrowLeftOutlined,
@@ -23,9 +23,12 @@ import {
     QrcodeOutlined,
     WhatsAppOutlined,
     FilePdfOutlined,
-    CopyOutlined
+
+    CopyOutlined,
+    DeleteOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 import { useLanguage } from '../context/LanguageContext';
 import RecognitionSection from '../components/RecognitionSection';
@@ -58,6 +61,7 @@ function ProfileDetail() {
     const { id } = useParams();
     const { isVerified, user } = useAuth();
     const { t, isHindi } = useLanguage();
+    const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [interestStatus, setInterestStatus] = useState(null); // null, 'pending', 'accepted', 'rejected'
@@ -115,6 +119,16 @@ function ProfileDetail() {
         const link = `${window.location.origin}/public/${profile.customId || profile._id}`;
         navigator.clipboard.writeText(link);
         message.success(isHindi ? 'सार्वजनिक लिंक कॉपी किया गया!' : 'Public link copied to clipboard!');
+    };
+
+    const handleDeleteProfile = async () => {
+        try {
+            await api.delete(`/profiles/${id}`);
+            message.success('Profile deleted successfully');
+            navigate('/profiles');
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to delete profile');
+        }
     };
 
     const riskConfig = {
@@ -533,9 +547,21 @@ function ProfileDetail() {
                                     )
                                 )}
                                 {canEdit && (
-                                    <Link to={`/profiles/${profile._id}/edit`}>
-                                        <Button icon={<EditOutlined />}>Edit</Button>
-                                    </Link>
+                                    <Space>
+                                        <Link to={`/profiles/${profile._id}/edit`}>
+                                            <Button icon={<EditOutlined />}>Edit</Button>
+                                        </Link>
+                                        <Popconfirm
+                                            title="Delete Profile?"
+                                            description="This action cannot be undone."
+                                            onConfirm={handleDeleteProfile}
+                                            okText="Delete"
+                                            cancelText="Cancel"
+                                            okButtonProps={{ danger: true }}
+                                        >
+                                            <Button icon={<DeleteOutlined />} danger />
+                                        </Popconfirm>
+                                    </Space>
                                 )}
                             </Space>
                         </div>

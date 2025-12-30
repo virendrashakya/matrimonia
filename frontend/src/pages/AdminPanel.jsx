@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Table, Button, Tag, Space, Typography, Modal, Form, Select, Input, Tabs, Spin, message, Popconfirm, Badge, Statistic } from 'antd';
-import { UserOutlined, SafetyOutlined, CheckCircleOutlined, StopOutlined, SearchOutlined, LockOutlined, UserAddOutlined, CopyOutlined } from '@ant-design/icons';
+import { UserOutlined, SafetyOutlined, CheckCircleOutlined, StopOutlined, SearchOutlined, LockOutlined, UserAddOutlined, CopyOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -98,6 +98,16 @@ function AdminPanel() {
             fetchUsers();
         } catch (error) {
             message.error(error.response?.data?.error || 'Failed to reset 2FA');
+        }
+    };
+
+    const handleDeleteUser = async (user) => {
+        try {
+            await api.delete(`/auth/users/${user._id}`);
+            message.success(`User ${user.name} and their profiles deleted`);
+            fetchUsers();
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to delete user');
         }
     };
 
@@ -223,6 +233,24 @@ function AdminPanel() {
                                 icon={<SafetyOutlined />}
                                 danger
                                 title="Reset 2FA"
+                            />
+                        </Popconfirm>
+                    )}
+                    {record._id !== user?._id && (
+                        <Popconfirm
+                            title="Delete this user?"
+                            description="This will permanently delete the user and ALL their profiles. This action cannot be undone."
+                            onConfirm={() => handleDeleteUser(record)}
+                            okText="Delete"
+                            cancelText="Cancel"
+                            okButtonProps={{ danger: true }}
+                        >
+                            <Button
+                                size="small"
+                                icon={<DeleteOutlined />}
+                                danger
+                                title="Delete User"
+                                style={{ backgroundColor: '#fee2e2', borderColor: '#ef4444', color: '#b91c1c' }}
                             />
                         </Popconfirm>
                     )}

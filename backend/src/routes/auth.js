@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, AuditLog } = require('../models');
+const { User, AuditLog, Profile } = require('../models');
 const {
     authenticate,
     requireRole,
@@ -657,7 +657,7 @@ router.post('/invite', authenticate, requireRole('admin', 'moderator'), async (r
 
         // Generate Setup URL
         // Assumes frontend route /setup exists
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
         const setupUrl = `${frontendUrl}/setup?token=${setupToken}`;
 
         res.json({
@@ -721,6 +721,49 @@ router.post('/setup-account', async (req, res, next) => {
                 user: user.toJSON(),
                 token: authToken
             }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * DELETE /api/auth/users/:userId
+ * Permanently delete user and their profiles (Admin only)
+ */
+router.delete('/users/:userId', authenticate, requireRole('admin'), async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // 1. Delete all profiles created by this user
+        const deleteResult = await Profile.deleteMany({ createdBy: userId });
+
+        // 2. Delete the user
+        await User.findByIdAndDelete(userId);
+
+        // 3. Audit log
+        await AuditLog.create({
+            action: 'user_delete',
+            targetType: 'user',
+            targetId: userId,
+            performedBy: req.user._id,
+            changes: {
+                deletedProfilesCount: deleteResult.deletedCount,
+                userName: user.name,
+                userPhone: user.phone
+            },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        res.json({
+            success: true,
+            message: `User and ${deleteResult.deletedCount} associated profiles deleted successfully`
         });
     } catch (error) {
         next(error);

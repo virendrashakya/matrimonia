@@ -57,6 +57,9 @@ function App() {
             <Content style={{ padding: isAuthenticated ? '0 24px' : 0, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
                 <Routes>
                     {/* Public routes */}
+                    <Route path="/setup" element={
+                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <SetupAccount />
+                    } />
                     <Route path="/" element={
                         isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />
                     } />
@@ -66,9 +69,7 @@ function App() {
                     <Route path="/register" element={
                         isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
                     } />
-                    <Route path="/setup" element={
-                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <SetupAccount />
-                    } />
+
 
 
                     <Route path="/auth/callback" element={

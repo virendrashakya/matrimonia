@@ -29,6 +29,7 @@ api.interceptors.response.use(
             const isPublic = window.location.pathname.startsWith('/public') ||
                 window.location.pathname === '/' ||
                 window.location.pathname.startsWith('/login') ||
+                window.location.pathname.startsWith('/setup') ||
                 window.location.pathname.startsWith('/register');
 
             if (!isPublic) {
