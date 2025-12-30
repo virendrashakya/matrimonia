@@ -25,6 +25,7 @@ import AuthCallback from './pages/AuthCallback';
 import NotFound from './pages/NotFound';
 import ServerError from './pages/ServerError';
 import PublicProfile from './pages/PublicProfile';
+import SetupAccount from './pages/SetupAccount';
 
 const { Content } = Layout;
 
@@ -64,6 +65,9 @@ function App() {
                     } />
                     <Route path="/register" element={
                         isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
+                    } />
+                    <Route path="/setup" element={
+                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <SetupAccount />
                     } />
 
 

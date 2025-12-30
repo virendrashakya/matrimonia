@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Table, Button, Tag, Space, Typography, Modal, Form, Select, Input, Tabs, Spin, message, Popconfirm, Badge, Statistic } from 'antd';
-import { UserOutlined, SafetyOutlined, CheckCircleOutlined, StopOutlined, SearchOutlined, LockOutlined } from '@ant-design/icons';
+import { UserOutlined, SafetyOutlined, CheckCircleOutlined, StopOutlined, SearchOutlined, LockOutlined, UserAddOutlined, CopyOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -19,6 +19,12 @@ function AdminPanel() {
     const [resettingPassword, setResettingPassword] = useState(false);
     const [resetForm] = Form.useForm();
     const [userToReset, setUserToReset] = useState(null);
+
+    // Invite User Logic
+    const [inviteModalOpen, setInviteModalOpen] = useState(false);
+    const [inviting, setInviting] = useState(false);
+    const [inviteResult, setInviteResult] = useState(null); // { setupUrl, setupToken }
+    const [inviteForm] = Form.useForm();
 
     useEffect(() => {
         fetchUsers();
@@ -95,13 +101,32 @@ function AdminPanel() {
         }
     };
 
+    const handleInvite = async (values) => {
+        setInviting(true);
+        try {
+            const response = await api.post('/auth/invite', values);
+            setInviteResult(response.data.data);
+            setInviteModalOpen(false);
+            inviteForm.resetFields();
+            message.success('User created and upgrade link generated!');
+            fetchUsers();
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to invite user');
+        } finally {
+            setInviting(false);
+        }
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        message.success('Link copied to clipboard!');
+    };
+
     const roleColors = {
         admin: 'red',
         moderator: 'purple',
         matchmaker: 'orange',
-        elder: 'green',
-        helper: 'blue',
-        contributor: 'default'
+        individual: 'default'
     };
 
     const moderators = users.filter(u => u.role === 'moderator');
@@ -144,9 +169,7 @@ function AdminPanel() {
                     <Option value="admin">Admin</Option>
                     <Option value="moderator">Moderator</Option>
                     <Option value="matchmaker">Matchmaker</Option>
-                    <Option value="elder">Elder</Option>
-                    <Option value="helper">Helper</Option>
-                    <Option value="contributor">Contributor</Option>
+                    <Option value="individual">Individual</Option>
                 </Select>
             )
         },
@@ -218,7 +241,17 @@ function AdminPanel() {
 
     return (
         <div style={{ padding: '24px 0' }}>
-            <Title level={2}>Admin Panel</Title>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <Title level={2} style={{ margin: 0 }}>Admin Panel</Title>
+                <Button
+                    type="primary"
+                    icon={<UserAddOutlined />}
+                    onClick={() => setInviteModalOpen(true)}
+                    style={{ backgroundColor: '#059669' }}
+                >
+                    Create User
+                </Button>
+            </div>
 
             {/* Quick Stats */}
             <Space size="large" style={{ marginBottom: 32 }}>
@@ -341,7 +374,70 @@ function AdminPanel() {
                     </div>
                 </Form>
             </Modal>
-        </div>
+
+
+            {/* Invite User Modal */}
+            <Modal
+                title="Create New User"
+                open={inviteModalOpen}
+                onCancel={() => setInviteModalOpen(false)}
+                footer={null}
+            >
+                <Form form={inviteForm} layout="vertical" onFinish={handleInvite}>
+                    <Form.Item name="name" label="Name" rules={[{ required: true }]}>
+                        <Input placeholder="Full Name" />
+                    </Form.Item>
+                    <Form.Item name="phone" label="Phone" rules={[{ required: true, len: 10, message: '10 digits' }]}>
+                        <Input placeholder="Mobile Number" />
+                    </Form.Item>
+                    <Form.Item name="role" label="Role" rules={[{ required: true }]}>
+                        <Select placeholder="Select Role">
+                            <Option value="individual">Individual</Option>
+                            <Option value="matchmaker">Matchmaker</Option>
+                        </Select>
+                    </Form.Item>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                        <Button onClick={() => setInviteModalOpen(false)}>Cancel</Button>
+                        <Button type="primary" htmlType="submit" loading={inviting}>Create & Get Link</Button>
+                    </div>
+                </Form>
+            </Modal>
+
+            {/* Invite Result Modal */}
+            <Modal
+                title="User Created Successfully"
+                open={!!inviteResult}
+                onCancel={() => setInviteResult(null)}
+                footer={[
+                    <Button key="close" type="primary" onClick={() => setInviteResult(null)}>
+                        Done
+                    </Button>
+                ]}
+            >
+                <div style={{ textAlign: 'center' }}>
+                    <CheckCircleOutlined style={{ fontSize: 48, color: '#059669', marginBottom: 16 }} />
+                    <Text display="block">Share this setup link with the user:</Text>
+                    <div style={{
+                        marginTop: 16,
+                        marginBottom: 16,
+                        padding: 12,
+                        background: '#f3f4f6',
+                        borderRadius: 8,
+                        wordBreak: 'break-all',
+                        fontSize: 12,
+                        position: 'relative'
+                    }}>
+                        {inviteResult?.setupUrl}
+                    </div>
+                    <Button
+                        icon={<CopyOutlined />}
+                        onClick={() => copyToClipboard(inviteResult?.setupUrl)}
+                    >
+                        Copy Link
+                    </Button>
+                </div>
+            </Modal>
+        </div >
     );
 }
 

@@ -67,8 +67,7 @@ export function AuthProvider({ children }) {
             updateUser,
             isAuthenticated: !!user,
             isVerified: user?.isVerified || false,
-            isAdmin: user?.role === 'admin',
-            isElder: user?.role === 'elder' || user?.role === 'admin'
+            isAdmin: user?.role === 'admin'
         }}>
             {children}
         </AuthContext.Provider>

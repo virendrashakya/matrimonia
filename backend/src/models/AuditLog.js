@@ -9,6 +9,9 @@ const AuditLogSchema = new mongoose.Schema({
         required: true,
         enum: [
             'user_register', 'user_login', 'user_verify',
+            'user_role_change', 'user_activate', 'user_deactivate',
+            'user_password_change', 'user_password_reset',
+            '2fa_enable', '2fa_disable', '2fa_reset_admin',
             'profile_create', 'profile_update', 'profile_delete', 'profile_status_change',
             'recognition_add',
             'fraud_flag', 'fraud_unflag',

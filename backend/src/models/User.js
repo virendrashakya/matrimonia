@@ -33,15 +33,18 @@ const UserSchema = new mongoose.Schema({
     },
     passwordHash: {
         type: String,
-        required: function () { return !this.googleId; }, // Required only if not signing in with Google
+        required: function () {
+            // Required if NOT Google auth AND NOT invited (has setupToken)
+            return !this.googleId && !this.setupToken;
+        },
         select: false // Don't include in queries by default
     },
 
     // Authorization
     role: {
         type: String,
-        enum: ['admin', 'moderator', 'reviewer', 'matchmaker', 'enduser'],
-        default: 'enduser'
+        enum: ['admin', 'moderator', 'matchmaker', 'individual'],
+        default: 'individual'
     },
     isVerified: {
         type: Boolean,
@@ -61,6 +64,13 @@ const UserSchema = new mongoose.Schema({
         ref: 'User'
     },
     verifiedAt: Date,
+
+    // Account Setup (for invited users)
+    setupToken: {
+        type: String,
+        select: false
+    },
+    setupTokenExpires: Date,
 
     // Agency Info (for matchmakers)
     agency: {

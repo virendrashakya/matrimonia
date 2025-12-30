@@ -169,9 +169,9 @@ router.patch('/me/language', authenticate, async (req, res, next) => {
 
 /**
  * PUT /api/auth/verify-user/:userId
- * Verify a user (admin/elder only)
+ * Verify a user (admin/moderator only)
  */
-router.put('/verify-user/:userId', authenticate, requireRole('admin', 'elder'), async (req, res, next) => {
+router.put('/verify-user/:userId', authenticate, requireRole('admin', 'moderator'), async (req, res, next) => {
     try {
         const { userId } = req.params;
 
@@ -249,15 +249,15 @@ router.get('/users', authenticate, requireRole('admin'), async (req, res, next) 
 });
 
 /**
- * PUT /api/auth/users/:userId/role
+ * PATCH /api/auth/users/:userId/role
  * Update user role (admin only)
  */
-router.put('/users/:userId/role', authenticate, requireRole('admin'), async (req, res, next) => {
+router.patch('/users/:userId/role', authenticate, requireRole('admin'), async (req, res, next) => {
     try {
         const { userId } = req.params;
         const { role } = req.body;
 
-        if (!['admin', 'moderator', 'matchmaker', 'elder', 'helper', 'contributor'].includes(role)) {
+        if (!['admin', 'moderator', 'matchmaker', 'individual'].includes(role)) {
             return res.status(400).json({ error: 'Invalid role' });
         }
 
@@ -607,6 +607,121 @@ router.put('/users/:userId/2fa/reset', authenticate, requireRole('admin', 'moder
         });
 
         res.json({ success: true, message: '2FA has been reset for this user' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * POST /api/auth/invite
+ * Invite a new user (Admin/Moderator only)
+ * Creates user and generates setup link
+ */
+router.post('/invite', authenticate, requireRole('admin', 'moderator'), async (req, res, next) => {
+    try {
+        const { name, phone, role } = req.body;
+
+        if (!['individual', 'matchmaker'].includes(role)) {
+            return res.status(400).json({ error: 'Can only invite Individual or Matchmaker' });
+        }
+
+        const existing = await User.findOne({ phone });
+        if (existing) {
+            return res.status(400).json({ error: 'Phone number already registered' });
+        }
+
+        // Generate Setup Token
+        const setupToken = require('crypto').randomBytes(32).toString('hex');
+        const setupTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+        const user = await User.create({
+            name,
+            phone,
+            role,
+            setupToken,
+            setupTokenExpires,
+            isVerified: true, // Verified by mod/admin
+            verifiedBy: req.user._id,
+            verifiedAt: new Date()
+        });
+
+        // Audit log
+        await AuditLog.create({
+            action: 'user_register', // Using register action for invite
+            targetType: 'user',
+            targetId: user._id,
+            performedBy: req.user._id,
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        // Generate Setup URL
+        // Assumes frontend route /setup exists
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const setupUrl = `${frontendUrl}/setup?token=${setupToken}`;
+
+        res.json({
+            success: true,
+            data: {
+                setupUrl,
+                setupToken, // Return for dev/debug
+                expiresAt: setupTokenExpires
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * POST /api/auth/setup-account
+ * Verify setup token and set password
+ */
+router.post('/setup-account', async (req, res, next) => {
+    try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({ error: 'Token and password required' });
+        }
+
+        const user = await User.findOne({
+            setupToken: token,
+            setupTokenExpires: { $gt: Date.now() }
+        }).select('+setupToken');
+
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid or expired setup link' });
+        }
+
+        // Set password and clear token
+        user.passwordHash = password;
+        user.setupToken = undefined;
+        user.setupTokenExpires = undefined;
+        user.isActive = true;
+        await user.save();
+
+        // Audit log
+        await AuditLog.create({
+            action: 'user_role_change', // Reusing action or creating new one? reusing existing for now
+            targetType: 'user',
+            targetId: user._id,
+            performedBy: user._id,
+            changes: { setup: 'completed' },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        // Auto-login
+        const authToken = generateToken(user._id);
+
+        res.json({
+            success: true,
+            data: {
+                user: user.toJSON(),
+                token: authToken
+            }
+        });
     } catch (error) {
         next(error);
     }

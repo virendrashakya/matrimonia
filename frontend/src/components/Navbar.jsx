@@ -30,7 +30,7 @@ const { Header } = Layout;
 const { Text } = Typography;
 
 function Navbar() {
-    const { user, logout, isElder } = useAuth();
+    const { user, logout } = useAuth();
     const { t, language, changeLanguage, languages, isHindi } = useLanguage();
     const { count: shortlistCount } = useShortlist();
     const { increaseFontSize, decreaseFontSize, darkMode, toggleDarkMode } = useAccessibility();
@@ -75,7 +75,7 @@ function Navbar() {
         { key: 'profiles', icon: <UserOutlined />, label: <Link to="/profiles">{t.nav.profiles}</Link> },
         { key: 'search', icon: <SearchOutlined />, label: <Link to="/search">{t.nav.search}</Link> },
         ...(canCreateProfile ? [{ key: 'new', icon: <PlusOutlined />, label: <Link to="/profiles/new">{t.nav.addProfile}</Link> }] : []),
-        ...(isElder ? [{ key: 'import', icon: <ImportOutlined />, label: <Link to="/import">{t.nav.import}</Link> }] : []),
+        ...(isAdmin ? [{ key: 'import', icon: <ImportOutlined />, label: <Link to="/import">{t.nav.import}</Link> }] : []),
         ...(isAdmin ? [{ key: 'admin', icon: <SettingOutlined />, label: <Link to="/admin">{t.nav.admin}</Link> }] : []),
     ];
 
@@ -83,7 +83,7 @@ function Navbar() {
         admin: <CrownOutlined style={{ color: '#D4AF37' }} />,
         moderator: <SettingOutlined style={{ color: '#8B5CF6' }} />,
         matchmaker: <UserOutlined style={{ color: '#F59E0B' }} />,
-        elder: <UserOutlined style={{ color: '#059669' }} />,
+        individual: <UserOutlined style={{ color: '#6B7280' }} />,
     };
 
     const languageMenu = {
@@ -107,7 +107,7 @@ function Navbar() {
         ...(canCreateProfile ? [{ key: 'new', icon: <PlusOutlined />, label: t.nav.addProfile, path: '/profiles/new' }] : []),
         { key: 'my-profile', icon: <UserOutlined />, label: isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profile', path: '/profile' },
         { key: 'interests', icon: <HeartOutlined />, label: isHindi ? 'मेरी रुचियाँ' : 'My Interests', path: '/interests' },
-        ...(isElder ? [{ key: 'import', icon: <ImportOutlined />, label: t.nav.import, path: '/import' }] : []),
+        ...(isAdmin ? [{ key: 'import', icon: <ImportOutlined />, label: t.nav.import, path: '/import' }] : []),
         ...(isAdmin ? [{ key: 'admin', icon: <SettingOutlined />, label: t.nav.admin, path: '/admin' }] : []),
     ];
 

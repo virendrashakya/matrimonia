@@ -27,9 +27,7 @@ const roleBadges = {
     admin: { color: '#A0153E', label: 'Administrator', labelHi: 'प्रशासक', icon: '👑' },
     moderator: { color: '#7C3AED', label: 'Moderator', labelHi: 'मॉडरेटर', icon: '🛡️' },
     matchmaker: { color: '#D4AF37', label: 'Matchmaker', labelHi: 'मैचमेकर', icon: '💍' },
-    elder: { color: '#059669', label: 'Elder', labelHi: 'बड़े-बुज़ुर्ग', icon: '🙏' },
-    helper: { color: '#0891B2', label: 'Helper', labelHi: 'सहायक', icon: '🤝' },
-    contributor: { color: '#6B7280', label: 'Contributor', labelHi: 'योगदानकर्ता', icon: '👤' }
+    individual: { color: '#6B7280', label: 'Individual', labelHi: 'सदस्य', icon: '👤' }
 };
 
 function UserProfile() {
@@ -168,7 +166,7 @@ function UserProfile() {
         );
     }
 
-    const roleBadge = roleBadges[userData?.role] || roleBadges.contributor;
+    const roleBadge = roleBadges[userData?.role] || roleBadges.individual;
 
     return (
         <div style={{ padding: '32px 0', maxWidth: 900, margin: '0 auto' }}>
