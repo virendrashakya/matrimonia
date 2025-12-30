@@ -56,6 +56,25 @@ const RASHI_LABELS = {
     makar: 'Makar (मकर)', kumbh: 'Kumbh (कुंभ)', meen: 'Meen (मीन)'
 };
 
+const formatRelativeTime = (dateString, isHindi) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return isHindi ? 'अभी' : 'Just now';
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes} ${isHindi ? 'मिनट पहले' : 'mins ago'}`;
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} ${isHindi ? 'घंटे पहले' : 'hours ago'}`;
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} ${isHindi ? 'दिन पहले' : 'days ago'}`;
+
+    return date.toLocaleDateString();
+};
+
 function ProfileDetail() {
     const screens = Grid.useBreakpoint();
     const { id } = useParams();
@@ -374,7 +393,7 @@ function ProfileDetail() {
                                 <List.Item.Meta
                                     avatar={<Avatar icon={<UserOutlined />} style={{ backgroundColor: '#87d068' }} >{visitor.user?.name?.[0]}</Avatar>}
                                     title={<Text strong>{visitor.user?.name || 'Unknown User'}</Text>}
-                                    description={<Text type="secondary">Visited on {new Date(visitor.visitedAt).toLocaleDateString()} at {new Date(visitor.visitedAt).toLocaleTimeString()}</Text>}
+                                    description={<Text type="secondary">{isHindi ? 'देखा गया: ' : 'Visited: '} {formatRelativeTime(visitor.visitedAt, isHindi)}</Text>}
                                 />
                             </List.Item>
                         )}

@@ -187,17 +187,20 @@ router.get('/:id', authenticate, async (req, res, next) => {
         const isOwner = profile.createdBy._id.toString() === req.user._id.toString();
 
         if (!isOwner) {
-            profile.viewCount = (profile.viewCount || 0) + 1;
-
             // Add/Update visitor
             if (!profile.visitors) {
                 profile.visitors = [];
             }
+
             const visitorIndex = profile.visitors.findIndex(v => v.user.toString() === req.user._id.toString());
+
             if (visitorIndex > -1) {
+                // Existing visitor: Just update timestamp, DO NOT increment viewCount
                 profile.visitors[visitorIndex].visitedAt = new Date();
             } else {
+                // New visitor: Add to list AND increment viewCount
                 profile.visitors.push({ user: req.user._id, visitedAt: new Date() });
+                profile.viewCount = (profile.viewCount || 0) + 1;
             }
 
             // Limit to last 50 visitors
