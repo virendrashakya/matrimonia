@@ -96,13 +96,29 @@ cd matrimonia
     CLOUDINARY_API_SECRET=...
     ```
 
-3.  **Start Backend**:
+3.  **Start Backend (Using Ecosystem File)**:
+
+    Create a file named `ecosystem.config.js` in the backend root for better management:
+
+    ```javascript
+    module.exports = {
+      apps : [{
+        name   : "matrimonia-api",
+        script : "./src/app.js",
+        env_production: {
+           NODE_ENV: "production",
+           PORT: 5000
+        }
+      }]
+    }
+    ```
+
+    Start the application:
 
     ```bash
-    pm2 start src/app.js --name "matrimonia-api"
+    pm2 start ecosystem.config.js --env production
     pm2 save
     pm2 startup
-    # Run the command displayed by pm2 startup to persist on reboot
     ```
 
 ## 6. Frontend Deployment
@@ -167,14 +183,22 @@ server {
 }
 ```
 
-Enable the site and restart Nginx:
+Enable the site:
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/matrimonia /etc/nginx/sites-enabled/
-sudo rm /etc/nginx/sites-enabled/default  # Remove default logic if this is the only site
+sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
 ```
+
+## 7. Security Groups & Firewall (Critical)
+
+Ensure your AWS **Security Group** (Inbound Rules) allows:
+-   **SSH (22)**: My IP
+-   **HTTP (80)**: Anywhere (0.0.0.0/0)
+-   **HTTPS (443)**: Anywhere (0.0.0.0/0)
+-   *(Optional)* **Custom (5000)**: If you want to test backend directly (Not recommended, use Nginx proxy).
 
 ## 8. SSL Configuration (Recommended)
 
@@ -206,7 +230,27 @@ Follow the prompts to enable HTTPS redirect.
     cd ../backend && npm install && pm2 restart matrimonia-api
     ```
 
-## 9. Automated Deployment (GitHub Actions)
+    ```
+
+## 9. Database Backup & Management
+
+It is critical to backup your MongoDB data regularly.
+
+### Manual Backup (mongodump)
+```bash
+# Backup all databases to a 'dump' folder
+mongodump --uri="your_mongodb_connection_string" --out=/home/ubuntu/backups/$(date +%F)
+
+# Zip it for download
+tar -czvf backup-$(date +%F).tar.gz /home/ubuntu/backups/$(date +%F)
+```
+
+### Restore (mongorestore)
+```bash
+mongorestore --uri="your_mongodb_connection_string" /path/to/backup/dump
+```
+
+## 10. Automated Deployment (GitHub Actions)
 
 To enable "push-to-deploy", configure the following secrets in your GitHub Repository settings (**Settings** > **Secrets and variables** > **Actions** > **New repository secret**):
 

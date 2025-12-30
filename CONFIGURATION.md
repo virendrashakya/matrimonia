@@ -25,8 +25,20 @@ These variables are **CRITICAL** for the server to function.
 | :--- | :---: | :--- | :--- |
 | `PORT` | No | `5000` | The port the backend server listens on. |
 | `MONGODB_URI` | **Yes** | - | Connection string for MongoDB database (local or Atlas). |
-| `JWT_SECRET` | **Yes** | - | Secret key for signing JSON Web Tokens (auth). Use a strong random string. |
+| `JWT_SECRET` | **Yes** | - | Secret key for signing JSON Web Tokens (auth). **Must be strong.** |
 | `NODE_ENV` | No | `development` | Set to `production` in live environments. |
+
+> **Tip:** Generate a strong `JWT_SECRET` using this terminal command:
+> ```bash
+> openssl rand -base64 64
+> ```
+> Never commit this secret to version control.
+>
+> **Important:** If you lose or change the `JWT_SECRET`:
+> 1.  **Passwords are SAFE:** User passwords are stored in the database and are NOT affected. No one needs to reset their password.
+> 2.  **Sessions are INVALIDATED:** All currently logged-in users will be logged out and must log in again.
+> 3.  **Backup your .env:** Keep a secure copy of your production `.env` file locally so you can restore the same secret if needed.
+
 | `FRONTEND_URL` | No | `http://localhost:5173` | URL of the frontend app (used for CORS and Invite links). |
 
 #### External Services (Optional but Recommended)
@@ -102,8 +114,24 @@ CLOUDINARY_API_KEY=fake
 CLOUDINARY_API_SECRET=fake
 ```
 
-**frontend/.env**
-```env
-# Optional, defaults to proxy in vite.config.js
-VITE_API_URL=http://localhost:5000/api
-```
+## How to Run the Application
+
+### Development Mode
+Runs with hot-reloading for code changes.
+1.  **Backend:** `cd backend && npm run dev` (Runs on port 5000)
+2.  **Frontend:** `cd frontend && npm run dev` (Runs on port 3000/5173)
+
+### Production Mode
+1.  **Backend:** `cd backend && npm start`
+2.  **Frontend:** `cd frontend && npm run build` (Serve the `dist/` folder using Nginx/Apache)
+
+## Troubleshooting
+
+| Issue | Possible Cause | Fix |
+| :--- | :--- | :--- |
+| **"Connection Refused" (Mongo)** | MongoDB not running or URI wrong. | Check `MONGODB_URI`. Ensure mongod service is active. |
+| **"Invalid Token" / "Logout"** | `JWT_SECRET` changed or mismatched. | Ensure backend uses the same secret. Clear browser cookies. |
+| **Image Upload Fail** | Cloudinary keys missing. | Check `CLOUDINARY_*` keys in `.env`. |
+| **Google Login Fail** | Redirect URI mismatch. | Whitelist `http://localhost:5000...` in Google Console. |
+| **CORS Error** | Frontend URL mismatch. | Set `FRONTEND_URL` in backend `.env` to your frontend's address. |
+| **Site Not Loading (Timeout)** | AWS Security Group blocked. | Ensure Inbound Rules allow HTTP (80) and HTTPS (443) from `0.0.0.0/0`. |
