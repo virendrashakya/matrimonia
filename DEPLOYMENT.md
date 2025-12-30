@@ -200,7 +200,41 @@ Ensure your AWS **Security Group** (Inbound Rules) allows:
 -   **HTTPS (443)**: Anywhere (0.0.0.0/0)
 -   *(Optional)* **Custom (3000)**: If you want to test backend directly (Not recommended, use Nginx proxy).
 
-## 8. SSL Configuration (Recommended)
+-   *(Optional)* **Custom (3000)**: If you want to test backend directly (Not recommended, use Nginx proxy).
+
+## 8. Database Options (Production)
+
+For production, you have two primary options for MongoDB:
+
+### Option A: MongoDB Atlas (Managed Service) - **Recommended**
+The easiest and most secure way.
+1.  Create an account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2.  Create a **Deployment** (Shared Tier M0 is free, M10+ for production performance).
+3.  **Network Access**: Whitelist your EC2 instance's IP address (or `0.0.0.0/0` temporarily).
+4.  **Database Access**: Create a database user.
+5.  Get connection string: `mongodb+srv://<user>:<password>@cluster.mongodb.net/matrimonia?retryWrites=true&w=majority`
+
+### Option B: Self-Hosted on EC2 inside (Same Instance)
+Cheaper for small scale, but requires manual maintenance.
+1.  Install MongoDB Community Edition:
+    ```bash
+    wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+    sudo apt update
+    sudo apt install -y mongodb-org
+    ```
+2.  Start Service:
+    ```bash
+    sudo systemctl start mongod
+    sudo systemctl enable mongod
+    ```
+3.  Secure Installation:
+    -   Edit `/etc/mongod.conf` to bind to localhost (`127.0.0.1`) only.
+    -   Enable authorization in config.
+    -   Create an admin user.
+4.  Connection String: `mongodb://<user>:<password>@localhost:27017/matrimonia?authSource=admin`
+
+## 9. SSL Configuration (Recommended)
 
 If you have a domain name pointing to your EC2 IP:
 
