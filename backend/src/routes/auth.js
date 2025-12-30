@@ -657,7 +657,7 @@ router.post('/invite', authenticate, requireRole('admin', 'moderator'), async (r
 
         // Generate Setup URL
         // Assumes frontend route /setup exists
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8000';
         const setupUrl = `${frontendUrl}/setup?token=${setupToken}`;
 
         res.json({

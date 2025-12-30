@@ -84,7 +84,7 @@ cd matrimonia
     > See [CONFIGURATION.md](./CONFIGURATION.md) for a full list of available keys.
 
     ```env
-    PORT=5000
+    PORT=3000
     MONGODB_URI=your_mongodb_connection_string
     JWT_SECRET=your_strong_secret
     NODE_ENV=production
@@ -107,7 +107,7 @@ cd matrimonia
         script : "./src/app.js",
         env_production: {
            NODE_ENV: "production",
-           PORT: 5000
+           PORT: 3000
         }
       }]
     }
@@ -173,7 +173,7 @@ server {
 
     # Backend API Proxy
     location /api {
-        proxy_pass http://localhost:5000;
+        proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -198,7 +198,7 @@ Ensure your AWS **Security Group** (Inbound Rules) allows:
 -   **SSH (22)**: My IP
 -   **HTTP (80)**: Anywhere (0.0.0.0/0)
 -   **HTTPS (443)**: Anywhere (0.0.0.0/0)
--   *(Optional)* **Custom (5000)**: If you want to test backend directly (Not recommended, use Nginx proxy).
+-   *(Optional)* **Custom (3000)**: If you want to test backend directly (Not recommended, use Nginx proxy).
 
 ## 8. SSL Configuration (Recommended)
 

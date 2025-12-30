@@ -39,7 +39,7 @@ These variables are **CRITICAL** for the server to function.
 > 2.  **Sessions are INVALIDATED:** All currently logged-in users will be logged out and must log in again.
 > 3.  **Backup your .env:** Keep a secure copy of your production `.env` file locally so you can restore the same secret if needed.
 
-| `FRONTEND_URL` | No | `http://localhost:5173` | URL of the frontend app (used for CORS and Invite links). |
+| `FRONTEND_URL` | No | `http://localhost:8000` | URL of the frontend app (used for CORS and Invite links). |
 
 #### External Services (Optional but Recommended)
 
@@ -84,7 +84,7 @@ These variables are **CRITICAL** for the server to function.
 3.  Navigate to **APIs & Services** > **Credentials**.
 4.  Create **OAuth 2.0 Client ID**.
 5.  Set **Authorized Redirect URIs** to:
-    -   `http://localhost:5000/api/auth/google/callback` (Local Development)
+    -   `http://localhost:3000/api/auth/google/callback` (Local Development)
     -   `https://your-domain.com/api/auth/google/callback` (Production)
 6.  Copy `Client ID` and `Client Secret` to `backend/.env`.
 
@@ -106,7 +106,7 @@ To register using Google:
 
 **backend/.env**
 ```env
-PORT=5000
+PORT=3000
 MONGODB_URI=mongodb://localhost:27017/matrimonia
 JWT_SECRET=supersecretkey
 CLOUDINARY_CLOUD_NAME=fake (if not uploading images)
@@ -114,12 +114,18 @@ CLOUDINARY_API_KEY=fake
 CLOUDINARY_API_SECRET=fake
 ```
 
+**frontend/.env**
+```env
+# Optional, defaults to proxy in vite.config.js
+VITE_API_URL=http://localhost:3000/api
+```
+
 ## How to Run the Application
 
 ### Development Mode
 Runs with hot-reloading for code changes.
-1.  **Backend:** `cd backend && npm run dev` (Runs on port 5000)
-2.  **Frontend:** `cd frontend && npm run dev` (Runs on port 3000/5173)
+1.  **Backend:** `cd backend && npm run dev` (Runs on port 3000)
+2.  **Frontend:** `cd frontend && npm run dev` (Runs on port 8000)
 
 ### Production Mode
 1.  **Backend:** `cd backend && npm start`
@@ -132,6 +138,6 @@ Runs with hot-reloading for code changes.
 | **"Connection Refused" (Mongo)** | MongoDB not running or URI wrong. | Check `MONGODB_URI`. Ensure mongod service is active. |
 | **"Invalid Token" / "Logout"** | `JWT_SECRET` changed or mismatched. | Ensure backend uses the same secret. Clear browser cookies. |
 | **Image Upload Fail** | Cloudinary keys missing. | Check `CLOUDINARY_*` keys in `.env`. |
-| **Google Login Fail** | Redirect URI mismatch. | Whitelist `http://localhost:5000...` in Google Console. |
+| **Google Login Fail** | Redirect URI mismatch. | Whitelist `http://localhost:3000...` in Google Console. |
 | **CORS Error** | Frontend URL mismatch. | Set `FRONTEND_URL` in backend `.env` to your frontend's address. |
 | **Site Not Loading (Timeout)** | AWS Security Group blocked. | Ensure Inbound Rules allow HTTP (80) and HTTPS (443) from `0.0.0.0/0`. |
