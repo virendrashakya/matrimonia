@@ -33,9 +33,9 @@ import {
     ClockCircleOutlined
 } from '@ant-design/icons';
 
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-
+import { useAuth } from '../context/AuthContext';
+import { useConfig } from '../context/ConfigContext';
 import { useLanguage } from '../context/LanguageContext';
 import RecognitionSection from '../components/RecognitionSection';
 import PhotoGallery from '../components/PhotoGallery';
@@ -50,11 +50,49 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 // Helper to get display value
-const getDisplayValue = (profile, field, localField, isHindi) => {
+const getDisplayValue = (profile, field, localField, isHindi, config) => {
+    // 1. Check localContent first (for overrides/translations)
     if (isHindi && profile.localContent?.[localField || field]) {
         return profile.localContent[localField || field];
     }
-    return profile[field] || '-';
+
+    const value = profile[field];
+    if (value === null || value === undefined || value === '') return '-';
+
+    // 2. Mapping strategy based on field name
+    const optionMap = {
+        education: 'educationOptions',
+        profession: 'professionOptions',
+        maritalStatus: 'maritalStatusOptions',
+        religion: 'religionOptions',
+        state: 'stateOptions',
+        rashi: 'rashiOptions',
+        nakshatra: 'nakshatraOptions',
+        diet: 'dietOptions',
+        complexion: 'complexionOptions',
+        familyType: 'familyTypeOptions',
+        manglikStatus: 'manglikOptions'
+    };
+
+    const configKey = optionMap[field];
+    if (configKey && config?.[configKey]) {
+        const option = config[configKey].find(opt =>
+            (typeof opt === 'string' ? opt : opt.value) === value
+        );
+        if (option) {
+            return isHindi ? (option.labelHi || option.labelEn || (typeof opt === 'string' ? opt : '')) : (option.labelEn || (typeof opt === 'string' ? opt : ''));
+        }
+    }
+
+    // 3. Fallback: Humanize the string
+    if (typeof value === 'string') {
+        return value
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+
+    return value;
 };
 
 // Rashi labels
@@ -88,6 +126,7 @@ function ProfileDetail() {
     const screens = Grid.useBreakpoint();
     const { id } = useParams();
     const { isVerified, user } = useAuth();
+    const { config } = useConfig();
     const { t, isHindi } = useLanguage();
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
@@ -378,14 +417,14 @@ function ProfileDetail() {
                     <Col xs={24} md={12}>
                         <Card title={<><UserOutlined /> Personal Details</>} size="small" style={{ marginBottom: 16 }}>
                             <Descriptions column={1} size="small">
-                                <Descriptions.Item label="Caste / जाति">{getDisplayValue(profile, 'caste', 'caste', isHindi)}</Descriptions.Item>
-                                <Descriptions.Item label="Sub-Caste">{getDisplayValue(profile, 'subCaste', 'subCaste', isHindi) || '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Gotra / गोत्र">{getDisplayValue(profile, 'gotra', 'gotra', isHindi) || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Caste / जाति">{getDisplayValue(profile, 'caste', 'caste', isHindi, config)}</Descriptions.Item>
+                                <Descriptions.Item label="Sub-Caste">{getDisplayValue(profile, 'subCaste', 'subCaste', isHindi, config) || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Gotra / गोत्र">{getDisplayValue(profile, 'gotra', 'gotra', isHindi, config) || '-'}</Descriptions.Item>
                                 <Descriptions.Item label="Religion">{profile.religion || 'Hindu'}</Descriptions.Item>
                                 <Descriptions.Item label="Mother Tongue">{profile.motherTongue || '-'}</Descriptions.Item>
                                 <Descriptions.Item label="Marital Status">
                                     <Tag color={profile.maritalStatus === 'never_married' ? 'green' : 'orange'}>
-                                        {profile.maritalStatus?.replace(/_/g, ' ').toUpperCase() || '-'}
+                                        {getDisplayValue(profile, 'maritalStatus', 'maritalStatus', isHindi, config)}
                                     </Tag>
                                 </Descriptions.Item>
                             </Descriptions>
@@ -398,11 +437,11 @@ function ProfileDetail() {
                             <Descriptions column={1} size="small">
                                 <Descriptions.Item label="Height">{profile.heightCm ? `${profile.heightCm} cm` : '-'}</Descriptions.Item>
                                 <Descriptions.Item label="Weight">{profile.weightKg ? `${profile.weightKg} kg` : '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Complexion">{profile.complexion?.replace(/_/g, ' ') || '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Body Type">{profile.bodyType || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Complexion">{getDisplayValue(profile, 'complexion', 'complexion', isHindi, config)}</Descriptions.Item>
+                                <Descriptions.Item label="Body Type">{getDisplayValue(profile, 'bodyType', 'bodyType', isHindi, config)}</Descriptions.Item>
                                 <Descriptions.Item label="Diet">
                                     <Tag color={profile.diet === 'vegetarian' ? 'green' : 'orange'}>
-                                        {profile.diet?.replace(/_/g, ' ').toUpperCase() || 'Vegetarian'}
+                                        {getDisplayValue(profile, 'diet', 'diet', isHindi, config)}
                                     </Tag>
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Smoking / Drinking">
@@ -416,10 +455,10 @@ function ProfileDetail() {
                     <Col xs={24} md={12}>
                         <Card title={<><BookOutlined /> Education & Career</>} size="small" style={{ marginBottom: 16 }}>
                             <Descriptions column={1} size="small">
-                                <Descriptions.Item label="Education">{getDisplayValue(profile, 'education', 'education', isHindi)}</Descriptions.Item>
-                                <Descriptions.Item label="Profession">{getDisplayValue(profile, 'profession', 'profession', isHindi)}</Descriptions.Item>
-                                <Descriptions.Item label="Company">{getDisplayValue(profile, 'company', 'company', isHindi) || '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Annual Income">{profile.annualIncome || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Education">{getDisplayValue(profile, 'education', 'education', isHindi, config)}</Descriptions.Item>
+                                <Descriptions.Item label="Profession">{getDisplayValue(profile, 'profession', 'profession', isHindi, config)}</Descriptions.Item>
+                                <Descriptions.Item label="Company">{getDisplayValue(profile, 'company', 'company', isHindi, config) || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Annual Income">{getDisplayValue(profile, 'annualIncome', 'annualIncome', isHindi, config)}</Descriptions.Item>
                             </Descriptions>
                         </Card>
                     </Col>
@@ -428,10 +467,10 @@ function ProfileDetail() {
                     <Col xs={24} md={12}>
                         <Card title={<><EnvironmentOutlined /> Location</>} size="small" style={{ marginBottom: 16 }}>
                             <Descriptions column={1} size="small">
-                                <Descriptions.Item label="City">{getDisplayValue(profile, 'city', 'city', isHindi)}</Descriptions.Item>
-                                <Descriptions.Item label="State">{getDisplayValue(profile, 'state', 'state', isHindi)}</Descriptions.Item>
+                                <Descriptions.Item label="City">{getDisplayValue(profile, 'city', 'city', isHindi, config)}</Descriptions.Item>
+                                <Descriptions.Item label="State">{getDisplayValue(profile, 'state', 'state', isHindi, config)}</Descriptions.Item>
                                 <Descriptions.Item label="Country">{profile.country || 'India'}</Descriptions.Item>
-                                <Descriptions.Item label="Native Place">{getDisplayValue(profile, 'nativePlace', 'nativePlace', isHindi) || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Native Place">{getDisplayValue(profile, 'nativePlace', 'nativePlace', isHindi, config) || '-'}</Descriptions.Item>
                             </Descriptions>
                         </Card>
                     </Col>
@@ -446,11 +485,11 @@ function ProfileDetail() {
                     <Row gutter={24}>
                         <Col xs={24} md={12}>
                             <Descriptions column={1} size="small" title="Parents">
-                                <Descriptions.Item label="Father's Name">{getDisplayValue(profile, 'fatherName', 'fatherName', isHindi) || '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Father's Status">{profile.fatherStatus?.replace(/_/g, ' ') || '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Father's Occupation">{profile.fatherOccupation || '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Mother's Name">{getDisplayValue(profile, 'motherName', 'motherName', isHindi) || '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Mother's Status">{profile.motherStatus?.replace(/_/g, ' ') || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Father's Name">{getDisplayValue(profile, 'fatherName', 'fatherName', isHindi, config) || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Father's Status">{getDisplayValue(profile, 'fatherStatus', 'fatherStatus', isHindi, config)}</Descriptions.Item>
+                                <Descriptions.Item label="Father's Occupation">{getDisplayValue(profile, 'fatherOccupation', 'fatherOccupation', isHindi, config)}</Descriptions.Item>
+                                <Descriptions.Item label="Mother's Name">{getDisplayValue(profile, 'motherName', 'motherName', isHindi, config) || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Mother's Status">{getDisplayValue(profile, 'motherStatus', 'motherStatus', isHindi, config)}</Descriptions.Item>
                             </Descriptions>
                         </Col>
                         <Col xs={24} md={12}>
@@ -458,10 +497,10 @@ function ProfileDetail() {
                                 <Descriptions.Item label="Brothers">{profile.brothersCount || 0} ({profile.brothersMarried || 0} married)</Descriptions.Item>
                                 <Descriptions.Item label="Sisters">{profile.sistersCount || 0} ({profile.sistersMarried || 0} married)</Descriptions.Item>
                                 <Descriptions.Item label="Family Type">
-                                    <Tag>{profile.familyType?.toUpperCase() || 'NUCLEAR'}</Tag>
+                                    <Tag>{getDisplayValue(profile, 'familyType', 'familyType', isHindi, config)}</Tag>
                                 </Descriptions.Item>
-                                <Descriptions.Item label="Family Status">{profile.familyStatus?.replace(/_/g, ' ') || '-'}</Descriptions.Item>
-                                <Descriptions.Item label="Family Values">{profile.familyValues || '-'}</Descriptions.Item>
+                                <Descriptions.Item label="Family Status">{getDisplayValue(profile, 'familyStatus', 'familyStatus', isHindi, config)}</Descriptions.Item>
+                                <Descriptions.Item label="Family Values">{getDisplayValue(profile, 'familyValues', 'familyValues', isHindi, config)}</Descriptions.Item>
                             </Descriptions>
                         </Col>
                     </Row>
@@ -490,7 +529,7 @@ function ProfileDetail() {
                                     <Descriptions.Item label="Nakshatra / नक्षत्र">{profile.horoscope?.nakshatra?.replace(/_/g, ' ') || '-'}</Descriptions.Item>
                                     <Descriptions.Item label="Manglik Status">
                                         <Tag color={profile.horoscope?.manglikStatus === 'manglik' ? 'red' : 'green'}>
-                                            {profile.horoscope?.manglikStatus?.replace(/_/g, ' ').toUpperCase() || "DON'T KNOW"}
+                                            {getDisplayValue(profile.horoscope || {}, 'manglikStatus', 'manglikStatus', isHindi, config)}
                                         </Tag>
                                     </Descriptions.Item>
                                 </Descriptions>

@@ -3,9 +3,11 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { Modal, Button, Checkbox, Row, Col, Typography, Divider, Space, message, Select } from 'antd';
+import { Modal, Button, Checkbox, Row, Col, Typography, Divider, Space, message, Select, Collapse } from 'antd';
+const { Panel } = Collapse;
 import { FilePdfOutlined, PrinterOutlined, DownloadOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
+import { useConfig } from '../context/ConfigContext';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -165,6 +167,7 @@ const getNestedValue = (obj, path) => {
 
 function BiodataPDF({ profile, visible, onClose }) {
     const { isHindi } = useLanguage();
+    const { config } = useConfig();
     // Template State
     const [selectedTemplate, setSelectedTemplate] = useState('classic');
     const [pdfLanguage, setPdfLanguage] = useState(isHindi ? 'hi' : 'en');
@@ -225,8 +228,52 @@ function BiodataPDF({ profile, visible, onClose }) {
         if (value === null || value === undefined || value === '') return '-';
         if (key === 'heightCm') return `${value} cm`;
         if (key === 'weightKg') return `${value} kg`;
-        if (key === 'dateOfBirth') return new Date(value).toLocaleDateString(isPdfHindi ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-        if (typeof value === 'string') return value.replace(/_/g, ' ');
+
+        // Special formatting for dates
+        if (key === 'dateOfBirth') {
+            try {
+                return new Date(value).toLocaleDateString(isPdfHindi ? 'hi-IN' : 'en-IN', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            } catch (e) {
+                return value;
+            }
+        }
+
+        // Mapping strategy based on key
+        const optionMap = {
+            education: 'educationOptions',
+            profession: 'professionOptions',
+            maritalStatus: 'maritalStatusOptions',
+            religion: 'religionOptions',
+            state: 'stateOptions',
+            complexion: 'complexionOptions',
+            familyType: 'familyTypeOptions',
+            'horoscope.rashi': 'rashiOptions',
+            'horoscope.nakshatra': 'nakshatraOptions',
+            'horoscope.manglikStatus': 'manglikOptions'
+        };
+
+        const configKey = optionMap[key];
+        if (configKey && config?.[configKey]) {
+            const option = config[configKey].find(opt =>
+                (typeof opt === 'string' ? opt : opt.value) === value
+            );
+            if (option) {
+                return isPdfHindi ? (option.labelHi || option.labelEn) : option.labelEn;
+            }
+        }
+
+        // Fallback: Humanize snake_case
+        if (typeof value === 'string') {
+            return value
+                .split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+
         return value;
     };
 
@@ -522,27 +569,21 @@ function BiodataPDF({ profile, visible, onClose }) {
                     {/* Template Selection */}
                     <div style={{ marginBottom: 24 }}>
                         <Title level={5}>{isHindi ? 'डिज़ाइन चुनें' : 'Select Design'}</Title>
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            {TEMPLATES.map(t => (
-                                <div
-                                    key={t.key}
-                                    onClick={() => setSelectedTemplate(t.key)}
-                                    style={{
-                                        padding: 10,
-                                        border: `2px solid ${selectedTemplate === t.key ? t.color : '#eee'}`,
-                                        borderRadius: 8,
-                                        cursor: 'pointer',
-                                        background: selectedTemplate === t.key ? `${t.color}10` : 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between'
-                                    }}
-                                >
-                                    <Text strong style={{ color: t.color }}>{isHindi ? t.labelHi : t.label}</Text>
-                                    {selectedTemplate === t.key && <CheckCircleOutlined style={{ color: t.color }} />}
-                                </div>
-                            ))}
-                        </Space>
+                        <Select
+                            value={selectedTemplate}
+                            onChange={setSelectedTemplate}
+                            style={{ width: '100%' }}
+                            dropdownStyle={{ borderRadius: 8 }}
+                            options={TEMPLATES.map(t => ({
+                                value: t.key,
+                                label: (
+                                    <Space>
+                                        <div style={{ width: 12, height: 12, borderRadius: '50%', background: t.color }}></div>
+                                        {isHindi ? t.labelHi : t.label}
+                                    </Space>
+                                )
+                            }))}
+                        />
                     </div>
 
                     <Divider />
@@ -593,23 +634,44 @@ function BiodataPDF({ profile, visible, onClose }) {
                         />
                     </div>
 
-                    <Divider style={{ margin: '16px 0' }} />
+                    <Collapse ghost expandIconPosition="end">
+                        {Object.entries(FIELD_GROUPS).map(([groupKey, group]) => {
+                            const allChecked = group.fields.every(f => selectedFields[f.key]);
+                            const someChecked = group.fields.some(f => selectedFields[f.key]);
 
-                    {Object.entries(FIELD_GROUPS).map(([groupKey, group]) => {
-                        const allChecked = group.fields.every(f => selectedFields[f.key]);
-                        const someChecked = group.fields.some(f => selectedFields[f.key]);
-                        return (
-                            <div key={groupKey} style={{ marginBottom: 12, padding: '10px', background: '#f9f9f9', borderRadius: 8, border: '1px solid #f0f0f0' }}>
-                                <Checkbox
-                                    indeterminate={someChecked && !allChecked}
-                                    checked={allChecked}
-                                    onChange={(e) => handleGroupToggle(groupKey, e.target.checked)}
+                            return (
+                                <Panel
+                                    key={groupKey}
+                                    header={
+                                        <Checkbox
+                                            indeterminate={someChecked && !allChecked}
+                                            checked={allChecked}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleGroupToggle(groupKey, e.target.checked);
+                                            }}
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <Text strong style={{ fontSize: 13 }}>{isHindi ? group.labelHi : group.label}</Text>
+                                        </Checkbox>
+                                    }
+                                    style={{ background: '#f9f9f9', marginBottom: 8, borderRadius: 8, border: '1px solid #f0f0f0' }}
                                 >
-                                    <Text strong>{isHindi ? group.labelHi : group.label}</Text>
-                                </Checkbox>
-                            </div>
-                        );
-                    })}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 24 }}>
+                                        {group.fields.map(field => (
+                                            <Checkbox
+                                                key={field.key}
+                                                checked={selectedFields[field.key]}
+                                                onChange={() => handleFieldToggle(field.key)}
+                                            >
+                                                <span style={{ fontSize: 12 }}>{isHindi ? field.labelHi : field.label}</span>
+                                            </Checkbox>
+                                        ))}
+                                    </div>
+                                </Panel>
+                            );
+                        })}
+                    </Collapse>
                 </Col>
 
                 {/* PREVIEW AREA */}
