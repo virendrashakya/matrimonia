@@ -233,7 +233,9 @@ function BiodataPDF({ profile, visible, onClose }) {
     const TEMPLATES = [
         { key: 'classic', label: 'Classic Simple', labelHi: 'क्लासिक सरल', color: '#A0153E' },
         { key: 'modern', label: 'Modern Split', labelHi: 'आधुनिक स्प्लिट', color: '#006CA5' },
-        { key: 'royal', label: 'Royal Vintage', labelHi: 'रॉयल विंटेज', color: '#B8860B' }
+        { key: 'royal', label: 'Royal Vintage', labelHi: 'रॉयल विंटेज', color: '#B8860B' },
+        { key: 'floral', label: 'Floral Elegant', labelHi: 'फ्लोरल एलिगेंट', color: '#D44D5C' },
+        { key: 'professional', label: 'Compact Prof', labelHi: 'कॉम्पैक्ट प्रो', color: '#2C3E50' }
     ];
 
     const getTemplateStyles = (template, primaryColor, isPreview = false) => {
@@ -313,6 +315,74 @@ function BiodataPDF({ profile, visible, onClose }) {
                 ${selector} .field-value { text-align: right; font-weight: 600; color: #000; font-size: 12px; }
                 ${selector} .profile-photo { text-align: center; margin-bottom: 15px; }
                 ${selector} .profile-photo img { border: 2px solid ${primaryColor}; padding: 3px; width: 120px; height: 150px; object-fit: cover; }
+            `;
+        }
+
+        if (template === 'floral') {
+            return `
+                ${baseStyles}
+                ${selector} { 
+                    background: #FFF9F9; 
+                    border: 15px solid transparent;
+                    border-image: radial-gradient(#F8BBD0 20%, transparent 20%) 0 0 100% 100% / 15px;
+                    padding: ${isPreview ? '20px' : '40px'}; 
+                    min-height: ${isPreview ? 'auto' : '1100px'}; 
+                    position: relative;
+                }
+                ${selector}::before {
+                    content: '🌸'; position: absolute; top: 10px; left: 10px; font-size: 24px; opacity: 0.6;
+                }
+                ${selector}::after {
+                    content: '🌸'; position: absolute; bottom: 10px; right: 10px; font-size: 24px; opacity: 0.6;
+                }
+                ${selector} .biodata-header { text-align: center; margin-bottom: 30px; }
+                ${selector} .biodata-header h1 { font-family: 'serif'; color: #D44D5C; font-size: 26px; border-bottom: 1px solid #F8BBD0; display: inline-block; padding-bottom: 5px; }
+                ${selector} .section-title { 
+                    color: #D44D5C; 
+                    font-size: 15px; 
+                    margin: 20px 0 10px; 
+                    font-weight: 700;
+                    display: flex;
+                    align-items: center;
+                }
+                ${selector} .section-title::after {
+                    content: ''; flex: 1; height: 1px; background: linear-gradient(to right, #F8BBD0, transparent); margin-left: 10px;
+                }
+                ${selector} .field-row { display: flex; margin-bottom: 6px; padding: 4px 0; }
+                ${selector} .field-label { width: 35%; color: #880E4F; font-weight: 600; font-size: 12px; }
+                ${selector} .field-value { width: 65%; color: #2C1810; font-size: 12px; }
+                ${selector} .profile-photo-floral { text-align: center; margin-bottom: 20px; }
+                ${selector} .profile-photo-floral img { border-radius: 50% 50% 0 0; border: 4px solid #F8BBD0; width: 140px; height: 160px; object-fit: cover; }
+            `;
+        }
+
+        if (template === 'professional') {
+            return `
+                ${baseStyles}
+                ${selector} { 
+                    padding: ${isPreview ? '20px' : '40px'}; 
+                    min-height: ${isPreview ? 'auto' : '1100px'}; 
+                    background: white;
+                }
+                ${selector} .biodata-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 3px solid #2C3E50; padding-bottom: 15px; }
+                ${selector} .header-left h1 { color: #2C3E50; font-size: 28px; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
+                ${selector} .section-title { 
+                    background: #f4f4f4; 
+                    color: #2C3E50; 
+                    padding: 6px 12px; 
+                    font-size: 13px; 
+                    margin: 15px 0 10px; 
+                    font-weight: 800; 
+                    border-left: 4px solid #2C3E50;
+                    text-transform: uppercase;
+                }
+                ${selector} .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; }
+                ${selector} .field-row { display: flex; border-bottom: 1px solid #f0f0f0; padding: 3px 0; }
+                ${selector} .field-label { width: 45%; color: #7f8c8d; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+                ${selector} .field-value { width: 55%; color: #2c3e50; font-size: 12px; font-weight: 600; }
+                ${selector} .profile-photo-prof { float: right; }
+                ${selector} .profile-photo-prof img { width: 100px; height: 120px; object-fit: cover; border: 1px solid #2C3E50; }
+                ${selector} .clearfix::after { content: ""; clear: both; display: table; }
             `;
         }
 
@@ -702,6 +772,86 @@ function BiodataPDF({ profile, visible, onClose }) {
                                             style={{ width: 80, height: 80 }}
                                         />
                                         <div style={{ fontSize: 10, color: '#999' }}>Scan to View Full Profile</div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* 4. FLORAL TEMPLATE RENDER */}
+                        {selectedTemplate === 'floral' && (() => {
+                            const selectedHeader = RELIGIOUS_HEADERS.find(h => h.key === headerType);
+                            return (
+                                <div>
+                                    <div className="biodata-header">
+                                        <h1>{selectedHeader?.label || (isPdfHindi ? 'शुभ विवाह' : 'MARRIAGE BIODATA')}</h1>
+                                    </div>
+
+                                    <div className="profile-photo-floral">
+                                        {primaryPhoto && <img src={primaryPhoto} alt="Profile" />}
+                                        <h2 style={{ fontSize: 26, color: '#D44D5C', marginTop: 15 }}>{profile.fullName}</h2>
+                                    </div>
+
+                                    <div style={{ padding: '0 20px' }}>
+                                        {renderSection('personal', FIELD_GROUPS.personal)}
+                                        {renderSection('education', FIELD_GROUPS.education)}
+                                        {renderSection('family', FIELD_GROUPS.family)}
+                                        {renderSection('religious', FIELD_GROUPS.religious)}
+                                    </div>
+
+                                    <div style={{ textAlign: 'center', marginTop: 30, paddingBottom: 20 }}>
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/public/' + (profile.customId || profile._id))}`}
+                                            alt="QR"
+                                            style={{ width: 60, height: 60, opacity: 0.8 }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* 5. PROFESSIONAL TEMPLATE RENDER */}
+                        {selectedTemplate === 'professional' && (() => {
+                            return (
+                                <div>
+                                    <div className="biodata-header">
+                                        <div className="header-left">
+                                            <h1>{profile.fullName}</h1>
+                                            <div style={{ color: '#7f8c8d', fontSize: 13, marginTop: 5 }}>
+                                                {profile.age} {isPdfHindi ? 'वर्ष' : 'Yrs'} | {profile.education} | {profile.profession}
+                                            </div>
+                                        </div>
+                                        {primaryPhoto && (
+                                            <div className="profile-photo-prof">
+                                                <img src={primaryPhoto} alt="Profile" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="field-grid">
+                                        <div>
+                                            {renderSection('personal', FIELD_GROUPS.personal)}
+                                            {renderSection('location', FIELD_GROUPS.location)}
+                                        </div>
+                                        <div>
+                                            {renderSection('family', FIELD_GROUPS.family)}
+                                            {renderSection('religious', FIELD_GROUPS.religious)}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ marginTop: 20 }}>
+                                        {renderSection('education', FIELD_GROUPS.education)}
+                                        {renderSection('about', FIELD_GROUPS.about)}
+                                    </div>
+
+                                    <div style={{ marginTop: 30, borderTop: '1px solid #2C3E50', paddingTop: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontSize: 10, color: '#7f8c8d' }}>
+                                            {isPdfHindi ? 'डिजीटल प्रोफाइल के लिए स्कैन करें' : 'Scan for full digital profile'}
+                                        </div>
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/public/' + (profile.customId || profile._id))}`}
+                                            alt="QR"
+                                            style={{ width: 50, height: 50 }}
+                                        />
                                     </div>
                                 </div>
                             );
