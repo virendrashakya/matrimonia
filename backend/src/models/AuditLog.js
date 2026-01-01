@@ -12,7 +12,7 @@ const AuditLogSchema = new mongoose.Schema({
             'user_role_change', 'user_activate', 'user_deactivate', 'user_block', 'user_unblock',
             'user_password_change', 'user_password_reset', 'user_delete', 'role_change',
             '2fa_enable', '2fa_disable', '2fa_reset_admin',
-            'profile_create', 'profile_update', 'profile_delete', 'profile_status_change',
+            'profile_create', 'profile_update', 'profile_delete', 'profile_status_change', 'profile_verify',
             'recognition_add',
             'fraud_flag', 'fraud_unflag',
             'upload_photo', 'upload_biodata',

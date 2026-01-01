@@ -74,7 +74,7 @@ function Navbar() {
     const menuItems = [
         { key: 'dashboard', icon: <HomeOutlined />, label: <Link to="/dashboard">{t.nav.home}</Link> },
         { key: 'profiles', icon: <UserOutlined />, label: <Link to="/profiles">{t.nav.profiles}</Link> },
-        { key: 'search', icon: <SearchOutlined />, label: <Link to="/search">{t.nav.search}</Link> },
+        { key: 'search', icon: <SearchOutlined />, label: <Link to="/search">{isHindi ? 'Explore (एक्सप्लोर)' : 'Explore'}</Link> },
         { key: 'messages', icon: <WechatOutlined />, label: <Link to="/messages">{isHindi ? 'चैट' : 'Messages'}</Link> },
         ...(canCreateProfile ? [{ key: 'new', icon: <PlusOutlined />, label: <Link to="/profiles/new">{t.nav.addProfile}</Link> }] : []),
         ...(isAdmin ? [{ key: 'import', icon: <ImportOutlined />, label: <Link to="/import">{t.nav.import}</Link> }] : []),
@@ -105,7 +105,7 @@ function Navbar() {
     const mobileMenuItems = [
         { key: 'dashboard', icon: <HomeOutlined />, label: t.nav.home, path: '/dashboard' },
         { key: 'profiles', icon: <UserOutlined />, label: t.nav.profiles, path: '/profiles' },
-        { key: 'search', icon: <SearchOutlined />, label: t.nav.search, path: '/search' },
+        { key: 'search', icon: <SearchOutlined />, label: isHindi ? 'Explore (एक्सप्लोर)' : 'Explore', path: '/search' },
         { key: 'messages', icon: <WechatOutlined />, label: isHindi ? 'चैट' : 'Messages', path: '/messages' },
         ...(canCreateProfile ? [{ key: 'new', icon: <PlusOutlined />, label: t.nav.addProfile, path: '/profiles/new' }] : []),
         { key: 'my-profile', icon: <UserOutlined />, label: isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profile', path: '/profile' },

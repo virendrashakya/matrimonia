@@ -11,7 +11,7 @@ router.get('/profiles', authenticate, validateQuery(searchSchema), async (req, r
     try {
         const { page, limit, sortBy, ...filters } = req.validatedQuery;
 
-        const result = await searchProfiles(filters, { page, limit });
+        const result = await searchProfiles(filters, { page, limit }, req.user);
 
         res.json({
             success: true,

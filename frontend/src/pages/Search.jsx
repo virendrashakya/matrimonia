@@ -46,8 +46,8 @@ function Search() {
                 }
             });
 
-            const response = await api.get(`/profiles?${params.toString()}&limit=20`);
-            setResults(response.data.data.profiles);
+            const response = await api.get(`/search/profiles?${params.toString()}&limit=20`);
+            setResults(response.data.data.profiles || []);
         } catch (error) {
             console.error('Error searching:', error);
         } finally {

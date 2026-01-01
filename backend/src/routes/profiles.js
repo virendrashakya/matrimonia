@@ -70,12 +70,12 @@ router.get('/', authenticate, async (req, res, next) => {
             visibility: { $in: ['public', 'restricted'] }
         };
 
-        // Reviewers/Admins see everything. Others see only approved profiles (or their own).
+        // For Staff: Show all public/restricted/pending profiles.
+        // For Regular Users: Show ONLY their own profiles (My Profiles).
         if (!['admin', 'moderator', 'reviewer'].includes(req.user.role)) {
-            query.$or = [
-                { verificationStatus: 'approved' },
-                { createdBy: req.user._id }
-            ];
+            query.createdBy = req.user._id;
+            // Remove visibility filters so owner can see their own private profiles
+            delete query.visibility;
         }
 
         const [profiles, total] = await Promise.all([

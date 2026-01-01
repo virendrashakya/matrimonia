@@ -7,8 +7,8 @@ const en = {
     // Navigation
     nav: {
         home: 'Home',
-        profiles: 'Profiles',
-        search: 'Search',
+        profiles: 'My Profiles',
+        search: 'Explore',
         addProfile: 'Add Profile',
         import: 'Import',
         admin: 'Admin',
@@ -50,7 +50,7 @@ const en = {
         createBiodata: 'Create a new biodata',
         search: 'Search',
         findMatches: 'Find matches with filters',
-        allProfiles: 'All Profiles',
+        allProfiles: 'My Profiles',
         activeProfiles: 'active profiles',
         totalProfiles: 'Total Profiles',
         activeMatches: 'Active Matches',
@@ -64,7 +64,7 @@ const en = {
 
     // Profiles
     profiles: {
-        allProfiles: 'All Profiles',
+        allProfiles: 'My Profiles',
         activeMatrimonial: 'active matrimonial profiles',
         addNew: 'Add New Profile',
         years: 'yrs',
@@ -139,12 +139,12 @@ const en = {
 
     // Search
     search: {
-        title: 'Search Profiles',
+        title: 'Explore Profiles',
         filters: 'Filters',
         ageRange: 'Age Range',
         to: 'to',
         any: 'Any',
-        searchBtn: 'Search',
+        searchBtn: 'Explore',
         clear: 'Clear',
         found: 'Found',
         profilesFound: 'profiles',

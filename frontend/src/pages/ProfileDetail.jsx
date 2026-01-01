@@ -23,6 +23,7 @@ import {
     QrcodeOutlined,
     WhatsAppOutlined,
     FilePdfOutlined,
+    SafetyOutlined,
 
     CopyOutlined,
     DeleteOutlined,
@@ -139,7 +140,15 @@ function ProfileDetail() {
 
     // Visibility Control State
     const [visibilityInfoVisible, setVisibilityInfoVisible] = useState(false);
-    const [updatingVisibility, setUpdatingVisibility] = useState(false);
+    // Verification Control State
+    const [verifying, setVerifying] = useState(false);
+    const [showRejectionModal, setShowRejectionModal] = useState(false);
+    const [verificationReason, setVerificationReason] = useState('');
+    const [actionType, setActionType] = useState('approved'); // approved, rejected, changes_requested
+    const [isDuplicate, setIsDuplicate] = useState(false);
+
+    const isStaff = ['admin', 'moderator', 'reviewer'].includes(user?.role);
+    const canManageVerification = isStaff;
 
     // Chat State
     const [chatStatus, setChatStatus] = useState('none'); // none, pending_sent, pending_received, connected, rejected
@@ -230,6 +239,25 @@ function ProfileDetail() {
             message.error(error.response?.data?.error || 'Failed to send interest');
         } finally {
             setSendingInterest(false);
+        }
+    };
+
+    const handleVerifyProfile = async (status, reason = '', duplicate = isDuplicate) => {
+        setVerifying(true);
+        try {
+            await api.put(`/profiles/${id}/verify`, {
+                status,
+                reason: reason || undefined,
+                isDuplicate: duplicate
+            });
+            message.success(`Profile ${status === 'approved' ? 'approved' : status.replace('_', ' ')} successfully`);
+            fetchProfile();
+            setShowRejectionModal(false);
+            setVerificationReason('');
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to update verification status');
+        } finally {
+            setVerifying(false);
         }
     };
 
@@ -887,6 +915,77 @@ function ProfileDetail() {
 
                 {/* Right Column - Details */}
                 <Col xs={24} md={16}>
+                    {/* Admin Verification Control */}
+                    {isStaff && (
+                        <Card
+                            title={<span><SafetyOutlined /> Profile Verification Control</span>}
+                            className="staff-only-card"
+                            style={{ marginBottom: 24, border: '2px solid #A0153E' }}
+                            extra={<Badge status={profile.verificationStatus === 'approved' ? 'success' : 'processing'} text={profile.verificationStatus?.toUpperCase()} />}
+                        >
+                            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                                <div>
+                                    <Text type="secondary" display="block" style={{ marginBottom: 8 }}>Update Profile Status:</Text>
+                                    <Space wrap>
+                                        <Button
+                                            type="primary"
+                                            icon={<CheckCircleOutlined />}
+                                            onClick={() => handleVerifyProfile('approved')}
+                                            loading={verifying && actionType === 'approved'}
+                                            disabled={profile.verificationStatus === 'approved'}
+                                            style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                                        >
+                                            Approve
+                                        </Button>
+                                        <Button
+                                            danger
+                                            icon={<CloseCircleOutlined />}
+                                            onClick={() => {
+                                                setActionType('rejected');
+                                                setShowRejectionModal(true);
+                                            }}
+                                            loading={verifying && actionType === 'rejected'}
+                                        >
+                                            Reject
+                                        </Button>
+                                        <Button
+                                            icon={<WarningOutlined />}
+                                            onClick={() => {
+                                                setActionType('changes_requested');
+                                                setShowRejectionModal(true);
+                                            }}
+                                            loading={verifying && actionType === 'changes_requested'}
+                                        >
+                                            Request Changes
+                                        </Button>
+                                    </Space>
+                                </div>
+                                <Divider style={{ margin: '8px 0' }} />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Space direction="vertical" size={0}>
+                                        <Text strong>Duplicate Detection</Text>
+                                        <Text type="secondary" style={{ fontSize: 12 }}>Mark this profile as a duplicate entry</Text>
+                                    </Space>
+                                    <Switch
+                                        checked={profile.isDuplicate}
+                                        onChange={(checked) => handleVerifyProfile(profile.verificationStatus, profile.rejectionReason, checked)}
+                                        loading={verifying}
+                                        checkedChildren="Duplicate"
+                                        unCheckedChildren="Unique"
+                                    />
+                                </div>
+                                {profile.rejectionReason && (
+                                    <Alert
+                                        message="Previous Action Reason"
+                                        description={profile.rejectionReason}
+                                        type="info"
+                                        showIcon
+                                    />
+                                )}
+                            </Space>
+                        </Card>
+                    )}
+
                     {/* Header Card */}
                     <Card style={{ borderRadius: 12, marginBottom: 24, background: 'linear-gradient(135deg, #FFFBF5, #FFF8F0)' }}>
                         <div style={{ display: 'flex', flexDirection: !screens.md ? 'column' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: !screens.md ? 16 : 0 }}>
@@ -899,6 +998,15 @@ function ProfileDetail() {
                                     <Tag color={levelConfig[profile.recognition?.level || 'new'].color} style={{ borderRadius: 20 }}>
                                         {levelConfig[profile.recognition?.level || 'new'].label}
                                     </Tag>
+                                    {profile.verificationStatus && (
+                                        <Tag
+                                            icon={profile.verificationStatus === 'approved' ? <CheckCircleOutlined /> : <WarningOutlined />}
+                                            color={profile.verificationStatus === 'approved' ? 'success' : profile.verificationStatus === 'pending' ? 'processing' : 'warning'}
+                                            style={{ borderRadius: 20 }}
+                                        >
+                                            {profile.verificationStatus.replace('_', ' ').toUpperCase()}
+                                        </Tag>
+                                    )}
                                     {isOwner && profile.visibility && (
                                         <Tag icon={profile.visibility === 'public' ? <GlobalOutlined /> : <LockOutlined />} color={profile.visibility === 'public' ? 'geekblue' : profile.visibility === 'private' ? 'red' : 'gold'} style={{ borderRadius: 20 }}>
                                             {profile.visibility.toUpperCase()}
@@ -1065,7 +1173,26 @@ function ProfileDetail() {
                 visible={whatsappVisible}
                 onClose={() => setWhatsappVisible(false)}
             />
-        </div >
+            {/* Rejection / Changes Reason Modal */}
+            <Modal
+                title={actionType === 'rejected' ? 'Reject Profile' : 'Request Changes'}
+                open={showRejectionModal}
+                onOk={() => handleVerifyProfile(actionType, verificationReason)}
+                onCancel={() => setShowRejectionModal(false)}
+                okText="Submit"
+                okButtonProps={{ danger: actionType === 'rejected', loading: verifying }}
+            >
+                <div style={{ marginBottom: 16 }}>
+                    <Text type="secondary"> Please provide a reason for the user. This will be visible to them.</Text>
+                </div>
+                <TextArea
+                    rows={4}
+                    placeholder="E.g. Photo is unclear, professional details missing, etc."
+                    value={verificationReason}
+                    onChange={(e) => setVerificationReason(e.target.value)}
+                />
+            </Modal>
+        </div>
     );
 }
 

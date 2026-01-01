@@ -3,11 +3,35 @@ const { Profile } = require('../models');
 /**
  * Search profiles with filters
  */
-async function searchProfiles(filters, pagination) {
+async function searchProfiles(filters, pagination, user) {
     const { gender, ageMin, ageMax, caste, city, state, education, maritalStatus, recognitionLevel, sortBy } = filters;
     const { page, limit } = pagination;
 
     const query = { status: 'active' };
+
+    // Visibility & Verification Logic
+    // Admins/Reviewers see all active profiles. Others see approved OR their own.
+    if (!user || !['admin', 'moderator', 'reviewer'].includes(user.role)) {
+        query.visibility = { $in: ['public', 'restricted'] };
+
+        if (user) {
+            query.$or = [
+                { verificationStatus: 'approved' },
+                { createdBy: user._id }
+            ];
+        } else {
+            query.verificationStatus = 'approved';
+        }
+    } else {
+        // Admins can see private profiles in search results (optional choice, but usually standard for management)
+        // But let's respect 'private' even for admins in search to keep results relevant for matching
+        query.visibility = { $ne: 'private' };
+    }
+
+    // Exclude own profiles from search for all users
+    if (user) {
+        query.createdBy = { $ne: user._id };
+    }
 
     // Gender filter
     if (gender) {

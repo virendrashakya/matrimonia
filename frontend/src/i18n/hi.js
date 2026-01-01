@@ -7,8 +7,8 @@ const hi = {
     // Navigation
     nav: {
         home: 'होम',
-        profiles: 'प्रोफाइल',
-        search: 'खोजें',
+        profiles: 'मेरी प्रोफाइल',
+        search: 'Explore (एक्सप्लोर)',
         addProfile: 'प्रोफाइल जोड़ें',
         import: 'आयात',
         admin: 'ऐडमिन',
@@ -50,7 +50,7 @@ const hi = {
         createBiodata: 'नया बायोडाटा बनाएं',
         search: 'खोजें',
         findMatches: 'फ़िल्टर से मिलान खोजें',
-        allProfiles: 'सभी प्रोफाइल',
+        allProfiles: 'मेरी प्रोफाइल',
         activeProfiles: 'सक्रिय प्रोफाइल',
         totalProfiles: 'कुल प्रोफाइल',
         activeMatches: 'सक्रिय मिलान',
@@ -64,7 +64,7 @@ const hi = {
 
     // Profiles
     profiles: {
-        allProfiles: 'सभी प्रोफाइल',
+        allProfiles: 'मेरी प्रोफाइल',
         activeMatrimonial: 'सक्रिय वैवाहिक प्रोफाइल',
         addNew: 'नया प्रोफाइल जोड़ें',
         years: 'वर्ष',
@@ -139,12 +139,12 @@ const hi = {
 
     // Search
     search: {
-        title: 'प्रोफाइल खोजें',
+        title: 'प्रोफाइल Explore करें',
         filters: 'फ़िल्टर',
         ageRange: 'आयु सीमा',
         to: 'से',
         any: 'कोई भी',
-        searchBtn: 'खोजें',
+        searchBtn: 'Explore',
         clear: 'साफ़ करें',
         found: 'मिले',
         profilesFound: 'प्रोफाइल',
