@@ -49,6 +49,12 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
+    // Direct auth data setter (for admin/moderator login pages that handle API themselves)
+    const setAuthData = (userData, token) => {
+        localStorage.setItem('token', token);
+        setUser(userData);
+    };
+
     const updateUser = (updatedUser) => {
         setUser(updatedUser);
     };
@@ -60,7 +66,7 @@ export function AuthProvider({ children }) {
             login,
             register,
             logout,
-
+            setAuthData,
             fetchUser,
             updateUser,
             isAuthenticated: !!user,

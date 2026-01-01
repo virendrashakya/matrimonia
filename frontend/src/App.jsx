@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout, Spin } from 'antd';
 import { useAuth } from './context/AuthContext';
 import { ChatProvider } from './context/ChatContext';
@@ -7,10 +7,15 @@ import { ChatProvider } from './context/ChatContext';
 import Navbar from './components/Navbar';
 import CallModal from './components/CallModal';
 
+// Layouts
+import AdminLayout from './layouts/AdminLayout';
+
 // Pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AdminLogin from './pages/AdminLogin';
+import ModeratorLogin from './pages/ModeratorLogin';
 import Dashboard from './pages/Dashboard';
 import Profiles from './pages/Profiles';
 import ProfileDetail from './pages/ProfileDetail';
@@ -20,6 +25,9 @@ import EditProfile from './pages/EditProfile';
 import Search from './pages/Search';
 import ImportWhatsApp from './pages/ImportWhatsApp';
 import AdminPanel from './pages/AdminPanel';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUserDetail from './pages/AdminUserDetail';
+import AdminConfig from './pages/AdminConfig';
 import UserProfile from './pages/UserProfile';
 import InterestsPage from './pages/InterestsPage';
 import MatchmakerDashboard from './pages/MatchmakerDashboard';
@@ -32,9 +40,9 @@ import SetupAccount from './pages/SetupAccount';
 
 const { Content } = Layout;
 
-// Protected Route wrapper
+// Protected Route wrapper (for individual/matchmaker users only)
 function ProtectedRoute({ children }) {
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading, user } = useAuth();
 
     if (loading) {
         return (
@@ -48,12 +56,82 @@ function ProtectedRoute({ children }) {
         return <Navigate to="/login" replace />;
     }
 
+    // Redirect admin/moderator to admin portal - they shouldn't access user routes
+    if (['admin', 'moderator'].includes(user?.role)) {
+        return <Navigate to="/admin" replace />;
+    }
+
+    return children;
+}
+
+// Admin/Moderator Route wrapper - redirects to AdminLayout
+function AdminRoleRoute({ children }) {
+    const { isAuthenticated, loading, user } = useAuth();
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+                <Spin size="large" />
+            </div>
+        );
+    }
+
+    if (!isAuthenticated) {
+        return <Navigate to="/admin-login" replace />;
+    }
+
+    if (!['admin', 'moderator'].includes(user?.role)) {
+        return <Navigate to="/dashboard" replace />;
+    }
+
     return children;
 }
 
 function App() {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
+    const location = useLocation();
+    const isAdminRoute = location.pathname.startsWith('/admin');
+    const isAdminLogin = location.pathname === '/admin-login';
+    const isModeratorLogin = location.pathname === '/moderator-login';
 
+    // Admin/Moderator login pages - render without any layout
+    if (isAdminLogin || isModeratorLogin) {
+        return (
+            <ChatProvider>
+                <Routes>
+                    <Route path="/admin-login" element={
+                        isAuthenticated && user?.role === 'admin' ? <Navigate to="/admin" replace /> : <AdminLogin />
+                    } />
+                    <Route path="/moderator-login" element={
+                        isAuthenticated && user?.role === 'moderator' ? <Navigate to="/admin" replace /> : <ModeratorLogin />
+                    } />
+                </Routes>
+            </ChatProvider>
+        );
+    }
+
+    // Admin portal - render with AdminLayout
+    if (isAdminRoute && isAuthenticated && ['admin', 'moderator'].includes(user?.role)) {
+        return (
+            <ChatProvider>
+                <CallModal />
+                <Routes>
+                    <Route path="/admin" element={<AdminLayout />}>
+                        <Route index element={<AdminDashboard />} />
+                        <Route path="users" element={<AdminPanel />} />
+                        <Route path="users/:id" element={<AdminUserDetail />} />
+                        <Route path="profiles" element={<Profiles />} />
+                        <Route path="profiles/:id" element={<ProfileDetail />} />
+                        <Route path="profiles/:id/edit" element={<EditProfile />} />
+                        <Route path="config" element={<AdminConfig />} />
+                        <Route path="settings" element={<UserProfile />} />
+                    </Route>
+                </Routes>
+            </ChatProvider>
+        );
+    }
+
+    // Regular user layout
     return (
         <ChatProvider>
             <CallModal />
@@ -74,8 +152,6 @@ function App() {
                         <Route path="/register" element={
                             isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
                         } />
-
-
 
                         <Route path="/auth/callback" element={
                             isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthCallback />
@@ -105,9 +181,6 @@ function App() {
                         <Route path="/import" element={
                             <ProtectedRoute><ImportWhatsApp /></ProtectedRoute>
                         } />
-                        <Route path="/admin" element={
-                            <ProtectedRoute><AdminPanel /></ProtectedRoute>
-                        } />
                         <Route path="/profile" element={
                             <ProtectedRoute><UserProfile /></ProtectedRoute>
                         } />
@@ -119,6 +192,11 @@ function App() {
                         } />
                         <Route path="/shortlist" element={
                             <ProtectedRoute><ProfileComparison /></ProtectedRoute>
+                        } />
+
+                        {/* Redirect /admin for non-admin users */}
+                        <Route path="/admin/*" element={
+                            <Navigate to="/admin-login" replace />
                         } />
 
                         {/* Error Routes */}

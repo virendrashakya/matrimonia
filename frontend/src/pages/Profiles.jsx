@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Button, Typography, Spin, Empty, Pagination, Space, Card, Row, Col, Segmented } from 'antd';
-import { PlusOutlined, TeamOutlined, AppstoreOutlined, BarsOutlined } from '@ant-design/icons';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Button, Typography, Spin, Empty, Pagination, Space, Card, Row, Col, Segmented, Table, Tag } from 'antd';
+import { PlusOutlined, TeamOutlined, AppstoreOutlined, BarsOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
 import ProfileCard from '../components/ProfileCard';
 import api from '../services/api';
@@ -10,10 +10,13 @@ const { Title, Text } = Typography;
 
 function Profiles() {
     const { t } = useLanguage();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const isAdminContext = location.pathname.startsWith('/admin');
     const [profiles, setProfiles] = useState([]);
     const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+    const [viewMode, setViewMode] = useState('grid');
 
     useEffect(() => {
         fetchProfiles(1);
@@ -22,7 +25,7 @@ function Profiles() {
     const fetchProfiles = async (page) => {
         setLoading(true);
         try {
-            const response = await api.get(`/profiles?page=${page}&limit=12`);
+            const response = await api.get(`/profiles?page=${page}&limit=${isAdminContext ? 20 : 12}`);
             setProfiles(response.data.data.profiles);
             setPagination(response.data.data.pagination);
         } catch (error) {
@@ -32,6 +35,72 @@ function Profiles() {
         }
     };
 
+    // Admin table columns
+    const adminColumns = [
+        {
+            title: 'ID',
+            dataIndex: 'customId',
+            key: 'customId',
+            width: 120,
+        },
+        {
+            title: 'Name',
+            dataIndex: 'fullName',
+            key: 'fullName',
+            render: (text, record) => (
+                <Link to={`/admin/profiles/${record._id}`}>{text}</Link>
+            ),
+        },
+        {
+            title: 'Age',
+            key: 'age',
+            width: 60,
+            render: (_, record) => {
+                if (!record.dateOfBirth) return '-';
+                const age = Math.floor((Date.now() - new Date(record.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000));
+                return age;
+            },
+        },
+        {
+            title: 'Gender',
+            dataIndex: 'gender',
+            key: 'gender',
+            width: 80,
+            render: (gender) => gender === 'male' ? '👨' : '👩',
+        },
+        {
+            title: 'City',
+            dataIndex: 'city',
+            key: 'city',
+        },
+        {
+            title: 'Status',
+            dataIndex: 'verificationStatus',
+            key: 'verificationStatus',
+            width: 100,
+            render: (status) => {
+                const colors = { approved: 'green', pending: 'orange', rejected: 'red' };
+                return <Tag color={colors[status] || 'default'}>{status}</Tag>;
+            },
+        },
+        {
+            title: 'Created By',
+            key: 'createdBy',
+            render: (_, record) => record.createdBy?.name || '-',
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            width: 100,
+            render: (_, record) => (
+                <Space>
+                    <Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/admin/profiles/${record._id}`)} />
+                    <Button size="small" icon={<EditOutlined />} onClick={() => navigate(`/admin/profiles/${record._id}/edit`)} />
+                </Space>
+            ),
+        },
+    ];
+
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 100 }}>
@@ -40,9 +109,33 @@ function Profiles() {
         );
     }
 
+    // Admin table view
+    if (isAdminContext) {
+        return (
+            <div style={{ padding: '16px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <Title level={4} style={{ margin: 0 }}>All Profiles ({pagination.total})</Title>
+                </div>
+                <Table
+                    columns={adminColumns}
+                    dataSource={profiles.map(p => ({ ...p, key: p._id }))}
+                    pagination={{
+                        current: pagination.page,
+                        total: pagination.total,
+                        pageSize: 20,
+                        onChange: (page) => fetchProfiles(page),
+                        showSizeChanger: false,
+                    }}
+                    size="small"
+                    scroll={{ x: 800 }}
+                />
+            </div>
+        );
+    }
+
+    // Regular user card view
     return (
         <div style={{ padding: '32px 0' }}>
-            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
                 <div>
                     <Title level={2} style={{ margin: 0 }}>

@@ -97,7 +97,68 @@ router.get('/profiles/:id/fraud-risk', authenticate, requireRole('admin', 'moder
 // USER & ROLE MANAGEMENT (Admin Only)
 // =============================================
 
-const { User, Profile, AuditLog } = require('../models');
+const { User, Profile, AuditLog, DropdownOptions } = require('../models');
+
+// =============================================
+// CONFIG MANAGEMENT
+// =============================================
+
+/**
+ * GET /api/admin/config/options
+ * Get all dropdown options
+ */
+router.get('/config/options', authenticate, requireRole('admin', 'moderator'), async (req, res, next) => {
+    try {
+        const options = await DropdownOptions.getOrCreate();
+        res.json({
+            success: true,
+            data: { options }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * PUT /api/admin/config/options
+ * Update dropdown options (admin only)
+ */
+router.put('/config/options', authenticate, requireRole('admin'), async (req, res, next) => {
+    try {
+        const { field, values } = req.body;
+
+        const validFields = ['castes', 'subCastes', 'occupations', 'educations', 'motherTongues', 'religions', 'maritalStatuses', 'diets', 'mangaliks'];
+        if (!validFields.includes(field)) {
+            return res.status(400).json({ error: `Invalid field. Must be one of: ${validFields.join(', ')}` });
+        }
+
+        if (!Array.isArray(values)) {
+            return res.status(400).json({ error: 'Values must be an array' });
+        }
+
+        const options = await DropdownOptions.getOrCreate();
+        options[field] = values;
+        await options.save();
+
+        // Audit log
+        await AuditLog.create({
+            action: 'config_update',
+            targetType: 'user',
+            targetId: req.user._id,
+            performedBy: req.user._id,
+            changes: { field, newValues: values },
+            ipAddress: req.ip
+        });
+
+        res.json({
+            success: true,
+            message: `${field} options updated successfully`,
+            data: { options }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
 
 /**
  * GET /api/admin/users
@@ -151,6 +212,43 @@ router.get('/users', authenticate, requireRole('admin', 'moderator'), async (req
                     total,
                     pages: Math.ceil(total / parseInt(limit))
                 }
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * GET /api/admin/users/:id
+ * Get detailed user information including profiles created and activity
+ */
+router.get('/users/:id', authenticate, requireRole('admin', 'moderator'), async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findById(id).select('-passwordHash');
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Get profiles created by this user
+        const profiles = await Profile.find({ createdBy: id, status: { $ne: 'deleted' } })
+            .select('customId fullName gender city verificationStatus createdAt')
+            .sort({ createdAt: -1 });
+
+        // Get recent activity from audit log
+        const activity = await AuditLog.find({ performedBy: id })
+            .sort({ createdAt: -1 })
+            .limit(20);
+
+        res.json({
+            success: true,
+            data: {
+                user,
+                profiles,
+                activity,
+                loginHistory: user.loginHistory || []
             }
         });
     } catch (error) {
@@ -343,6 +441,132 @@ router.get('/stats', authenticate, requireRole('admin', 'moderator'), async (req
                 profiles: {
                     total: totalProfiles,
                     byVisibility: visibilityStats
+                }
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * GET /api/admin/analytics
+ * Enhanced analytics with timeline data
+ */
+router.get('/analytics', authenticate, requireRole('admin', 'moderator'), async (req, res, next) => {
+    try {
+        const now = new Date();
+        const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+        const [
+            totalUsers,
+            totalProfiles,
+            pendingVerificationUsers,
+            pendingVerificationProfiles,
+            activeToday,
+            userRegistrations7d,
+            profilesByStatus,
+            profilesByGender,
+            recentLogins,
+            recentActivity
+        ] = await Promise.all([
+            // Total counts
+            User.countDocuments({ isActive: true }),
+            Profile.countDocuments({ status: 'active' }),
+            User.countDocuments({ isVerified: false, isActive: true }),
+            Profile.countDocuments({ verificationStatus: 'pending' }),
+
+            // Active today (logged in today)
+            User.countDocuments({
+                lastLoginAt: { $gte: new Date(now.setHours(0, 0, 0, 0)) }
+            }),
+
+            // User registrations over 7 days
+            User.aggregate([
+                { $match: { createdAt: { $gte: sevenDaysAgo } } },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ]),
+
+            // Profiles by status
+            Profile.aggregate([
+                { $group: { _id: '$verificationStatus', count: { $sum: 1 } } }
+            ]),
+
+            // Profiles by gender
+            Profile.aggregate([
+                { $match: { status: 'active' } },
+                { $group: { _id: '$gender', count: { $sum: 1 } } }
+            ]),
+
+            // Recent logins (last 20)
+            AuditLog.find({ action: { $in: ['user_login', 'admin_login', 'moderator_login'] } })
+                .sort({ createdAt: -1 })
+                .limit(20)
+                .populate('performedBy', 'name phone role'),
+
+            // Recent profile activity
+            AuditLog.find({
+                action: { $in: ['profile_create', 'profile_update', 'profile_delete'] },
+                createdAt: { $gte: sevenDaysAgo }
+            })
+                .sort({ createdAt: -1 })
+                .limit(20)
+                .populate('performedBy', 'name')
+        ]);
+
+        // Format registration timeline for charts
+        const registrationTimeline = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(now - i * 24 * 60 * 60 * 1000);
+            const dateStr = date.toISOString().split('T')[0];
+            const found = userRegistrations7d.find(r => r._id === dateStr);
+            registrationTimeline.push({
+                date: dateStr,
+                count: found ? found.count : 0
+            });
+        }
+
+        res.json({
+            success: true,
+            data: {
+                overview: {
+                    totalUsers,
+                    totalProfiles,
+                    activeToday,
+                    pendingVerificationUsers,
+                    pendingVerificationProfiles
+                },
+                charts: {
+                    registrationTimeline,
+                    profilesByStatus: profilesByStatus.reduce((acc, item) => {
+                        acc[item._id || 'unknown'] = item.count;
+                        return acc;
+                    }, {}),
+                    profilesByGender: profilesByGender.reduce((acc, item) => {
+                        acc[item._id || 'unknown'] = item.count;
+                        return acc;
+                    }, {})
+                },
+                recentActivity: {
+                    logins: recentLogins.map(log => ({
+                        user: log.performedBy?.name || 'Unknown',
+                        role: log.performedBy?.role,
+                        ip: log.ipAddress,
+                        time: log.createdAt
+                    })),
+                    profileChanges: recentActivity.map(log => ({
+                        action: log.action,
+                        user: log.performedBy?.name || 'Unknown',
+                        profileId: log.targetId,
+                        time: log.createdAt
+                    }))
                 }
             }
         });

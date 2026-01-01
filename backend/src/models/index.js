@@ -7,6 +7,7 @@ const Interest = require('./Interest');
 const Notification = require('./Notification');
 const ProfileView = require('./ProfileView');
 const AccessRequest = require('./AccessRequest');
+const DropdownOptions = require('./DropdownOptions');
 
 const ChatRequest = require('./ChatRequest');
 const Conversation = require('./Conversation');
@@ -20,9 +21,10 @@ module.exports = {
     ChatRequest,
     Conversation,
     Message,
-    RecognitionEntry, // Keeping RecognitionEntry as it was not explicitly removed
+    RecognitionEntry,
     Configuration,
     Interest,
     Notification,
-    ProfileView
+    ProfileView,
+    DropdownOptions
 };

@@ -110,7 +110,12 @@ const UserSchema = new mongoose.Schema({
     loginCount: {
         type: Number,
         default: 0
-    }
+    },
+    loginHistory: [{
+        ip: String,
+        userAgent: String,
+        timestamp: { type: Date, default: Date.now }
+    }]
 
 }, { timestamps: true });
 
