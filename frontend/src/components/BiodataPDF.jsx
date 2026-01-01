@@ -236,93 +236,98 @@ function BiodataPDF({ profile, visible, onClose }) {
         { key: 'royal', label: 'Royal Vintage', labelHi: 'रॉयल विंटेज', color: '#B8860B' }
     ];
 
-    const getTemplateStyles = (template, primaryColor) => {
+    const getTemplateStyles = (template, primaryColor, isPreview = false) => {
+        const selector = isPreview ? '.preview-container' : 'body';
         const baseStyles = `
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-                font-family: 'Outfit', 'Inter', sans-serif; 
-                padding: 20px; 
+            ${selector} { 
+                margin: 0; 
+                padding: ${isPreview ? '0' : '20px'}; 
+                box-sizing: border-box; 
+                font-family: 'Outfit', 'Inter', sans-serif;
                 color: #2C1810;
                 -webkit-print-color-adjust: exact;
             }
-            img { max-width: 100%; }
+            ${selector} * { box-sizing: border-box; }
+            ${selector} img { max-width: 100%; }
         `;
 
         if (template === 'modern') {
             return `
                 ${baseStyles}
-                .container { display: flex; height: 100%; border: 4px solid ${primaryColor}; }
-                .sidebar { 
+                ${selector} .container { display: flex; height: 100%; border: 4px solid ${primaryColor}; min-height: ${isPreview ? 'auto' : '1100px'}; }
+                ${selector} .sidebar { 
                     width: 35%; 
                     background: ${primaryColor}; 
                     color: white; 
                     padding: 20px; 
                     text-align: center; 
+                    display: flex;
+                    flex-direction: column;
                 }
-                .main-content { width: 65%; padding: 25px; }
-                .sidebar h1, .sidebar h2, .sidebar h3 { color: white; }
-                .sidebar .field-row { border-bottom: 1px solid rgba(255,255,255,0.2); }
-                .sidebar .field-label { color: rgba(255,255,255,0.8); }
-                .profile-photo img { border: 4px solid white; border-radius: 50%; width: 160px; height: 160px; object-fit: cover; }
-                .section-title { 
+                ${selector} .main-content { width: 65%; padding: 25px; background: white; }
+                ${selector} .sidebar h1, ${selector} .sidebar h2, ${selector} .sidebar h3 { color: white; margin: 0; }
+                ${selector} .sidebar .field-row { border-bottom: 1px solid rgba(255,255,255,0.2); }
+                ${selector} .sidebar .field-label { color: rgba(255,255,255,0.8); }
+                ${selector} .profile-photo-sidebar img { border: 4px solid white; border-radius: 50%; width: 140px; height: 140px; object-fit: cover; margin: 0 auto; }
+                ${selector} .section-title { 
                     color: ${primaryColor}; 
                     border-bottom: 2px solid ${primaryColor}; 
                     padding-bottom: 5px; 
-                    margin-bottom: 15px; 
-                    font-size: 16px; 
+                    margin: 20px 0 10px; 
+                    font-size: 14px; 
                     text-transform: uppercase; 
                     font-weight: 700;
                     letter-spacing: 1px;
                 }
-                .field-row { display: flex; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 4px; }
-                .field-label { width: 40%; font-weight: 600; color: #555; font-size: 13px; }
-                .field-value { width: 60%; font-size: 13px; font-weight: 500; }
-                .header-icon { font-size: 24px; margin-bottom: 10px; display: block; }
+                ${selector} .field-row { display: flex; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 4px; }
+                ${selector} .field-label { width: 40%; font-weight: 600; color: #555; font-size: 12px; }
+                ${selector} .field-value { width: 60%; font-size: 12px; font-weight: 500; }
+                ${selector} .header-icon { font-size: 24px; margin-bottom: 10px; display: block; }
             `;
         }
 
         if (template === 'royal') {
             return `
                 ${baseStyles}
-                body { background: #FFFBF0; border: 10px double ${primaryColor}; padding: 40px; }
-                .biodata-header { text-align: center; margin-bottom: 30px; }
-                .biodata-header h1 { font-family: 'serif'; color: ${primaryColor}; font-size: 28px; margin-bottom: 5px; }
-                .section-title { 
+                ${selector} { background: #FFFBF0; border: 8px double ${primaryColor}; padding: ${isPreview ? '20px' : '40px'}; min-height: ${isPreview ? 'auto' : '1100px'}; }
+                ${selector} .biodata-header { text-align: center; margin-bottom: 25px; }
+                ${selector} .biodata-header h1 { font-family: serif; color: ${primaryColor}; font-size: 24px; margin-bottom: 5px; }
+                ${selector} .section-title { 
                     text-align: center; 
                     color: ${primaryColor}; 
-                    font-family: 'serif'; 
-                    font-size: 18px; 
-                    margin: 20px 0 10px; 
+                    font-family: serif; 
+                    font-size: 16px; 
+                    margin: 15px 0 10px; 
                     display: flex; 
                     align-items: center; 
                     justify-content: center; 
                 }
-                .section-title::before, .section-title::after { 
+                ${selector} .section-title::before, ${selector} .section-title::after { 
                     content: '❧'; 
                     color: ${primaryColor}; 
                     margin: 0 10px; 
-                    font-size: 20px; 
+                    font-size: 18px; 
                 }
-                .field-row { display: flex; justify-content: space-between; margin-bottom: 8px; padding: 0 40px; }
-                .field-label { color: #555; font-style: italic; font-weight: 600; text-align: left; }
-                .field-value { text-align: right; font-weight: 600; color: #000; }
-                .profile-photo { text-align: center; margin-bottom: 20px; }
-                .profile-photo img { border: 3px solid ${primaryColor}; padding: 3px; width: 140px; height: 170px; }
+                ${selector} .field-row { display: flex; justify-content: space-between; margin-bottom: 6px; padding: 0 20px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+                ${selector} .field-label { color: #555; font-style: italic; font-weight: 600; text-align: left; font-size: 12px; }
+                ${selector} .field-value { text-align: right; font-weight: 600; color: #000; font-size: 12px; }
+                ${selector} .profile-photo { text-align: center; margin-bottom: 15px; }
+                ${selector} .profile-photo img { border: 2px solid ${primaryColor}; padding: 3px; width: 120px; height: 150px; object-fit: cover; }
             `;
         }
 
         // Classic (Default)
         return `
             ${baseStyles}
-            .biodata-header { text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid ${primaryColor}; }
-            .biodata-header h1 { color: ${primaryColor}; font-size: 24px; }
-            .section-title { background: ${primaryColor}; color: white; padding: 5px 10px; font-size: 14px; margin-bottom: 10px; font-weight: bold; border-radius: 4px; }
-            .field-row { display: flex; padding: 6px 0; border-bottom: 1px solid #eee; }
-            .field-label { width: 40%; font-weight: 600; color: #444; font-size: 13px; }
-            .field-value { width: 60%; font-size: 13px; }
-            .profile-photo { float: right; margin-left: 20px; margin-bottom: 10px; }
-            .profile-photo img { width: 130px; height: 160px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px; }
-            .clearfix::after { content: ""; clear: both; display: table; }
+            ${selector} .biodata-header { text-align: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid ${primaryColor}; }
+            ${selector} .biodata-header h1 { color: ${primaryColor}; font-size: 22px; margin: 0; }
+            ${selector} .section-title { background: ${primaryColor}; color: white; padding: 4px 10px; font-size: 13px; margin: 15px 0 8px; font-weight: bold; border-radius: 4px; }
+            ${selector} .field-row { display: flex; padding: 5px 0; border-bottom: 1px solid #eee; }
+            ${selector} .field-label { width: 40%; font-weight: 600; color: #444; font-size: 12px; }
+            ${selector} .field-value { width: 60%; font-size: 12px; }
+            ${selector} .profile-photo-classic { float: right; margin-left: 15px; margin-bottom: 10px; }
+            ${selector} .profile-photo-classic img { width: 120px; height: 150px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px; }
+            ${selector} .clearfix::after { content: ""; clear: both; display: table; }
         `;
     };
 
@@ -403,7 +408,9 @@ function BiodataPDF({ profile, visible, onClose }) {
             }
             open={visible}
             onCancel={onClose}
-            width={1000}
+            width={1200}
+            bodyStyle={{ padding: '0px' }}
+            style={{ top: 20 }}
             footer={[
                 <Button key="cancel" onClick={onClose}>
                     {isHindi ? 'रद्द करें' : 'Cancel'}
@@ -419,9 +426,14 @@ function BiodataPDF({ profile, visible, onClose }) {
                 </Button>
             ]}
         >
-            <Row gutter={24}>
+            <Row gutter={0}>
                 {/* SETTINGS SIDEBAR */}
-                <Col xs={24} md={8} style={{ borderRight: '1px solid #f0f0f0', paddingRight: 20 }}>
+                <Col xs={24} md={8} style={{
+                    borderRight: '1px solid #f0f0f0',
+                    padding: '24px',
+                    height: '80vh',
+                    overflowY: 'auto'
+                }}>
 
                     {/* Language Selection */}
                     <div style={{ marginBottom: 24 }}>
@@ -466,64 +478,101 @@ function BiodataPDF({ profile, visible, onClose }) {
                     <Divider />
 
                     {/* Field Selection */}
-                    <Title level={5}>{isHindi ? 'फ़ील्ड चुनें' : 'Include Fields'}</Title>
-                    <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                    <Title level={5} style={{ marginTop: 16 }}>{isHindi ? 'फ़ील्ड चुनें' : 'Include Fields'}</Title>
 
-                        <div style={{ marginBottom: 16 }}>
-                            <Text strong style={{ display: 'block', marginBottom: 8 }}>{isHindi ? 'फोटो' : 'Photo'}</Text>
-                            {profile.photos?.length > 0 ? (
-                                <Row gutter={[8, 8]}>
-                                    {profile.photos.map((photo, index) => (
-                                        <Col span={12} key={photo.url}>
-                                            <Checkbox
-                                                checked={selectedPhotoUrls.includes(photo.url)}
-                                                onChange={() => handlePhotoToggle(photo.url)}
-                                            >
-                                                <img
-                                                    src={photo.url}
-                                                    alt="thumb"
-                                                    style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, verticalAlign: 'middle', marginLeft: 8 }}
-                                                />
-                                            </Checkbox>
-                                        </Col>
-                                    ))}
-                                </Row>
-                            ) : <Text type="secondary">No photos</Text>}
-                        </div>
-
-                        <div style={{ marginBottom: 16 }}>
-                            <Text strong style={{ display: 'block', marginBottom: 8 }}>{isHindi ? 'शीर्षक' : 'Header'}</Text>
-                            <Select
-                                value={headerType}
-                                onChange={setHeaderType}
-                                style={{ width: '100%' }}
-                                options={RELIGIOUS_HEADERS.map(h => ({ value: h.key, label: isPdfHindi ? h.label || h.labelEn : h.labelEn }))}
-                            />
-                        </div>
-
-                        {Object.entries(FIELD_GROUPS).map(([groupKey, group]) => {
-                            const allChecked = group.fields.every(f => selectedFields[f.key]);
-                            const someChecked = group.fields.some(f => selectedFields[f.key]);
-                            return (
-                                <div key={groupKey} style={{ marginBottom: 12 }}>
-                                    <Checkbox
-                                        indeterminate={someChecked && !allChecked}
-                                        checked={allChecked}
-                                        onChange={(e) => handleGroupToggle(groupKey, e.target.checked)}
+                    <div style={{ marginBottom: 20 }}>
+                        <Text strong style={{ display: 'block', marginBottom: 12 }}>{isHindi ? 'फोटो स्लाइडर' : 'Photo Selection'}</Text>
+                        {profile.photos?.length > 0 ? (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                {profile.photos.map((photo, index) => (
+                                    <div
+                                        key={photo.url}
+                                        onClick={() => handlePhotoToggle(photo.url)}
+                                        style={{
+                                            position: 'relative',
+                                            cursor: 'pointer',
+                                            borderRadius: 6,
+                                            overflow: 'hidden',
+                                            border: `2px solid ${selectedPhotoUrls.includes(photo.url) ? '#A0153E' : '#eee'}`,
+                                            padding: 2
+                                        }}
                                     >
-                                        <Text strong>{isHindi ? group.labelHi : group.label}</Text>
-                                    </Checkbox>
-                                </div>
-                            );
-                        })}
+                                        <img
+                                            src={photo.url}
+                                            alt="thumb"
+                                            style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
+                                        />
+                                        {selectedPhotoUrls.includes(photo.url) && (
+                                            <div style={{ position: 'absolute', top: 0, right: 0, padding: '0 4px', background: '#A0153E', color: 'white', fontSize: 10, borderBottomLeftRadius: 4 }}>
+                                                ✓
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : <Text type="secondary">No photos</Text>}
                     </div>
+
+                    <div style={{ marginBottom: 20 }}>
+                        <Text strong style={{ display: 'block', marginBottom: 8 }}>{isHindi ? 'धार्मिक शीर्षक' : 'Religious Header'}</Text>
+                        <Select
+                            value={headerType}
+                            onChange={setHeaderType}
+                            style={{ width: '100%' }}
+                            options={RELIGIOUS_HEADERS.map(h => ({ value: h.key, label: isPdfHindi ? h.label || h.labelEn : h.labelEn }))}
+                        />
+                    </div>
+
+                    <Divider style={{ margin: '16px 0' }} />
+
+                    {Object.entries(FIELD_GROUPS).map(([groupKey, group]) => {
+                        const allChecked = group.fields.every(f => selectedFields[f.key]);
+                        const someChecked = group.fields.some(f => selectedFields[f.key]);
+                        return (
+                            <div key={groupKey} style={{ marginBottom: 12, padding: '10px', background: '#f9f9f9', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+                                <Checkbox
+                                    indeterminate={someChecked && !allChecked}
+                                    checked={allChecked}
+                                    onChange={(e) => handleGroupToggle(groupKey, e.target.checked)}
+                                >
+                                    <Text strong>{isHindi ? group.labelHi : group.label}</Text>
+                                </Checkbox>
+                            </div>
+                        );
+                    })}
                 </Col>
 
                 {/* PREVIEW AREA */}
-                <Col xs={24} md={16} style={{ background: '#f9f9f9', padding: 20, borderRadius: 8, display: 'flex', justifyContent: 'center' }}>
+                <Col xs={24} md={16} style={{
+                    background: '#f0f2f5',
+                    padding: '40px 20px',
+                    height: '80vh',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center'
+                }}>
+
+                    {/* Inject styles for preview */}
+                    <style>
+                        {getTemplateStyles(selectedTemplate, (selectedTemplate === 'royal' ? '#B8860B' : selectedTemplate === 'modern' ? '#006CA5' : (RELIGIOUS_HEADERS.find(h => h.key === headerType)?.primaryColor || '#A0153E')), true)}
+                    </style>
+
+                    <div style={{ marginBottom: 20, textAlign: 'center' }}>
+                        <Text type="secondary">
+                            <PrinterOutlined style={{ marginRight: 8 }} />
+                            {isHindi ? 'लाइव प्रीव्यू - प्रिंट होने पर ऐसा दिखेगा' : 'Live Preview - This is how it will look when printed'}
+                        </Text>
+                    </div>
 
                     {/* Main Render Container that gets Printed */}
-                    <div ref={printRef} style={{ width: '100%', maxWidth: 700, background: 'white', minHeight: 800, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    <div ref={printRef} className="preview-container" style={{
+                        width: '100%',
+                        maxWidth: 700,
+                        background: 'white',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                        marginBottom: 40
+                    }}>
 
                         {/* 1. MODERN TEMPLATE RENDER */}
                         {selectedTemplate === 'modern' && (() => {
@@ -532,7 +581,7 @@ function BiodataPDF({ profile, visible, onClose }) {
                                 <div className="container">
                                     <div className="sidebar">
                                         {primaryPhoto && (
-                                            <div className="profile-photo">
+                                            <div className="profile-photo-sidebar">
                                                 <img src={primaryPhoto} alt="Profile" />
                                             </div>
                                         )}
@@ -631,7 +680,7 @@ function BiodataPDF({ profile, visible, onClose }) {
 
                                     <div className="clearfix" style={{ marginBottom: 20 }}>
                                         {primaryPhoto && (
-                                            <div className="profile-photo">
+                                            <div className="profile-photo-classic">
                                                 <img src={primaryPhoto} alt="Profile" style={{ borderColor: selectedHeader.primaryColor }} />
                                             </div>
                                         )}
