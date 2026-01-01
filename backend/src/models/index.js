@@ -8,14 +8,21 @@ const Notification = require('./Notification');
 const ProfileView = require('./ProfileView');
 const AccessRequest = require('./AccessRequest');
 
+const ChatRequest = require('./ChatRequest');
+const Conversation = require('./Conversation');
+const Message = require('./Message');
+
 module.exports = {
     User,
     Profile,
-    RecognitionEntry,
     AuditLog,
+    AccessRequest,
+    ChatRequest,
+    Conversation,
+    Message,
+    RecognitionEntry, // Keeping RecognitionEntry as it was not explicitly removed
     Configuration,
     Interest,
     Notification,
-    ProfileView,
-    AccessRequest
+    ProfileView
 };

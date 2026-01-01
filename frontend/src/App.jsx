@@ -1,9 +1,11 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout, Spin } from 'antd';
 import { useAuth } from './context/AuthContext';
+import { ChatProvider } from './context/ChatContext';
 
-// Layout
+// Custom Logic
 import Navbar from './components/Navbar';
+import CallModal from './components/CallModal';
 
 // Pages
 import Landing from './pages/Landing';
@@ -12,6 +14,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profiles from './pages/Profiles';
 import ProfileDetail from './pages/ProfileDetail';
+import Messages from './pages/Messages';
 import AddProfile from './pages/AddProfile';
 import EditProfile from './pages/EditProfile';
 import Search from './pages/Search';
@@ -52,79 +55,82 @@ function App() {
     const { isAuthenticated } = useAuth();
 
     return (
-        <Layout style={{ minHeight: '100vh' }}>
-            {isAuthenticated && <Navbar />}
-            <Content style={{ padding: isAuthenticated ? '0 24px' : 0, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
-                <Routes>
-                    {/* Public routes */}
-                    <Route path="/setup" element={
-                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <SetupAccount />
-                    } />
-                    <Route path="/" element={
-                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />
-                    } />
-                    <Route path="/login" element={
-                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
-                    } />
-                    <Route path="/register" element={
-                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
-                    } />
+        <ChatProvider>
+            <CallModal />
+            <Layout style={{ minHeight: '100vh' }}>
+                {isAuthenticated && <Navbar />}
+                <Content style={{ padding: isAuthenticated ? '0 24px' : 0, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+                    <Routes>
+                        {/* Public routes */}
+                        <Route path="/setup" element={
+                            isAuthenticated ? <Navigate to="/dashboard" replace /> : <SetupAccount />
+                        } />
+                        <Route path="/" element={
+                            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />
+                        } />
+                        <Route path="/login" element={
+                            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+                        } />
+                        <Route path="/register" element={
+                            isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
+                        } />
 
 
 
-                    <Route path="/auth/callback" element={
-                        isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthCallback />
-                    } />
-                    <Route path="/public/:customId" element={<PublicProfile />} />
+                        <Route path="/auth/callback" element={
+                            isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthCallback />
+                        } />
+                        <Route path="/public/:customId" element={<PublicProfile />} />
 
-                    {/* Protected routes */}
-                    <Route path="/dashboard" element={
-                        <ProtectedRoute><Dashboard /></ProtectedRoute>
-                    } />
-                    <Route path="/profiles" element={
-                        <ProtectedRoute><Profiles /></ProtectedRoute>
-                    } />
-                    <Route path="/profiles/new" element={
-                        <ProtectedRoute><AddProfile /></ProtectedRoute>
-                    } />
-                    <Route path="/profiles/:id" element={
-                        <ProtectedRoute><ProfileDetail /></ProtectedRoute>
-                    } />
-                    <Route path="/profiles/:id/edit" element={
-                        <ProtectedRoute><EditProfile /></ProtectedRoute>
-                    } />
-                    <Route path="/search" element={
-                        <ProtectedRoute><Search /></ProtectedRoute>
-                    } />
-                    <Route path="/import" element={
-                        <ProtectedRoute><ImportWhatsApp /></ProtectedRoute>
-                    } />
-                    <Route path="/admin" element={
-                        <ProtectedRoute><AdminPanel /></ProtectedRoute>
-                    } />
-                    <Route path="/profile" element={
-                        <ProtectedRoute><UserProfile /></ProtectedRoute>
-                    } />
-                    <Route path="/interests" element={
-                        <ProtectedRoute><InterestsPage /></ProtectedRoute>
-                    } />
-                    <Route path="/my-profiles" element={
-                        <ProtectedRoute><MatchmakerDashboard /></ProtectedRoute>
-                    } />
-                    <Route path="/shortlist" element={
-                        <ProtectedRoute><ProfileComparison /></ProtectedRoute>
-                    } />
+                        {/* Protected routes */}
+                        <Route path="/dashboard" element={
+                            <ProtectedRoute><Dashboard /></ProtectedRoute>
+                        } />
+                        <Route path="/profiles" element={
+                            <ProtectedRoute><Profiles /></ProtectedRoute>
+                        } />
+                        <Route path="/profiles/new" element={
+                            <ProtectedRoute><AddProfile /></ProtectedRoute>
+                        } />
+                        <Route path="/profiles/:id" element={
+                            <ProtectedRoute><ProfileDetail /></ProtectedRoute>
+                        } />
+                        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                        <Route path="/profiles/:id/edit" element={
+                            <ProtectedRoute><EditProfile /></ProtectedRoute>
+                        } />
+                        <Route path="/search" element={
+                            <ProtectedRoute><Search /></ProtectedRoute>
+                        } />
+                        <Route path="/import" element={
+                            <ProtectedRoute><ImportWhatsApp /></ProtectedRoute>
+                        } />
+                        <Route path="/admin" element={
+                            <ProtectedRoute><AdminPanel /></ProtectedRoute>
+                        } />
+                        <Route path="/profile" element={
+                            <ProtectedRoute><UserProfile /></ProtectedRoute>
+                        } />
+                        <Route path="/interests" element={
+                            <ProtectedRoute><InterestsPage /></ProtectedRoute>
+                        } />
+                        <Route path="/my-profiles" element={
+                            <ProtectedRoute><MatchmakerDashboard /></ProtectedRoute>
+                        } />
+                        <Route path="/shortlist" element={
+                            <ProtectedRoute><ProfileComparison /></ProtectedRoute>
+                        } />
 
-                    {/* Error Routes */}
-                    <Route path="/500" element={<ServerError />} />
+                        {/* Error Routes */}
+                        <Route path="/500" element={<ServerError />} />
 
-                    {/* Fallback */}
-                    <Route path="*" element={<NotFound />} />
-                </Routes>
-            </Content>
-        </Layout>
+                        {/* Fallback */}
+                        <Route path="*" element={<NotFound />} />
+                    </Routes>
+                </Content>
+            </Layout>
+        </ChatProvider>
     );
 }
 
 export default App;
-

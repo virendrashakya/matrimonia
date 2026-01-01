@@ -20,7 +20,8 @@ const userRoutes = require('./routes/user');
 const interestRoutes = require('./routes/interest');
 const notificationRoutes = require('./routes/notifications');
 const analyticsRoutes = require('./routes/analytics');
-const accessRoutes = require('./routes/access');
+const accessRoutes = require('./routes/accessRequests');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 
@@ -148,6 +149,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/access-requests', accessRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check (no logging needed)
 app.get('/api/health', (req, res) => {
@@ -203,7 +205,17 @@ app.use((err, req, res, next) => {
 // ======================
 // STARTUP
 // ======================
+// ======================
+// STARTUP
+// ======================
+const http = require('http');
+const { initializeSocket } = require('./socket/socket');
+
 const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
+
+// Initialize Socket.io
+initializeSocket(server);
 
 console.log('\n' + '='.repeat(60));
 console.log('🪔 PEHCHAN SERVER');
@@ -224,9 +236,10 @@ mongoose.connect(process.env.MONGODB_URI)
       console.log(`   Users: ${users}, Profiles: ${profiles}`);
     } catch (e) { }
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`\n🚀 Server: http://localhost:${PORT}`);
       console.log(`📡 API: http://localhost:${PORT}/api`);
+      console.log(`🔌 Socket.io: Connected`);
       console.log('\n📋 Routes:');
       console.log('   POST /api/auth/register');
       console.log('   POST /api/auth/login');

@@ -18,7 +18,8 @@ import {
     StarOutlined,
     FontSizeOutlined,
     MoonOutlined,
-    SunOutlined
+    SunOutlined,
+    WechatOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -74,6 +75,7 @@ function Navbar() {
         { key: 'dashboard', icon: <HomeOutlined />, label: <Link to="/dashboard">{t.nav.home}</Link> },
         { key: 'profiles', icon: <UserOutlined />, label: <Link to="/profiles">{t.nav.profiles}</Link> },
         { key: 'search', icon: <SearchOutlined />, label: <Link to="/search">{t.nav.search}</Link> },
+        { key: 'messages', icon: <WechatOutlined />, label: <Link to="/messages">{isHindi ? 'चैट' : 'Messages'}</Link> },
         ...(canCreateProfile ? [{ key: 'new', icon: <PlusOutlined />, label: <Link to="/profiles/new">{t.nav.addProfile}</Link> }] : []),
         ...(isAdmin ? [{ key: 'import', icon: <ImportOutlined />, label: <Link to="/import">{t.nav.import}</Link> }] : []),
         ...(isAdmin ? [{ key: 'admin', icon: <SettingOutlined />, label: <Link to="/admin">{t.nav.admin}</Link> }] : []),
@@ -104,6 +106,7 @@ function Navbar() {
         { key: 'dashboard', icon: <HomeOutlined />, label: t.nav.home, path: '/dashboard' },
         { key: 'profiles', icon: <UserOutlined />, label: t.nav.profiles, path: '/profiles' },
         { key: 'search', icon: <SearchOutlined />, label: t.nav.search, path: '/search' },
+        { key: 'messages', icon: <WechatOutlined />, label: isHindi ? 'चैट' : 'Messages', path: '/messages' },
         ...(canCreateProfile ? [{ key: 'new', icon: <PlusOutlined />, label: t.nav.addProfile, path: '/profiles/new' }] : []),
         { key: 'my-profile', icon: <UserOutlined />, label: isHindi ? 'मेरी प्रोफ़ाइल' : 'My Profile', path: '/profile' },
         { key: 'interests', icon: <HeartOutlined />, label: isHindi ? 'मेरी रुचियाँ' : 'My Interests', path: '/interests' },

@@ -28,8 +28,11 @@ import {
     DeleteOutlined,
     GlobalOutlined,
     LockOutlined,
-    InfoCircleOutlined
+    InfoCircleOutlined,
+    WechatOutlined,
+    ClockCircleOutlined
 } from '@ant-design/icons';
+
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -39,6 +42,7 @@ import PhotoGallery from '../components/PhotoGallery';
 import BiodataPDF from '../components/BiodataPDF';
 import ProfileQRCode from '../components/ProfileQRCode';
 import AccessRequestList from '../components/AccessRequestList';
+import ChatRequestList from '../components/ChatRequestList';
 import WhatsAppShare from '../components/WhatsAppShare';
 import api from '../services/api';
 
@@ -98,6 +102,14 @@ function ProfileDetail() {
     const [visibilityInfoVisible, setVisibilityInfoVisible] = useState(false);
     const [updatingVisibility, setUpdatingVisibility] = useState(false);
 
+    // Chat State
+    const [chatStatus, setChatStatus] = useState('none'); // none, pending_sent, pending_received, connected, rejected
+    const [chatRequestId, setChatRequestId] = useState(null);
+    const [chatConversationId, setChatConversationId] = useState(null);
+    const [sendingChatRequest, setSendingChatRequest] = useState(false);
+    const [chatRequestModalVisible, setChatRequestModalVisible] = useState(false);
+    const [chatRequestMessage, setChatRequestMessage] = useState('');
+
     const location = useLocation();
 
     useEffect(() => {
@@ -124,6 +136,25 @@ function ProfileDetail() {
     useEffect(() => {
         fetchProfile();
     }, [id]);
+
+    // Fetch chat status when profile is loaded
+    useEffect(() => {
+        const loadChatStatus = async () => {
+            // Ensure profile.user exists before checking user ownership
+            const targetUserId = profile?.user?._id || profile?.createdBy?._id || profile?.createdBy;
+            if (profile && user && targetUserId && targetUserId !== user._id) {
+                try {
+                    const res = await api.get(`/chat/status/${targetUserId}`);
+                    setChatStatus(res.data.status);
+                    if (res.data.requestId) setChatRequestId(res.data.requestId);
+                    if (res.data.conversationId) setChatConversationId(res.data.conversationId);
+                } catch (error) {
+                    console.error("Failed to fetch chat status", error);
+                }
+            }
+        };
+        loadChatStatus();
+    }, [profile, user]);
 
     const fetchProfile = async () => {
         try {
@@ -296,14 +327,53 @@ function ProfileDetail() {
     // Ideally backend always sets it.
     const hasAccess = profile.hasAccess !== false;
 
-    // console.log('Permission check:', { createdById, userId: user?._id, isOwner, isAdminOrMod, canEdit, hasAccess });
+    const fetchChatStatus = async (targetUserId) => {
+        try {
+            const res = await api.get(`/chat/status/${targetUserId}`);
+            setChatStatus(res.data.status);
+            if (res.data.requestId) setChatRequestId(res.data.requestId);
+            if (res.data.conversationId) setChatConversationId(res.data.conversationId);
+        } catch (error) {
+            console.error("Failed to fetch chat status", error);
+        }
+    };
 
-    const tabItems = [
+    const handleSendChatRequest = async () => {
+        setSendingChatRequest(true);
+        try {
+            const res = await api.post(`/chat/request/${profile.user._id}`, { message: chatRequestMessage });
+            message.success(isHindi ? 'चैट अनुरोध भेजा गया' : 'Chat Request Sent');
+            setChatStatus('pending_sent');
+            setChatRequestModalVisible(false);
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to send request');
+        } finally {
+            setSendingChatRequest(false);
+        }
+    };
+
+    const handleAcceptChatRequest = async () => {
+        try {
+            await api.put(`/chat/request/${chatRequestId}`, { status: 'accepted' });
+            message.success('Chat Accepted');
+            fetchChatStatus(profile.user._id);
+        } catch (error) {
+            message.error('Failed to accept');
+        }
+    };
+
+    const handleStartChat = () => {
+        // Navigate to chat page (to be implemented)
+        navigate(`/messages?conversationId=${chatConversationId}`);
+    };
+
+    // Tabs Configuration
+    const items = [
         {
-            key: 'overview',
-            label: 'Overview',
+            key: 'about',
+            label: isHindi ? 'परिचय' : 'About',
             children: (
-                <Row gutter={24}>
+                <Row gutter={24} style={{ marginTop: 16 }}>
                     {/* Personal Details */}
                     <Col xs={24} md={12}>
                         <Card title={<><UserOutlined /> Personal Details</>} size="small" style={{ marginBottom: 16 }}>
@@ -499,6 +569,11 @@ function ProfileDetail() {
             label: isHindi ? 'एक्सेस अनुरोध' : 'Access Requests',
             children: <AccessRequestList profileId={profile._id} isHindi={isHindi} />
         }] : []),
+        ...(isOwner ? [{
+            key: 'chat-requests',
+            label: isHindi ? 'चैट अनुरोध' : 'Chat Requests',
+            children: <ChatRequestList isHindi={isHindi} />
+        }] : []),
         ...(isOwner && profile.visitors?.length > 0 ? [{
             key: 'visitors',
             label: <><EyeOutlined /> Visitors</>,
@@ -528,6 +603,22 @@ function ProfileDetail() {
             <Link to="/profiles" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24, color: '#A0153E', fontWeight: 500 }}>
                 <ArrowLeftOutlined /> Back to Profiles
             </Link>
+
+            {/* Chat Request Modal */}
+            <Modal
+                title={isHindi ? 'चैट अनुरोध भेजें' : 'Send Chat Request'}
+                open={chatRequestModalVisible}
+                onCancel={() => setChatRequestModalVisible(false)}
+                onOk={handleSendChatRequest}
+                confirmLoading={sendingChatRequest}
+            >
+                <TextArea
+                    rows={3}
+                    value={chatRequestMessage}
+                    onChange={(e) => setChatRequestMessage(e.target.value)}
+                    placeholder="Hi, I'd like to chat..."
+                />
+            </Modal>
 
             <Modal
                 title={isHindi ? 'एक्सेस अनुरोध भेजें' : 'Request Access'}
@@ -610,6 +701,31 @@ function ProfileDetail() {
 
                     {/* Share Profile Card */}
                     <Card title={isHindi ? '🌐 बायोडाटा शेयर करें' : '🌐 Share Biodata'} size="small" style={{ marginBottom: 16 }}>
+                        {/* Chat CTA */}
+                        {!isOwner && (
+                            <div style={{ marginBottom: 16, textAlign: 'center' }}>
+                                {chatStatus === 'none' && (
+                                    <Button type="primary" block onClick={() => setChatRequestModalVisible(true)} icon={<WechatOutlined />}>
+                                        {isHindi ? 'चैट का अनुरोध करें' : 'Request Chat'}
+                                    </Button>
+                                )}
+                                {chatStatus === 'pending_sent' && (
+                                    <Button disabled block icon={<ClockCircleOutlined />}>
+                                        {isHindi ? 'अनुरोध भेजा गया' : 'Request Sent'}
+                                    </Button>
+                                )}
+                                {chatStatus === 'pending_received' && (
+                                    <Button type="primary" block onClick={handleAcceptChatRequest} style={{ backgroundColor: '#52c41a' }}>
+                                        {isHindi ? 'चैट स्वीकार करें' : 'Accept Chat Request'}
+                                    </Button>
+                                )}
+                                {chatStatus === 'connected' && (
+                                    <Button type="primary" block onClick={handleStartChat} icon={<WechatOutlined />}>
+                                        {isHindi ? 'अभी चैट करें' : 'Chat Now'}
+                                    </Button>
+                                )}
+                            </div>
+                        )}
                         {/* ... (Keep existing share card logic) matches original lines 523-574 */}
                         {profile.visibility === 'private' ? (
                             <Alert
@@ -801,7 +917,7 @@ function ProfileDetail() {
                     </Card>
 
                     {/* Tabbed Details */}
-                    <Tabs items={tabItems} defaultActiveKey="overview" />
+                    <Tabs items={items} defaultActiveKey="about" />
 
                     {/* Recognition Section */}
                     <div style={{ marginTop: 24 }}>
