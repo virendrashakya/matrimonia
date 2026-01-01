@@ -1,0 +1,144 @@
+/* Metronic-inspired Admin Dark Theme */
+
+/* Color Variables (use inline styles in JS for dynamic theming) */
+:root {
+    --admin-bg-dark: #0F172A;
+    --admin-bg-card: #1E293B;
+    --admin-border: #334155;
+    --admin-text: #F8FAFC;
+    --admin-text-muted: #94A3B8;
+    --admin-primary: #3B82F6;
+    --admin-success: #22C55E;
+    --admin-warning: #F59E0B;
+    --admin-danger: #EF4444;
+    --admin-purple: #8B5CF6;
+}
+
+/* Global Card Styles for Admin */
+.admin-card {
+    background: var(--admin-bg-card) !important;
+    border: 1px solid var(--admin-border) !important;
+    border-radius: 12px !important;
+}
+
+.admin-card .ant-card-head {
+    background: transparent !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+    color: var(--admin-text) !important;
+}
+
+.admin-card .ant-card-body {
+    color: var(--admin-text) !important;
+}
+
+/* Table Styles */
+.admin-table .ant-table {
+    background: transparent !important;
+}
+
+.admin-table .ant-table-thead>tr>th {
+    background: var(--admin-bg-dark) !important;
+    color: var(--admin-text-muted) !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+    font-weight: 500 !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.admin-table .ant-table-tbody>tr>td {
+    background: transparent !important;
+    color: var(--admin-text) !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-table .ant-table-tbody>tr:hover>td {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.admin-table .ant-table-pagination {
+    color: var(--admin-text-muted) !important;
+}
+
+/* Input Styles */
+.admin-input {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--admin-border) !important;
+    color: var(--admin-text) !important;
+}
+
+.admin-input::placeholder {
+    color: var(--admin-text-muted) !important;
+}
+
+/* Select Styles */
+.admin-select .ant-select-selector {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--admin-border) !important;
+    color: var(--admin-text) !important;
+}
+
+/* Tabs Styles */
+.admin-tabs .ant-tabs-nav::before {
+    border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-tabs .ant-tabs-tab {
+    color: var(--admin-text-muted) !important;
+}
+
+.admin-tabs .ant-tabs-tab:hover {
+    color: var(--admin-text) !important;
+}
+
+.admin-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: var(--admin-primary) !important;
+}
+
+.admin-tabs .ant-tabs-ink-bar {
+    background: var(--admin-primary) !important;
+}
+
+/* Statistic Styles */
+.admin-stat .ant-statistic-title {
+    color: var(--admin-text-muted) !important;
+}
+
+.admin-stat .ant-statistic-content {
+    color: var(--admin-text) !important;
+}
+
+/* Modal Styles */
+.admin-modal .ant-modal-content {
+    background: var(--admin-bg-card) !important;
+    border: 1px solid var(--admin-border) !important;
+}
+
+.admin-modal .ant-modal-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-modal .ant-modal-title {
+    color: var(--admin-text) !important;
+}
+
+.admin-modal .ant-modal-close-x {
+    color: var(--admin-text-muted) !important;
+}
+
+.admin-modal .ant-form-item-label>label {
+    color: var(--admin-text) !important;
+}
+
+/* Button Styles */
+.admin-btn-primary {
+    background: var(--admin-primary) !important;
+    border-color: var(--admin-primary) !important;
+}
+
+/* List Styles for Config */
+.admin-list .ant-list-item {
+    border-bottom: 1px solid var(--admin-border) !important;
+    color: var(--admin-text) !important;
+}

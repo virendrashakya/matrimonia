@@ -9,6 +9,7 @@ import { LanguageProvider } from './context/LanguageContext'
 import { ConfigProvider as AppConfigProvider } from './context/ConfigContext'
 import { AccessibilityProvider } from './context/AccessibilityContext'
 import { ShortlistProvider } from './context/ShortlistContext'
+import ErrorBoundary from './components/ErrorBoundary'
 import './index.css'
 
 // Matrimonial-themed Ant Design customization
@@ -96,7 +97,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                         <AccessibilityProvider>
                             <ShortlistProvider>
                                 <AuthProvider>
-                                    <App />
+                                    <ErrorBoundary>
+                                        <App />
+                                    </ErrorBoundary>
                                     <Toaster
                                         position="top-center"
                                         toastOptions={{

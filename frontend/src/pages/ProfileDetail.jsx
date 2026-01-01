@@ -897,21 +897,21 @@ function ProfileDetail() {
                         <Divider style={{ margin: '16px 0' }} />
 
                         <Row gutter={[24, 16]}>
-                            <Col span={6} style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 24, color: '#A0153E', fontWeight: 600 }}>{profile.recognition?.score?.toFixed(1) || '0.0'}</div>
-                                <Text type="secondary">Recognition Score</Text>
+                            <Col xs={12} sm={6} style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 22, color: '#A0153E', fontWeight: 600 }}>{profile.recognition?.score?.toFixed(1) || '0.0'}</div>
+                                <Text type="secondary" style={{ fontSize: 12 }}>Recognition Score</Text>
                             </Col>
-                            <Col span={6} style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 24, color: '#D4AF37', fontWeight: 600 }}><HeartOutlined /> {profile.recognition?.recogniserCount || 0}</div>
-                                <Text type="secondary">People Recognise</Text>
+                            <Col xs={12} sm={6} style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 22, color: '#D4AF37', fontWeight: 600 }}><HeartOutlined /> {profile.recognition?.recogniserCount || 0}</div>
+                                <Text type="secondary" style={{ fontSize: 12 }}>People Recognise</Text>
                             </Col>
-                            <Col span={6} style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 24, color: '#1890ff', fontWeight: 600 }}><EyeOutlined /> {profile.viewCount || 0}</div>
-                                <Text type="secondary">Profile Views</Text>
+                            <Col xs={12} sm={6} style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 22, color: '#1890ff', fontWeight: 600 }}><EyeOutlined /> {profile.viewCount || 0}</div>
+                                <Text type="secondary" style={{ fontSize: 12 }}>Profile Views</Text>
                             </Col>
-                            <Col span={6} style={{ textAlign: 'center' }}>
-                                <div style={{ fontSize: 24, color: '#059669', fontWeight: 600 }}>{profile.photos?.length || 0}</div>
-                                <Text type="secondary">Photos</Text>
+                            <Col xs={12} sm={6} style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 22, color: '#059669', fontWeight: 600 }}>{profile.photos?.length || 0}</div>
+                                <Text type="secondary" style={{ fontSize: 12 }}>Photos</Text>
                             </Col>
                         </Row>
                     </Card>
