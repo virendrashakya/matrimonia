@@ -14,7 +14,17 @@ const UserSchema = new mongoose.Schema({
         type: String,
         unique: true,
         sparse: true, // Allow null/undefined to be non-unique (for OAuth users who might not have phone initially)
-        index: true
+        index: true,
+        validate: {
+            validator: function (v) {
+                // If value is null/undefined/empty, mongoose might skip? 
+                // With sparse: true, we rely on 'required' at the endpoint level or 'required: true' if needed.
+                // Here we just validate format if present.
+                if (!v) return true;
+                return /^[6-9]\d{9}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid Indian mobile number!`
+        }
     },
     googleId: {
         type: String,

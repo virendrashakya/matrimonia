@@ -4,7 +4,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Modal, Button, Checkbox, Row, Col, Typography, Divider, Space, message, Select } from 'antd';
-import { FilePdfOutlined, PrinterOutlined, DownloadOutlined } from '@ant-design/icons';
+import { FilePdfOutlined, PrinterOutlined, DownloadOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
 
 const { Title, Text, Paragraph } = Typography;
@@ -33,50 +33,7 @@ const RELIGIOUS_HEADERS = [
         bgPattern: '☸️',
         cornerDecor: '✿'
     },
-    {
-        key: 'jain',
-        label: '॥ णमोकार मंत्र ॥',
-        labelEn: 'Namokar Mantra (Jain)',
-        icon: '🙏☯️',
-        primaryColor: '#FFFFFF', // White
-        secondaryColor: '#F5F5F5',
-        accentColor: '#9E9E9E',
-        bgPattern: '卍',
-        cornerDecor: '◇'
-    },
-    {
-        key: 'sikh',
-        label: 'ੴ ਸਤਿ ਨਾਮੁ',
-        labelEn: 'Ik Onkar Satnam (Sikh)',
-        icon: '🙏☬',
-        primaryColor: '#FF6F00', // Saffron
-        secondaryColor: '#FFF8E1',
-        accentColor: '#1565C0', // Blue
-        bgPattern: '☬',
-        cornerDecor: 'ੴ'
-    },
-    {
-        key: 'christian',
-        label: '✝ In the name of God',
-        labelEn: 'Christian',
-        icon: '✝️🙏',
-        primaryColor: '#7B1FA2', // Purple (royalty)
-        secondaryColor: '#F3E5F5',
-        accentColor: '#4A148C',
-        bgPattern: '✝',
-        cornerDecor: '†'
-    },
-    {
-        key: 'muslim',
-        label: 'بِسْمِ اللَّهِ',
-        labelEn: 'Bismillah (Muslim)',
-        icon: '☪️🙏',
-        primaryColor: '#2E7D32', // Green
-        secondaryColor: '#E8F5E9',
-        accentColor: '#1B5E20',
-        bgPattern: '☪',
-        cornerDecor: '✦'
-    },
+
     {
         key: 'shiva',
         label: '॥ ॐ नमः शिवाय ॥',
@@ -204,18 +161,17 @@ const getNestedValue = (obj, path) => {
     return path.split('.').reduce((o, p) => o?.[p], obj);
 };
 
-// Format value for display
-const formatValue = (key, value) => {
-    if (value === null || value === undefined || value === '') return '-';
-    if (key === 'heightCm') return `${value} cm`;
-    if (key === 'weightKg') return `${value} kg`;
-    if (key === 'dateOfBirth') return new Date(value).toLocaleDateString('en-IN');
-    if (typeof value === 'string') return value.replace(/_/g, ' ');
-    return value;
-};
+
 
 function BiodataPDF({ profile, visible, onClose }) {
     const { isHindi } = useLanguage();
+    // Template State
+    const [selectedTemplate, setSelectedTemplate] = useState('classic');
+    const [pdfLanguage, setPdfLanguage] = useState(isHindi ? 'hi' : 'en');
+
+    // Ensure default language follows app context but can be overridden
+    const isPdfHindi = pdfLanguage === 'hi';
+
     const printRef = useRef(null);
 
     // Default selected fields
@@ -230,8 +186,24 @@ function BiodataPDF({ profile, visible, onClose }) {
         return defaults;
     });
 
-    const [includePhoto, setIncludePhoto] = useState(true);
-    const [headerType, setHeaderType] = useState('ganesh'); // Default to Ganesh
+    const [selectedPhotoUrls, setSelectedPhotoUrls] = useState(() => {
+        const primary = profile.photos?.find(p => p.isPrimary)?.url || profile.photos?.[0]?.url;
+        return primary ? [primary] : [];
+    });
+
+    // Toggle photo selection
+    const handlePhotoToggle = (url) => {
+        setSelectedPhotoUrls(prev => {
+            if (prev.includes(url)) {
+                return prev.filter(p => p !== url);
+            } else {
+                return [...prev, url];
+            }
+        });
+    };
+
+    // Default to Ganesh or first available
+    const [headerType, setHeaderType] = useState('ganesh');
 
     const handleFieldToggle = (key) => {
         setSelectedFields(prev => ({
@@ -248,97 +220,126 @@ function BiodataPDF({ profile, visible, onClose }) {
         setSelectedFields(newSelected);
     };
 
+    // Format value for display with localization
+    const formatValue = (key, value) => {
+        if (value === null || value === undefined || value === '') return '-';
+        if (key === 'heightCm') return `${value} cm`;
+        if (key === 'weightKg') return `${value} kg`;
+        if (key === 'dateOfBirth') return new Date(value).toLocaleDateString(isPdfHindi ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+        if (typeof value === 'string') return value.replace(/_/g, ' ');
+        return value;
+    };
+
+    const TEMPLATES = [
+        { key: 'classic', label: 'Classic Simple', labelHi: 'क्लासिक सरल', color: '#A0153E' },
+        { key: 'modern', label: 'Modern Split', labelHi: 'आधुनिक स्प्लिट', color: '#006CA5' },
+        { key: 'royal', label: 'Royal Vintage', labelHi: 'रॉयल विंटेज', color: '#B8860B' }
+    ];
+
+    const getTemplateStyles = (template, primaryColor) => {
+        const baseStyles = `
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+                font-family: 'Outfit', 'Inter', sans-serif; 
+                padding: 20px; 
+                color: #2C1810;
+                -webkit-print-color-adjust: exact;
+            }
+            img { max-width: 100%; }
+        `;
+
+        if (template === 'modern') {
+            return `
+                ${baseStyles}
+                .container { display: flex; height: 100%; border: 4px solid ${primaryColor}; }
+                .sidebar { 
+                    width: 35%; 
+                    background: ${primaryColor}; 
+                    color: white; 
+                    padding: 20px; 
+                    text-align: center; 
+                }
+                .main-content { width: 65%; padding: 25px; }
+                .sidebar h1, .sidebar h2, .sidebar h3 { color: white; }
+                .sidebar .field-row { border-bottom: 1px solid rgba(255,255,255,0.2); }
+                .sidebar .field-label { color: rgba(255,255,255,0.8); }
+                .profile-photo img { border: 4px solid white; border-radius: 50%; width: 160px; height: 160px; object-fit: cover; }
+                .section-title { 
+                    color: ${primaryColor}; 
+                    border-bottom: 2px solid ${primaryColor}; 
+                    padding-bottom: 5px; 
+                    margin-bottom: 15px; 
+                    font-size: 16px; 
+                    text-transform: uppercase; 
+                    font-weight: 700;
+                    letter-spacing: 1px;
+                }
+                .field-row { display: flex; margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 4px; }
+                .field-label { width: 40%; font-weight: 600; color: #555; font-size: 13px; }
+                .field-value { width: 60%; font-size: 13px; font-weight: 500; }
+                .header-icon { font-size: 24px; margin-bottom: 10px; display: block; }
+            `;
+        }
+
+        if (template === 'royal') {
+            return `
+                ${baseStyles}
+                body { background: #FFFBF0; border: 10px double ${primaryColor}; padding: 40px; }
+                .biodata-header { text-align: center; margin-bottom: 30px; }
+                .biodata-header h1 { font-family: 'serif'; color: ${primaryColor}; font-size: 28px; margin-bottom: 5px; }
+                .section-title { 
+                    text-align: center; 
+                    color: ${primaryColor}; 
+                    font-family: 'serif'; 
+                    font-size: 18px; 
+                    margin: 20px 0 10px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                }
+                .section-title::before, .section-title::after { 
+                    content: '❧'; 
+                    color: ${primaryColor}; 
+                    margin: 0 10px; 
+                    font-size: 20px; 
+                }
+                .field-row { display: flex; justify-content: space-between; margin-bottom: 8px; padding: 0 40px; }
+                .field-label { color: #555; font-style: italic; font-weight: 600; text-align: left; }
+                .field-value { text-align: right; font-weight: 600; color: #000; }
+                .profile-photo { text-align: center; margin-bottom: 20px; }
+                .profile-photo img { border: 3px solid ${primaryColor}; padding: 3px; width: 140px; height: 170px; }
+            `;
+        }
+
+        // Classic (Default)
+        return `
+            ${baseStyles}
+            .biodata-header { text-align: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid ${primaryColor}; }
+            .biodata-header h1 { color: ${primaryColor}; font-size: 24px; }
+            .section-title { background: ${primaryColor}; color: white; padding: 5px 10px; font-size: 14px; margin-bottom: 10px; font-weight: bold; border-radius: 4px; }
+            .field-row { display: flex; padding: 6px 0; border-bottom: 1px solid #eee; }
+            .field-label { width: 40%; font-weight: 600; color: #444; font-size: 13px; }
+            .field-value { width: 60%; font-size: 13px; }
+            .profile-photo { float: right; margin-left: 20px; margin-bottom: 10px; }
+            .profile-photo img { width: 130px; height: 160px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px; }
+            .clearfix::after { content: ""; clear: both; display: table; }
+        `;
+    };
+
     const handlePrint = () => {
         const printContent = printRef.current;
-        const printWindow = window.open('', '', 'width=800,height=600');
+        const selectedHeader = RELIGIOUS_HEADERS.find(h => h.key === headerType) || RELIGIOUS_HEADERS[RELIGIOUS_HEADERS.length - 1];
+        // Use template-specific primary color or header color
+        const themeColor = selectedTemplate === 'royal' ? '#B8860B' : selectedTemplate === 'modern' ? '#006CA5' : selectedHeader.primaryColor;
+
+        const printWindow = window.open('', '', 'width=900,height=1200');
 
         printWindow.document.write(`
             <html>
             <head>
                 <title>Biodata - ${profile.fullName}</title>
                 <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { 
-                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                        padding: 20px; 
-                        color: #2C1810;
-                    }
-                    .biodata-header { 
-                        text-align: center; 
-                        margin-bottom: 20px; 
-                        padding-bottom: 15px;
-                        border-bottom: 2px solid #A0153E;
-                    }
-                    .biodata-header h1 { 
-                        color: #A0153E; 
-                        font-size: 24px;
-                        margin-bottom: 5px;
-                    }
-                    .biodata-header .tagline {
-                        color: #8B7355;
-                        font-size: 12px;
-                    }
-                    .profile-photo {
-                        text-align: center;
-                        margin-bottom: 20px;
-                    }
-                    .profile-photo img {
-                        width: 150px;
-                        height: 180px;
-                        object-fit: cover;
-                        border-radius: 8px;
-                        border: 2px solid #D4AF37;
-                    }
-                    .profile-name {
-                        text-align: center;
-                        margin-bottom: 20px;
-                    }
-                    .profile-name h2 {
-                        font-size: 20px;
-                        color: #2C1810;
-                    }
-                    .section { 
-                        margin-bottom: 15px; 
-                    }
-                    .section-title { 
-                        background: linear-gradient(135deg, #A0153E, #7A0F2E);
-                        color: white; 
-                        padding: 6px 12px; 
-                        font-size: 12px;
-                        font-weight: 600;
-                        margin-bottom: 8px;
-                    }
-                    .field-row { 
-                        display: flex; 
-                        padding: 4px 0;
-                        border-bottom: 1px dotted #E5D4C0;
-                    }
-                    .field-label { 
-                        width: 40%; 
-                        font-weight: 500;
-                        color: #8B7355;
-                        font-size: 12px;
-                    }
-                    .field-value { 
-                        width: 60%; 
-                        font-size: 12px;
-                    }
-                    .about-section {
-                        background: #FFF8F0;
-                        padding: 10px;
-                        border-radius: 4px;
-                        font-size: 12px;
-                        line-height: 1.5;
-                    }
-                    .footer {
-                        margin-top: 20px;
-                        text-align: center;
-                        color: #8B7355;
-                        font-size: 10px;
-                    }
-                    @media print {
-                        body { padding: 10px; }
-                    }
+                    ${getTemplateStyles(selectedTemplate, themeColor)}
                 </style>
             </head>
             <body>
@@ -352,12 +353,45 @@ function BiodataPDF({ profile, visible, onClose }) {
         setTimeout(() => {
             printWindow.print();
             printWindow.close();
-        }, 250);
+        }, 500);
 
-        message.success(isHindi ? 'PDF तैयार है!' : 'PDF ready!');
+        message.success(isPdfHindi ? 'PDF तैयार है!' : 'PDF ready!');
     };
 
-    const primaryPhoto = profile.photos?.find(p => p.isPrimary)?.url || profile.photos?.[0]?.url;
+    // Helper to render sections consistently
+    const renderSection = (groupKey, group, isSidebar = false) => {
+        const selectedInGroup = group.fields.filter(f => selectedFields[f.key]);
+        if (selectedInGroup.length === 0) return null;
+
+        // Custom About Section
+        if (groupKey === 'about') {
+            const aboutValue = getNestedValue(profile, 'aboutMe');
+            if (!aboutValue) return null;
+            return (
+                <div className="section" key={groupKey}>
+                    <div className="section-title">{isPdfHindi ? group.labelHi : group.label}</div>
+                    <div style={{ padding: '0 5px' }}>{aboutValue}</div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="section" key={groupKey}>
+                <div className="section-title">{isPdfHindi ? group.labelHi : group.label}</div>
+                {selectedInGroup.map(field => {
+                    const value = getNestedValue(profile, field.key);
+                    return (
+                        <div className="field-row" key={field.key}>
+                            <div className="field-label">{isPdfHindi ? field.labelHi : field.label}</div>
+                            <div className="field-value">{formatValue(field.key, value)}</div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const primaryPhoto = selectedPhotoUrls.length > 0 ? selectedPhotoUrls[0] : null;
 
     return (
         <Modal
@@ -369,7 +403,7 @@ function BiodataPDF({ profile, visible, onClose }) {
             }
             open={visible}
             onCancel={onClose}
-            width={800}
+            width={1000}
             footer={[
                 <Button key="cancel" onClick={onClose}>
                     {isHindi ? 'रद्द करें' : 'Cancel'}
@@ -386,44 +420,90 @@ function BiodataPDF({ profile, visible, onClose }) {
             ]}
         >
             <Row gutter={24}>
-                {/* Field Selection */}
-                <Col xs={24} md={10}>
-                    <Title level={5}>{isHindi ? 'फ़ील्ड चुनें' : 'Select Fields to Include'}</Title>
-                    <div style={{ maxHeight: 400, overflowY: 'auto', paddingRight: 8 }}>
-                        <Checkbox
-                            checked={includePhoto}
-                            onChange={(e) => setIncludePhoto(e.target.checked)}
-                            style={{ marginBottom: 12 }}
-                        >
-                            <Text strong>{isHindi ? 'फोटो शामिल करें' : 'Include Photo'}</Text>
-                        </Checkbox>
+                {/* SETTINGS SIDEBAR */}
+                <Col xs={24} md={8} style={{ borderRight: '1px solid #f0f0f0', paddingRight: 20 }}>
+
+                    {/* Language Selection */}
+                    <div style={{ marginBottom: 24 }}>
+                        <Title level={5}>{isHindi ? 'भाषा' : 'Biodata Language'}</Title>
+                        <Select
+                            value={pdfLanguage}
+                            onChange={setPdfLanguage}
+                            style={{ width: '100%' }}
+                            options={[
+                                { value: 'en', label: 'English' },
+                                { value: 'hi', label: 'Hindi (हिंदी)' }
+                            ]}
+                        />
+                    </div>
+
+                    {/* Template Selection */}
+                    <div style={{ marginBottom: 24 }}>
+                        <Title level={5}>{isHindi ? 'डिज़ाइन चुनें' : 'Select Design'}</Title>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                            {TEMPLATES.map(t => (
+                                <div
+                                    key={t.key}
+                                    onClick={() => setSelectedTemplate(t.key)}
+                                    style={{
+                                        padding: 10,
+                                        border: `2px solid ${selectedTemplate === t.key ? t.color : '#eee'}`,
+                                        borderRadius: 8,
+                                        cursor: 'pointer',
+                                        background: selectedTemplate === t.key ? `${t.color}10` : 'white',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between'
+                                    }}
+                                >
+                                    <Text strong style={{ color: t.color }}>{isHindi ? t.labelHi : t.label}</Text>
+                                    {selectedTemplate === t.key && <CheckCircleOutlined style={{ color: t.color }} />}
+                                </div>
+                            ))}
+                        </Space>
+                    </div>
+
+                    <Divider />
+
+                    {/* Field Selection */}
+                    <Title level={5}>{isHindi ? 'फ़ील्ड चुनें' : 'Include Fields'}</Title>
+                    <div style={{ maxHeight: 300, overflowY: 'auto' }}>
 
                         <div style={{ marginBottom: 16 }}>
-                            <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                                {isHindi ? 'धार्मिक शीर्षक' : 'Religious Header'}
-                            </Text>
+                            <Text strong style={{ display: 'block', marginBottom: 8 }}>{isHindi ? 'फोटो' : 'Photo'}</Text>
+                            {profile.photos?.length > 0 ? (
+                                <Row gutter={[8, 8]}>
+                                    {profile.photos.map((photo, index) => (
+                                        <Col span={12} key={photo.url}>
+                                            <Checkbox
+                                                checked={selectedPhotoUrls.includes(photo.url)}
+                                                onChange={() => handlePhotoToggle(photo.url)}
+                                            >
+                                                <img
+                                                    src={photo.url}
+                                                    alt="thumb"
+                                                    style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, verticalAlign: 'middle', marginLeft: 8 }}
+                                                />
+                                            </Checkbox>
+                                        </Col>
+                                    ))}
+                                </Row>
+                            ) : <Text type="secondary">No photos</Text>}
+                        </div>
+
+                        <div style={{ marginBottom: 16 }}>
+                            <Text strong style={{ display: 'block', marginBottom: 8 }}>{isHindi ? 'शीर्षक' : 'Header'}</Text>
                             <Select
                                 value={headerType}
                                 onChange={setHeaderType}
                                 style={{ width: '100%' }}
-                                options={RELIGIOUS_HEADERS.map(h => ({
-                                    value: h.key,
-                                    label: (
-                                        <span>
-                                            {h.label || '(No Header)'}
-                                            <Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
-                                                {h.labelEn}
-                                            </Text>
-                                        </span>
-                                    )
-                                }))}
+                                options={RELIGIOUS_HEADERS.map(h => ({ value: h.key, label: isPdfHindi ? h.label || h.labelEn : h.labelEn }))}
                             />
                         </div>
 
                         {Object.entries(FIELD_GROUPS).map(([groupKey, group]) => {
                             const allChecked = group.fields.every(f => selectedFields[f.key]);
                             const someChecked = group.fields.some(f => selectedFields[f.key]);
-
                             return (
                                 <div key={groupKey} style={{ marginBottom: 12 }}>
                                     <Checkbox
@@ -433,235 +513,156 @@ function BiodataPDF({ profile, visible, onClose }) {
                                     >
                                         <Text strong>{isHindi ? group.labelHi : group.label}</Text>
                                     </Checkbox>
-                                    <div style={{ paddingLeft: 24 }}>
-                                        {group.fields.map(field => (
-                                            <div key={field.key}>
-                                                <Checkbox
-                                                    checked={selectedFields[field.key]}
-                                                    onChange={() => handleFieldToggle(field.key)}
-                                                    style={{ fontSize: 12 }}
-                                                >
-                                                    {isHindi ? field.labelHi : field.label}
-                                                </Checkbox>
-                                            </div>
-                                        ))}
-                                    </div>
                                 </div>
                             );
                         })}
                     </div>
                 </Col>
 
-                {/* Preview */}
-                <Col xs={24} md={14}>
-                    <Title level={5}>{isHindi ? 'पूर्वावलोकन' : 'Preview'}</Title>
-                    {(() => {
-                        const selectedHeader = RELIGIOUS_HEADERS.find(h => h.key === headerType) || RELIGIOUS_HEADERS[RELIGIOUS_HEADERS.length - 1];
-                        return (
-                            <div
-                                ref={printRef}
-                                style={{
-                                    border: `2px solid ${selectedHeader.primaryColor}`,
-                                    borderRadius: 8,
-                                    padding: 16,
-                                    background: selectedHeader.secondaryColor,
-                                    maxHeight: 400,
-                                    overflowY: 'auto',
-                                    fontSize: 12,
-                                    position: 'relative',
-                                    overflow: 'hidden'
-                                }}
-                            >
-                                {/* Corner Decorations */}
-                                {selectedHeader.cornerDecor && (
-                                    <>
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: 8,
-                                            left: 12,
-                                            fontSize: 16,
-                                            color: selectedHeader.primaryColor,
-                                            opacity: 0.6
-                                        }}>
-                                            {selectedHeader.cornerDecor}
-                                        </div>
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: 8,
-                                            right: 12,
-                                            fontSize: 16,
-                                            color: selectedHeader.primaryColor,
-                                            opacity: 0.6
-                                        }}>
-                                            {selectedHeader.cornerDecor}
-                                        </div>
-                                        <div style={{
-                                            position: 'absolute',
-                                            bottom: 8,
-                                            left: 12,
-                                            fontSize: 16,
-                                            color: selectedHeader.primaryColor,
-                                            opacity: 0.6
-                                        }}>
-                                            {selectedHeader.cornerDecor}
-                                        </div>
-                                        <div style={{
-                                            position: 'absolute',
-                                            bottom: 8,
-                                            right: 12,
-                                            fontSize: 16,
-                                            color: selectedHeader.primaryColor,
-                                            opacity: 0.6
-                                        }}>
-                                            {selectedHeader.cornerDecor}
-                                        </div>
-                                    </>
-                                )}
+                {/* PREVIEW AREA */}
+                <Col xs={24} md={16} style={{ background: '#f9f9f9', padding: 20, borderRadius: 8, display: 'flex', justifyContent: 'center' }}>
 
-                                {/* Subtle Background Pattern */}
-                                {selectedHeader.bgPattern && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '50%',
-                                        left: '50%',
-                                        transform: 'translate(-50%, -50%)',
-                                        fontSize: 120,
-                                        opacity: 0.04,
-                                        pointerEvents: 'none',
-                                        zIndex: 0
-                                    }}>
-                                        {selectedHeader.bgPattern}
-                                    </div>
-                                )}
+                    {/* Main Render Container that gets Printed */}
+                    <div ref={printRef} style={{ width: '100%', maxWidth: 700, background: 'white', minHeight: 800, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
 
-                                {/* Header with Photo on Right */}
-                                <div className="header-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, position: 'relative', zIndex: 1 }}>
-                                    {/* Left: Religious Header + Name */}
-                                    <div style={{ flex: 1 }}>
-                                        {headerType !== 'none' && (
-                                            <div className="biodata-header" style={{ textAlign: 'left', borderBottom: 'none', paddingBottom: 8, marginBottom: 8 }}>
-                                                <div style={{ fontSize: 24, marginBottom: 4 }}>
-                                                    {selectedHeader.icon}
-                                                </div>
-                                                <h1 style={{ fontSize: 18, marginBottom: 4, color: selectedHeader.primaryColor }}>
-                                                    {selectedHeader.label}
-                                                </h1>
+                        {/* 1. MODERN TEMPLATE RENDER */}
+                        {selectedTemplate === 'modern' && (() => {
+                            const selectedHeader = RELIGIOUS_HEADERS.find(h => h.key === headerType);
+                            return (
+                                <div className="container">
+                                    <div className="sidebar">
+                                        {primaryPhoto && (
+                                            <div className="profile-photo">
+                                                <img src={primaryPhoto} alt="Profile" />
                                             </div>
                                         )}
-                                        <div className="profile-name" style={{ textAlign: 'left', marginBottom: 8 }}>
-                                            <h2 style={{ fontSize: 20, color: '#2C1810', margin: 0 }}>{profile.fullName}</h2>
-                                            <div style={{ color: '#8B7355', fontSize: 12, marginTop: 4 }}>
-                                                {profile.age} {isHindi ? 'वर्ष' : 'yrs'} • {profile.city}, {profile.state}
-                                            </div>
+                                        <h2 style={{ marginTop: 20, fontSize: 24, fontWeight: 700 }}>{profile.fullName}</h2>
+                                        <div style={{ fontSize: 14, opacity: 0.9, marginTop: 5 }}>
+                                            {profile.city}, {profile.state}
                                         </div>
-                                        <div className="tagline" style={{ fontSize: 14, color: selectedHeader.primaryColor, fontWeight: 600, letterSpacing: 2 }}>
-                                            {isHindi ? 'बायोडाटा' : 'BIODATA'}
+                                        <div style={{ fontSize: 14, opacity: 0.9 }}>
+                                            {profile.age} {isPdfHindi ? 'वर्ष' : 'Yrs'}
+                                        </div>
+
+                                        <div style={{ marginTop: 30, textAlign: 'left' }}>
+                                            {renderSection('contact', FIELD_GROUPS.contact, true)}
+                                        </div>
+
+                                        {/* QR Code in Sidebar */}
+                                        <div style={{ marginTop: 'auto', paddingTop: 20 }}>
+                                            <img
+                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/public/' + (profile.customId || profile._id))}`}
+                                                alt="QR"
+                                                style={{ width: 80, height: 80, border: '4px solid white' }}
+                                            />
                                         </div>
                                     </div>
 
+                                    <div className="main-content">
+                                        {headerType !== 'none' && (
+                                            <div style={{ textAlign: 'center', marginBottom: 20, color: '#006CA5' }}>
+                                                <span className="header-icon">{selectedHeader?.icon}</span>
+                                                <h3>{selectedHeader?.label}</h3>
+                                            </div>
+                                        )}
 
-                                    {/* QR Code */}
-                                    {/* QR Code */}
-                                    <div style={{ marginLeft: 16, textAlign: 'center' }}>
+                                        {renderSection('personal', FIELD_GROUPS.personal)}
+                                        {renderSection('education', FIELD_GROUPS.education)}
+                                        {renderSection('family', FIELD_GROUPS.family)}
+                                        {renderSection('religious', FIELD_GROUPS.religious)}
+                                        {renderSection('horoscope', FIELD_GROUPS.horoscope)}
+                                        {renderSection('location', FIELD_GROUPS.location)}
+                                        {renderSection('about', FIELD_GROUPS.about)}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* 2. ROYAL TEMPLATE RENDER */}
+                        {selectedTemplate === 'royal' && (() => {
+                            const selectedHeader = RELIGIOUS_HEADERS.find(h => h.key === headerType);
+                            return (
+                                <div>
+                                    {/* Ornamental Header */}
+                                    <div className="biodata-header">
+                                        <div style={{ fontSize: 40 }}>{selectedHeader?.icon}</div>
+                                        <h1>{selectedHeader?.label}</h1>
+                                        <div style={{ marginTop: 10, borderTop: '1px solid #B8860B', borderBottom: '1px solid #B8860B', padding: '5px 0', display: 'inline-block', width: '80%' }}>
+                                            <div style={{ letterSpacing: 4, fontWeight: 'bold', color: '#B8860B' }}>
+                                                {isPdfHindi ? 'विवाह बायोडाटा' : 'MARRIAGE BIODATA'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Photo & Name Center */}
+                                    <div className="profile-photo">
+                                        {primaryPhoto && <img src={primaryPhoto} alt="Profile" />}
+                                        <h2 style={{ fontSize: 28, color: '#2C1810', marginTop: 15 }}>{profile.fullName}</h2>
+                                    </div>
+
+                                    {renderSection('personal', FIELD_GROUPS.personal)}
+                                    {renderSection('family', FIELD_GROUPS.family)}
+                                    {renderSection('education', FIELD_GROUPS.education)}
+                                    {renderSection('religious', FIELD_GROUPS.religious)}
+
+                                    <div style={{ textAlign: 'center', marginTop: 30 }}>
                                         <img
                                             src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/public/' + (profile.customId || profile._id))}`}
-                                            alt="Profile QR"
-                                            style={{ width: 100, height: 100, border: '1px solid #ddd', padding: 4 }}
+                                            alt="QR"
+                                            style={{ width: 60, height: 60, border: '1px solid #B8860B', padding: 2 }}
                                         />
-                                        <div style={{ fontSize: 9, marginTop: 4 }}>Scan to View</div>
                                     </div>
+                                </div>
+                            );
+                        })()}
 
-                                    {/* Right: Photo */}
-                                    {includePhoto && primaryPhoto && (
-                                        <div className="profile-photo" style={{ marginLeft: 16 }}>
-                                            <img
-                                                src={primaryPhoto}
-                                                alt={profile.fullName}
-                                                style={{
-                                                    width: 100,
-                                                    height: 120,
-                                                    objectFit: 'cover',
-                                                    borderRadius: 6,
-                                                    border: `2px solid ${selectedHeader.primaryColor}`
-                                                }}
-                                            />
-                                            {/* Profile ID Badge */}
-                                            {profile.customId && (
-                                                <div style={{
-                                                    marginTop: 4,
-                                                    fontSize: 10,
-                                                    fontWeight: 'bold',
-                                                    color: '#2C1810',
-                                                    background: '#FFF8F0',
-                                                    padding: '2px 4px',
-                                                    borderRadius: 4,
-                                                    border: '1px dashed #A0153E'
-                                                }}>
-                                                    ID: {profile.customId}
-                                                </div>
-                                            )}
+                        {/* 3. CLASSIC TEMPLATE RENDER (Keep existing logic but adapted) */}
+                        {selectedTemplate === 'classic' && (() => {
+                            const selectedHeader = RELIGIOUS_HEADERS.find(h => h.key === headerType);
+                            return (
+                                <div style={{ padding: 20 }}>
+                                    {/* Classic Header */}
+                                    {headerType !== 'none' && (
+                                        <div className="biodata-header" style={{ borderColor: selectedHeader.primaryColor }}>
+                                            <div style={{ fontSize: 24 }}>{selectedHeader.icon}</div>
+                                            <h1 style={{ color: selectedHeader.primaryColor }}>{selectedHeader.label}</h1>
                                         </div>
                                     )}
-                                </div>
 
-                                <div style={{ borderTop: `2px solid ${selectedHeader.primaryColor}`, marginBottom: 12, position: 'relative', zIndex: 1 }}></div>
-
-                                {/* Sections */}
-                                {Object.entries(FIELD_GROUPS).map(([groupKey, group]) => {
-                                    const selectedInGroup = group.fields.filter(f => selectedFields[f.key]);
-                                    if (selectedInGroup.length === 0) return null;
-
-                                    // Special case for About section
-                                    if (groupKey === 'about') {
-                                        const aboutValue = getNestedValue(profile, 'aboutMe');
-                                        if (!aboutValue) return null;
-
-                                        return (
-                                            <div className="section" key={groupKey}>
-                                                <div className="section-title">
-                                                    {isHindi ? group.labelHi : group.label}
-                                                </div>
-                                                <div className="about-section">
-                                                    {aboutValue}
-                                                </div>
+                                    <div className="clearfix" style={{ marginBottom: 20 }}>
+                                        {primaryPhoto && (
+                                            <div className="profile-photo">
+                                                <img src={primaryPhoto} alt="Profile" style={{ borderColor: selectedHeader.primaryColor }} />
                                             </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <div className="section" key={groupKey}>
-                                            <div className="section-title">
-                                                {isHindi ? group.labelHi : group.label}
+                                        )}
+                                        <div>
+                                            <h2 style={{ fontSize: 22, color: '#333' }}>{profile.fullName}</h2>
+                                            <div style={{ color: '#666', marginTop: 4 }}>
+                                                {profile.age} {isPdfHindi ? 'वर्ष' : 'Yrs'}, {profile.heightCm} cm <br />
+                                                {profile.education}, {profile.profession}
                                             </div>
-                                            {selectedInGroup.map(field => {
-                                                const value = getNestedValue(profile, field.key);
-                                                return (
-                                                    <div className="field-row" key={field.key}>
-                                                        <div className="field-label">
-                                                            {isHindi ? field.labelHi : field.label}
-                                                        </div>
-                                                        <div className="field-value">
-                                                            {formatValue(field.key, value)}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
                                         </div>
-                                    );
-                                })}
+                                    </div>
 
-                                {/* Footer with QR */}
-                                <div className="footer" style={{ marginTop: 32, textAlign: 'center', borderTop: '1px solid #eee', paddingTop: 8 }}>
-                                    <div style={{ color: '#8B7355', fontSize: 10 }}>
-                                        Generated via Pehchan • {new Date().toLocaleDateString()} • www.pehchan.app
+                                    {Object.entries(FIELD_GROUPS).map(([key, group]) => renderSection(key, group))}
+
+                                    <div style={{ marginTop: 20, textAlign: 'center', borderTop: '1px solid #eee', paddingTop: 10 }}>
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/public/' + (profile.customId || profile._id))}`}
+                                            alt="QR"
+                                            style={{ width: 80, height: 80 }}
+                                        />
+                                        <div style={{ fontSize: 10, color: '#999' }}>Scan to View Full Profile</div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })()}
+                            );
+                        })()}
+
+                    </div>
                 </Col>
+
             </Row>
-        </Modal>
+        </Modal >
     );
 }
 

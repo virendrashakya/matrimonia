@@ -97,8 +97,8 @@ const profileSchema = Joi.object({
         rashi: Joi.string().optional().allow(''),
         nakshatra: Joi.string().optional().allow(''),
         manglikStatus: Joi.string().optional().allow(''),
-        birthTime: Joi.string().optional().allow(''),
-        birthPlace: Joi.string().optional().allow('')
+        birthTime: Joi.string().optional().allow('', null),
+        birthPlace: Joi.string().optional().allow('', null)
     }).optional(),
 
     // Local content (Hindi)
@@ -125,7 +125,17 @@ const profileSchema = Joi.object({
     }).optional(),
 
     // Visibility control
-    visibility: Joi.string().valid('public', 'restricted', 'private').optional()
+    visibility: Joi.string().valid('public', 'restricted', 'private').optional(),
+
+    // Access Control (for whitelisting)
+    accessWhitelist: Joi.array().items(Joi.string()).optional(),
+
+    // Read-only fields to ignore if sent
+    visitors: Joi.array().optional(),
+    fraudRisk: Joi.object().optional(),
+    hasAccess: Joi.boolean().optional(),
+    lastSeenAt: Joi.date().optional(),
+    viewCount: Joi.number().optional()
 });
 
 /**

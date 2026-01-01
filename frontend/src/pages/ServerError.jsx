@@ -20,7 +20,7 @@ function ServerError() {
             <Result
                 status="500"
                 title={
-                    <span style={{ fontFamily: 'Playfair Display, serif', color: 'var(--primary)', fontSize: 36 }}>
+                    <span style={{ fontFamily: "'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: 'var(--primary)', fontSize: 36 }}>
                         500
                     </span>
                 }

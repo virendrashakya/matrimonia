@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useConfig } from '../context/ConfigContext';
 import api from '../services/api';
 
+import { INDIAN_LOCATIONS } from '../constants/locations';
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
@@ -37,13 +38,13 @@ function BilingualInput({ name, label, labelHi, placeholder, placeholderHi, requ
 }
 
 const STEPS = [
-    { title: 'Basic', icon: <UserOutlined /> },
-    { title: 'Location', icon: <HomeOutlined /> },
-    { title: 'Physical', icon: <UserOutlined /> },
-    { title: 'Education', icon: <BookOutlined /> },
-    { title: 'Family', icon: <HomeOutlined /> },
-    { title: 'Horoscope', icon: <StarOutlined /> },
-    { title: 'Preferences', icon: <HeartOutlined /> },
+    { title: 'The Basics', icon: <UserOutlined />, subtitle: 'Bride/Groom Info' },
+    { title: 'Location', icon: <HomeOutlined />, subtitle: 'Residence' },
+    { title: 'Physical', icon: <UserOutlined />, subtitle: 'Appearance' },
+    { title: 'Education', icon: <BookOutlined />, subtitle: 'Career & Studies' },
+    { title: 'Family', icon: <HomeOutlined />, subtitle: 'Background' },
+    { title: 'Horoscope', icon: <StarOutlined />, subtitle: 'Kundli Info' },
+    { title: 'Preferences', icon: <HeartOutlined />, subtitle: 'Partner Choice' },
 ];
 
 function AddProfile() {
@@ -53,6 +54,24 @@ function AddProfile() {
     const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [form] = Form.useForm();
+
+    // Watch state change to update cities
+    const selectedState = Form.useWatch('state', form);
+    const [cityOptions, setCityOptions] = useState([]);
+
+    // Update cities when state changes
+    useEffect(() => {
+        if (selectedState && INDIAN_LOCATIONS[selectedState]) {
+            setCityOptions(INDIAN_LOCATIONS[selectedState]);
+            // If current city is not in new list, clear it
+            const currentCity = form.getFieldValue('city');
+            if (currentCity && !INDIAN_LOCATIONS[selectedState].includes(currentCity)) {
+                form.setFieldsValue({ city: undefined });
+            }
+        } else {
+            setCityOptions([]);
+        }
+    }, [selectedState, form]);
 
     // Get options from config (backend-configurable)
     const rashiOptions = getOptions('rashiOptions', isHindi);
@@ -90,7 +109,7 @@ function AddProfile() {
 
             const response = await api.post('/profiles', values);
             toast.success('Profile created successfully!');
-            navigate(`/profiles/${response.data.data.profile._id}`);
+            navigate(`/profiles/${response.data.data.profile._id}`, { state: { newProfile: true } });
         } catch (error) {
             console.error('API Error:', error.response?.data);
 
@@ -148,9 +167,9 @@ function AddProfile() {
         setCurrentStep(step);
     };
 
-    // Step 1: Basic Information
     const BasicStep = () => (
         <Card title={<><UserOutlined /> Basic Information / मूल जानकारी</>}>
+            <Alert message="This information is the core of your biodata." type="success" showIcon style={{ marginBottom: 16, border: 'none', background: '#f6ffed' }} />
             {/* Who is this profile for? */}
             <Form.Item
                 name="createdFor"
@@ -203,8 +222,25 @@ function AddProfile() {
 
             <Row gutter={24}>
                 <Col xs={24} sm={12}>
-                    <Form.Item name="phone" label="Phone / फ़ोन" rules={[{ required: true }]}>
-                        <Input placeholder="Enter phone number" />
+                    <Form.Item
+                        name="phone"
+                        label="Phone / फ़ोन"
+                        rules={[
+                            { required: true, message: 'Please enter phone number' },
+                            { pattern: /^[6-9]\d{9}$/, message: 'Please enter a valid 10-digit Indian mobile number' }
+                        ]}
+                    >
+                        <Input
+                            addonBefore="+91"
+                            placeholder="Mobile Number"
+                            maxLength={10}
+                            style={{ borderRadius: 6 }}
+                            onKeyPress={(event) => {
+                                if (!/[0-9]/.test(event.key)) {
+                                    event.preventDefault();
+                                }
+                            }}
+                        />
                     </Form.Item>
                 </Col>
                 <Col xs={24} sm={12}>
@@ -261,9 +297,9 @@ function AddProfile() {
         </Card>
     );
 
-    // Step 2: Location & Demographics
     const LocationStep = () => (
         <Card title={<><HomeOutlined /> Location & Demographics / स्थान और जनसांख्यिकी</>}>
+            <Alert message="Helps us find matches in your city and community." type="info" showIcon style={{ marginBottom: 16 }} />
             <BilingualInput name="caste" label="Caste" labelHi="जाति" placeholder="Enter caste" placeholderHi="जाति दर्ज करें" required />
 
             <Row gutter={24}>
@@ -300,18 +336,33 @@ function AddProfile() {
             </Row>
 
             <Divider>Location / स्थान</Divider>
-            <BilingualInput name="city" label="City" labelHi="शहर" placeholder="City" placeholderHi="शहर" required />
 
             <Row gutter={24}>
                 <Col xs={24} sm={12}>
-                    <Form.Item name="state" label="State / राज्य" rules={[{ required: true }]}>
+                    <Form.Item name="state" label="State / राज्य" rules={[{ required: true, message: 'Select State' }]}>
                         <Select showSearch placeholder="Select state">
-                            {stateOptions.map(opt => (
-                                <Option key={opt.value} value={opt.value}>{opt.label}</Option>
+                            {Object.keys(INDIAN_LOCATIONS).sort().map(s => (
+                                <Option key={s} value={s}>{s}</Option>
                             ))}
                         </Select>
                     </Form.Item>
                 </Col>
+                <Col xs={24} sm={12}>
+                    <Form.Item name="city" label="City / शहर" rules={[{ required: true, message: 'Select City' }]}>
+                        <Select
+                            showSearch
+                            placeholder={selectedState ? "Select city" : "Select state first"}
+                            disabled={!selectedState}
+                        >
+                            {cityOptions.sort().map(c => (
+                                <Option key={c} value={c}>{c}</Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                </Col>
+            </Row>
+
+            <Row gutter={24}>
                 <Col xs={24} sm={12}>
                     <BilingualInput name="nativePlace" label="Native Place" labelHi="मूल स्थान" placeholder="Native place" placeholderHi="मूल स्थान" />
                 </Col>
@@ -527,9 +578,15 @@ function AddProfile() {
         </Card>
     );
 
-    // Step 6: Horoscope (Optional)
     const HoroscopeStep = () => (
         <Card title={<><StarOutlined /> Horoscope / कुंडली (Optional)</>}>
+            <Alert
+                message="Crucial for Gun Milan (Matching)."
+                description="Fill this if you are looking for horoscope compatibility."
+                type="warning"
+                showIcon
+                style={{ marginBottom: 16 }}
+            />
             <Alert message="These fields are optional. Fill if horoscope matching is important for you." type="info" showIcon style={{ marginBottom: 16 }} />
 
             <Row gutter={24}>
@@ -707,12 +764,17 @@ function AddProfile() {
     return (
         <div style={{ padding: '24px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                <Title level={2} style={{ margin: 0 }}>Add New Profile</Title>
+                <div>
+                    <Title level={2} style={{ margin: 0, fontFamily: "'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: '#A0153E' }}>
+                        Create Wedding Biodata
+                    </Title>
+                    <Text type="secondary">Build a beautiful profile to share with families.</Text>
+                </div>
                 <Alert
                     message={<><GlobalOutlined /> English + हिंदी</>}
                     type="info"
                     showIcon={false}
-                    style={{ padding: '4px 12px' }}
+                    style={{ padding: '4px 12px', borderRadius: 20, borderColor: '#A0153E', color: '#A0153E', background: '#FFF0F5' }}
                 />
             </div>
 

@@ -1,20 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Form, Input, Select, InputNumber, Button, Row, Col, Typography, Spin, Empty, Space, Divider, Tag } from 'antd';
 import { SearchOutlined, FilterOutlined, ClearOutlined } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
 import ProfileCard from '../components/ProfileCard';
 import api from '../services/api';
+import { INDIAN_LOCATIONS, RELIGION_OPTIONS } from '../constants/locations';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-
-const INDIAN_STATES = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa',
-    'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
-    'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland',
-    'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana',
-    'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi'
-];
 
 function Search() {
     const { t } = useLanguage();
@@ -22,6 +15,25 @@ function Search() {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
+
+    // Watch state change to update cities
+    const selectedState = Form.useWatch('state', form);
+    const [cityOptions, setCityOptions] = useState([]);
+
+    // Update cities when state changes
+    useEffect(() => {
+        if (selectedState && INDIAN_LOCATIONS[selectedState]) {
+            setCityOptions(INDIAN_LOCATIONS[selectedState]);
+            // If current city is not in new list, clear it
+            const currentCity = form.getFieldValue('city');
+            if (currentCity && !INDIAN_LOCATIONS[selectedState].includes(currentCity)) {
+                form.setFieldsValue({ city: undefined });
+            }
+        } else {
+            setCityOptions([]);
+            form.setFieldsValue({ city: undefined });
+        }
+    }, [selectedState, form]);
 
     const handleSearch = async (values) => {
         setLoading(true);
@@ -83,18 +95,29 @@ function Search() {
                                 </Select>
                             </Form.Item>
 
-                            <Form.Item name="caste" label={t.profileDetail?.caste || 'Caste'}>
-                                <Input placeholder={t.search.any} />
+                            <Form.Item name="religion" label="Religion">
+                                <Select allowClear placeholder={t.search.any}>
+                                    {RELIGION_OPTIONS.map(r => (
+                                        <Option key={r} value={r}>{r}</Option>
+                                    ))}
+                                </Select>
                             </Form.Item>
 
                             <Form.Item name="state" label={t.profileDetail?.state || 'State'}>
                                 <Select allowClear showSearch placeholder={t.search.any}>
-                                    {INDIAN_STATES.map(s => <Option key={s} value={s}>{s}</Option>)}
+                                    {Object.keys(INDIAN_LOCATIONS).sort().map(s => <Option key={s} value={s}>{s}</Option>)}
                                 </Select>
                             </Form.Item>
 
                             <Form.Item name="city" label={t.profileDetail?.city || 'City'}>
-                                <Input placeholder={t.search.any} />
+                                <Select
+                                    allowClear
+                                    showSearch
+                                    placeholder={selectedState ? t.search.any : "Select state first"}
+                                    disabled={!selectedState}
+                                >
+                                    {cityOptions.sort().map(c => <Option key={c} value={c}>{c}</Option>)}
+                                </Select>
                             </Form.Item>
 
                             <Form.Item name="maritalStatus" label={t.profileDetail?.maritalStatus || 'Marital Status'}>

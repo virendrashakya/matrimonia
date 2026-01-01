@@ -108,7 +108,7 @@ function WhatsAppShare({ profile, visible, onClose }) {
                         rows={12}
                         style={{
                             marginTop: 8,
-                            fontFamily: 'monospace',
+                            fontFamily: "'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
                             background: '#f5f5f5'
                         }}
                     />

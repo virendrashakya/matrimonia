@@ -22,7 +22,12 @@ const {
  */
 router.get('/public/:customId', async (req, res, next) => {
     try {
-        const profile = await Profile.findOne({ customId: req.params.customId, status: 'active' });
+        // Only return if active AND not private (stealth mode)
+        const profile = await Profile.findOne({
+            customId: req.params.customId,
+            status: 'active',
+            visibility: { $ne: 'private' }
+        });
         if (!profile) return res.status(404).json({ error: 'Profile not found' });
 
         // Return limited data
@@ -180,12 +185,30 @@ router.get('/:id', authenticate, async (req, res, next) => {
             return res.status(404).json({ error: 'Profile not found' });
         }
 
+        const isOwner = profile.createdBy._id.toString() === req.user._id.toString();
+        const isAdmin = req.user.role === 'admin' || req.user.role === 'moderator';
+
+        // Access Logic
+        let hasAccess = true;
+        let sensitiveDataHidden = false;
+
+        if (profile.visibility === 'restricted' && !isOwner && !isAdmin) {
+            // Check whitelist
+            const isWhitelisted = profile.accessWhitelist && profile.accessWhitelist.includes(req.user._id);
+            if (!isWhitelisted) {
+                hasAccess = false;
+                sensitiveDataHidden = true;
+            }
+        }
+
+        if (profile.visibility === 'private' && !isOwner && !isAdmin) {
+            return res.status(403).json({ error: 'This profile is private', errorHi: 'यह प्रोफ़ाइल निजी है' });
+        }
+
         // Update lastSeenAt
         profile.lastSeenAt = new Date();
 
         // Increment View Count & Track Visitor (if not owner)
-        const isOwner = profile.createdBy._id.toString() === req.user._id.toString();
-
         if (!isOwner) {
             // Add/Update visitor
             if (!profile.visitors) {
@@ -220,11 +243,35 @@ router.get('/:id', authenticate, async (req, res, next) => {
         // Get fraud risk
         const fraudRisk = await computeFraudRisk(profile._id);
 
+        let finalProfile = profile.toObject();
+
+        // Hide Sensitive Data if Restricted
+        if (sensitiveDataHidden) {
+            // Mask contact details
+            finalProfile.phone = null;
+            finalProfile.email = null;
+            finalProfile.alternatePhone = null;
+
+            // Mask Horoscope (except basic sign)
+            if (finalProfile.horoscope) {
+                finalProfile.horoscope = {
+                    rashi: finalProfile.horoscope.rashi,
+                    nakshatra: finalProfile.horoscope.nakshatra
+                    // Hide birthTime, place, etc.
+                };
+            }
+
+            // Flag for UI
+            finalProfile.hasAccess = false;
+        } else {
+            finalProfile.hasAccess = true;
+        }
+
         res.json({
             success: true,
             data: {
                 profile: {
-                    ...profile.toObject(),
+                    ...finalProfile,
                     visitors: isOwner ? profile.visitors : undefined, // Only send visitors to owner
                     fraudRisk
                 }

@@ -28,12 +28,31 @@ const ProfileSchema = new mongoose.Schema({
     // Contact
     phone: {
         type: String,
-        required: [true, 'Phone is required']
+        required: [true, 'Phone is required'],
+        validate: {
+            validator: function (v) {
+                return /^[6-9]\d{9}$/.test(v);
+            },
+            message: props => `${props.value} is not a valid Indian mobile number!`
+        }
     },
     alternatePhone: String,
     email: {
         type: String,
         lowercase: true
+    },
+
+    // Access Control
+    accessWhitelist: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+
+    // Metadata
+    customId: { // Short, display-friendly ID (e.g., MAT-1234)
+        type: String,
+        unique: true,
+        sparse: true
     },
 
     // Demographics

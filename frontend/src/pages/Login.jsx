@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, Form, Input, Button, Typography, Space, Divider, Dropdown, Modal } from 'antd';
-import { LockOutlined, PhoneOutlined, GlobalOutlined, MoonOutlined, SunOutlined, GoogleOutlined } from '@ant-design/icons';
+import { LockOutlined, PhoneOutlined, GlobalOutlined, MoonOutlined, SunOutlined, GoogleOutlined, HeartOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -107,7 +107,8 @@ function Login() {
                         marginBottom: 12,
                         fontSize: 'clamp(32px, 4vw, 48px)',
                         textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                        fontFamily: "'Outfit', sans-serif"
+                        transform: 'rotate(-5deg)',
+                        fontFamily: "'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
                     }}>
                         {t.appName}
                     </Title>
@@ -115,9 +116,10 @@ function Login() {
                         color: 'rgba(255,255,255,0.9)',
                         fontSize: '18px',
                         lineHeight: 1.6,
-                        marginBottom: 0
+                        marginBottom: 0,
+                        fontStyle: 'italic'
                     }}>
-                        {t.tagline}
+                        "A successful marriage requires falling in love many times, always with the same person."
                     </Paragraph>
                 </div>
             </div>
@@ -146,12 +148,18 @@ function Login() {
                         margin: 'auto' // Use margin auto for safe centering
                     }}>
                         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                            <div style={{ textAlign: 'left', marginBottom: 16 }}>
-                                <Title level={2} style={{ marginBottom: 4, color: '#2C1810', fontSize: 26 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                                <div style={{ background: '#FFF0F5', padding: '8px', borderRadius: '50%', marginRight: 12 }}>
+                                    <HeartOutlined style={{ color: '#A0153E', fontSize: 20 }} />
+                                </div>
+                                <Title level={2} style={{ margin: 0, color: '#2C1810', fontSize: 26, fontFamily: "'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
                                     {t.auth.welcomeBack}
                                 </Title>
-                                <Text type="secondary" style={{ fontSize: 14 }}>{t.auth.signInToContinue}</Text>
                             </div>
+                            <Text type="secondary" style={{ fontSize: 14 }}>
+                                {t.auth.signInToContinue}. <br />
+                                <span style={{ color: '#A0153E', fontStyle: 'italic' }}>Your soulmate journey continues.</span>
+                            </Text>
 
                             <Form layout="vertical" onFinish={handleSubmit} size="middle" requiredMark={false}>
                                 <Form.Item

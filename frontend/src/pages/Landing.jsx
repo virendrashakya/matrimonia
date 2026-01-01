@@ -8,7 +8,10 @@ import {
     CheckCircleOutlined,
     UserOutlined,
     StarOutlined,
-    ArrowRightOutlined
+    ArrowRightOutlined,
+    LockOutlined,
+    SearchOutlined,
+    CrownOutlined
 } from '@ant-design/icons';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -47,6 +50,27 @@ function Landing() {
             desc: 'Designed for elders and family involvement',
             descHi: 'बुजुर्गों और परिवार की भागीदारी के लिए डिज़ाइन'
         },
+        {
+            icon: <LockOutlined style={{ fontSize: 32, color: '#A0153E' }} />,
+            title: 'Privacy Control',
+            titleHi: 'गोपनीयता नियंत्रण',
+            desc: 'Your data stays with you. Share only what you want.',
+            descHi: 'आपका डेटा सुरक्षित है। केवल वही साझा करें जो आप चाहते हैं।'
+        },
+        {
+            icon: <SearchOutlined style={{ fontSize: 32, color: '#A0153E' }} />,
+            title: 'Smart Search',
+            titleHi: 'स्मार्ट खोज',
+            desc: 'Find matches that truly align with your values.',
+            descHi: 'ऐसे रिश्ते खोजें जो वास्तव में आपके मूल्यों से मेल खाते हों।'
+        },
+        {
+            icon: <CrownOutlined style={{ fontSize: 32, color: '#A0153E' }} />,
+            title: 'Premium Templates',
+            titleHi: 'प्रीमियम टेम्पलेट्स',
+            desc: 'Stand out with exclusive, professionally designed biodata formats.',
+            descHi: 'विशेष, पेशेवर रूप से डिज़ाइन किए गए बायोडाटा फॉर्मेट के साथ अलग दिखें।'
+        },
     ];
 
     const stats = [
@@ -72,7 +96,7 @@ function Landing() {
                 zIndex: 100,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <img src="/logo.png" alt="Pehchan" style={{ height: 36, width: 36 }} />
+                    <img src="/logo-new.png" alt="Pehchan" style={{ height: 36, width: 36 }} />
                     <span style={{
                         fontSize: 22,
                         fontWeight: 700,
@@ -99,8 +123,10 @@ function Landing() {
 
             {/* Hero Section */}
             <section style={{
-                background: 'linear-gradient(135deg, #A0153E 0%, #7A0F2E 100%)',
-                padding: '60px 20px 80px',
+                background: 'linear-gradient(rgba(160, 21, 62, 0.85), rgba(122, 15, 46, 0.9)), url("/hero-bg.png")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                padding: '80px 20px 100px',
                 textAlign: 'center',
                 position: 'relative',
                 overflow: 'hidden',
@@ -127,9 +153,9 @@ function Landing() {
 
                 <div style={{ position: 'relative', zIndex: 1, maxWidth: 600, margin: '0 auto' }}>
                     <img
-                        src="/logo.png"
+                        src="/logo-new.png"
                         alt="Pehchan"
-                        style={{ height: 100, width: 100, marginBottom: 24 }}
+                        style={{ height: 120, width: 120, marginBottom: 24, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }}
                     />
                     <Title level={1} style={{
                         color: 'white',
@@ -140,11 +166,21 @@ function Landing() {
                         {t.appName}
                     </Title>
                     <Paragraph style={{
-                        color: 'rgba(255,255,255,0.9)',
-                        fontSize: 'clamp(16px, 4vw, 22px)',
-                        marginBottom: 32,
+                        color: 'rgba(255,255,255,0.95)',
+                        fontSize: 'clamp(18px, 4vw, 24px)',
+                        marginBottom: 24,
+                        lineHeight: 1.6,
+                        fontWeight: 500
                     }}>
                         {t.tagline}
+                    </Paragraph>
+                    <Paragraph style={{
+                        color: '#F4D160',
+                        fontSize: 'clamp(14px, 3vw, 18px)',
+                        marginBottom: 32,
+                        fontWeight: 600
+                    }}>
+                        {isHi ? 'मिनटों में सुंदर विवाह बायोडाटा बनाएं और शेयर करें।' : 'Create beautiful wedding biodata to share with family in minutes.'}
                     </Paragraph>
 
                     <Space size="middle" wrap style={{ justifyContent: 'center' }}>
@@ -248,7 +284,7 @@ function Landing() {
                                 <Title level={4} style={{ marginBottom: 8 }}>
                                     {isHi ? feature.titleHi : feature.title}
                                 </Title>
-                                <Text type="secondary">
+                                <Text style={{ color: '#4A4A4A', fontSize: 16, lineHeight: 1.6 }}>
                                     {isHi ? feature.descHi : feature.desc}
                                 </Text>
                             </Card>
@@ -257,8 +293,143 @@ function Landing() {
                 </Row>
             </section>
 
-            {/* How It Works */}
+            {/* Biodata Feature Section */}
             <section style={{
+                padding: '60px 20px',
+                background: '#FFF8F0',
+                textAlign: 'center'
+            }}>
+                <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+                    <Row gutter={[40, 40]} align="middle">
+                        <Col xs={24} md={12}>
+                            <div style={{
+                                position: 'relative',
+                                display: 'inline-block',
+                                padding: 16,
+                                background: 'white',
+                                borderRadius: 8,
+                                boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+                            }}>
+                                <img
+                                    src="/biodata-mockup.png"
+                                    alt="Biodata Preview"
+                                    style={{ width: '100%', maxWidth: 400, borderRadius: 4 }}
+                                />
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: -20,
+                                    right: -20,
+                                    background: 'white',
+                                    padding: 16,
+                                    borderRadius: 12,
+                                    boxShadow: '0 10px 20px rgba(0,0,0,0.1)'
+                                }}>
+                                    <Space direction="vertical" align="center">
+                                        <div style={{ color: '#2E7D32', fontSize: 24 }}><CheckCircleOutlined /></div>
+                                        <Text strong>PDF Ready</Text>
+                                    </Space>
+                                </div>
+                            </div>
+                        </Col>
+                        <Col xs={24} md={12} style={{ textAlign: 'left' }}>
+                            <Title level={2} style={{ marginBottom: 16 }}>
+                                {isHi ? 'परफेक्ट बायोडाटा बनाएं' : 'Create the Perfect Biodata'}
+                            </Title>
+                            <Paragraph style={{ fontSize: 18, color: 'rgba(0,0,0,0.6)', marginBottom: 24 }}>
+                                {isHi
+                                    ? 'हमारे फ्री टूल्स के साथ पेशेवर दिखने वाला बायोडाटा बनाएं। फोटो जोड़ें, धार्मिक शीर्षक चुनें और आसानी से शेयर करें।'
+                                    : 'Build a professional-looking biodata with our free tools. Add photos, choose religious headers, and share with ease.'
+                                }
+                            </Paragraph>
+                            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                                <div style={{ display: 'flex', gap: 16 }}>
+                                    <div style={{
+                                        width: 48, height: 48, borderRadius: 12, background: '#FCE4EC',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C2185B', fontSize: 24
+                                    }}>
+                                        <StarOutlined />
+                                    </div>
+                                    <div>
+                                        <Title level={5} style={{ margin: 0 }}>{isHi ? 'सुंदर टेम्पलेट्स' : 'Beautiful Templates'}</Title>
+                                        <Text type="secondary">{isHi ? 'गणेश, बुद्ध और अन्य धार्मिक शीर्षकों के साथ' : 'With Ganesh, Buddha & other religious headers'}</Text>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: 16 }}>
+                                    <div style={{
+                                        width: 48, height: 48, borderRadius: 12, background: '#E8F5E9',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2E7D32', fontSize: 24
+                                    }}>
+                                        <CheckCircleOutlined />
+                                    </div>
+                                    <div>
+                                        <Title level={5} style={{ margin: 0 }}>{isHi ? 'आसान शेयरिंग' : 'Easy Sharing'}</Title>
+                                        <Text type="secondary">{isHi ? 'WhatsApp पर PDF या लिंक भेजें' : 'Send PDF or Link via WhatsApp'}</Text>
+                                    </div>
+                                </div>
+                                <Link to="/register">
+                                    <Button type="primary" size="large" style={{ marginTop: 16 }}>
+                                        {isHi ? 'अपना बायोडाटा बनाएं' : 'Create Your Biodata'}
+                                    </Button>
+                                </Link>
+                            </Space>
+                        </Col>
+                    </Row>
+                </div>
+            </section>
+
+            {/* Reviews Section */}
+            <section style={{ padding: '60px 20px', background: 'white' }}>
+                <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+                    <Title level={2} style={{ textAlign: 'center', marginBottom: 40 }}>
+                        {isHi ? 'सफल कहानियां' : 'Success Stories'}
+                    </Title>
+                    <Row gutter={[24, 24]}>
+                        {[
+                            {
+                                name: 'Sharma Family',
+                                location: 'Delhi',
+                                text: 'Pehchan made it so easy to create a biodata for my daughter. The templates are beautiful!',
+                                textHi: 'मेरी बेटी के लिए बायोडाटा बनाना बहुत आसान हो गया। टेम्पलेट्स बहुत सुंदर हैं!'
+                            },
+                            {
+                                name: 'Rajesh Gupta',
+                                location: 'Mumbai',
+                                text: 'I shared the PDF on WhatsApp and got compliments on how professional it looked.',
+                                textHi: 'मैंने WhatsApp पर PDF शेयर किया और सभी ने कहा कि यह कितना प्रोफेशनल लग रहा है।'
+                            },
+                            {
+                                name: 'Meera Patel',
+                                location: 'Ahmedabad',
+                                text: 'Finally a simple tool that understands Indian wedding requirements. Highly recommended!',
+                                textHi: 'अंत में एक ऐसा टूल जो भारतीय शादी की जरूरतों को समझता है। बहुत अच्छा!'
+                            }
+                        ].map((review, i) => (
+                            <Col xs={24} md={8} key={i}>
+                                <Card style={{ height: '100%', borderRadius: 12, border: '1px solid #f0f0f0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+                                        <div style={{
+                                            width: 40, height: 40, borderRadius: '50%', background: '#FFF0F5',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A0153E',
+                                            marginRight: 12, fontWeight: 'bold'
+                                        }}>
+                                            {review.name[0]}
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 600 }}>{review.name}</div>
+                                            <div style={{ fontSize: 12, color: '#999' }}>{review.location}</div>
+                                        </div>
+                                    </div>
+                                    <Text type="secondary" italic>"{isHi ? review.textHi : review.text}"</Text>
+                                    <div style={{ marginTop: 12, color: '#FFD700' }}>★★★★★</div>
+                                </Card>
+                            </Col>
+                        ))}
+                    </Row>
+                </div>
+            </section >
+
+            {/* How It Works */}
+            < section style={{
                 background: 'linear-gradient(135deg, #FFF8F0, #FFF5EB)',
                 padding: '60px 20px'
             }}>
@@ -296,10 +467,10 @@ function Landing() {
                         ))}
                     </Row>
                 </div>
-            </section>
+            </section >
 
             {/* CTA Section */}
-            <section style={{
+            < section style={{
                 padding: '60px 20px',
                 textAlign: 'center',
                 background: 'linear-gradient(135deg, #A0153E, #7A0F2E)',
@@ -329,10 +500,10 @@ function Landing() {
                         </Button>
                     </Link>
                 </div>
-            </section>
+            </section >
 
             {/* Footer */}
-            <footer style={{
+            < footer style={{
                 padding: '24px 20px',
                 textAlign: 'center',
                 background: '#2C1810',
@@ -342,8 +513,8 @@ function Landing() {
                     <Text style={{ color: 'rgba(255,255,255,0.6)' }}>© 2024 Pehchan</Text>
                     <Text style={{ color: 'rgba(255,255,255,0.6)' }}>{t.tagline}</Text>
                 </Space>
-            </footer>
-        </div>
+            </footer >
+        </div >
     );
 }
 

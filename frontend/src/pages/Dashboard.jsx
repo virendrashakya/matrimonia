@@ -15,7 +15,8 @@ import {
     ShopOutlined,
     ImportOutlined,
     EyeOutlined,
-    ClockCircleOutlined
+    ClockCircleOutlined,
+    FilePdfOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -92,7 +93,7 @@ function Dashboard() {
                 path: '/profiles/new',
                 icon: <UserAddOutlined />,
                 title: t.dashboard.addProfile,
-                subtitle: t.dashboard.createBiodata
+                subtitle: isHindi ? 'सुंदर PDF बायोडाटा बनाएं' : 'Create beautiful PDF Biodata'
             },
             {
                 key: 'search',
@@ -457,20 +458,22 @@ function Dashboard() {
                                         <Empty
                                             image={<div style={{ fontSize: 64 }}>📝</div>}
                                             description={
-                                                <Space direction="vertical">
-                                                    <Title level={4} style={{ color: '#8B7355' }}>
-                                                        {isHindi ? 'आपने अभी तक कोई प्रोफ़ाइल नहीं बनाई' : 'You haven\'t created any profiles yet'}
-                                                    </Title>
-                                                    <Text type="secondary">
-                                                        {isHindi ? 'परिवार या मित्र की शादी के लिए प्रोफ़ाइल जोड़ें' : 'Add a profile for family or friends looking for a match'}
+                                                <span>
+                                                    {isHindi ? 'कोई प्रोफ़ाइल नहीं मिली' : 'No profiles created yet'}
+                                                    <br />
+                                                    <Text type="secondary" style={{ fontSize: 13 }}>
+                                                        {isHindi ? 'अपना पहला बायोडाटा बनाएं और शेयर करें' : 'Create your first Biodata to share with family'}
                                                     </Text>
-                                                </Space>
+                                                </span>
                                             }
                                         >
                                             <Link to="/profiles/new">
-                                                <Button type="primary" icon={<PlusOutlined />}>{t.dashboard.addFirstProfile}</Button>
+                                                <Button type="primary" icon={<FilePdfOutlined />}>
+                                                    {isHindi ? 'बायोडाटा बनाएं' : 'Create Biodata PDF'}
+                                                </Button>
                                             </Link>
                                         </Empty>
+
                                     </Card>
                                 )}
                             </>
@@ -530,7 +533,7 @@ function Dashboard() {
                     }
                 ]}
             />
-        </div>
+        </div >
     );
 }
 

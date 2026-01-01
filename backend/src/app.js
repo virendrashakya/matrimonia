@@ -146,7 +146,8 @@ app.use('/api/user', userRoutes);
 app.use('/api/interests', interestRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/access', accessRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/access-requests', accessRoutes);
 
 // Health check (no logging needed)
 app.get('/api/health', (req, res) => {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, Form, Input, Button, Typography, Space, Divider, Dropdown } from 'antd';
-import { UserOutlined, LockOutlined, PhoneOutlined, GlobalOutlined, MoonOutlined, SunOutlined, GoogleOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, PhoneOutlined, GlobalOutlined, MoonOutlined, SunOutlined, GoogleOutlined, HeartOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -88,7 +88,8 @@ function Register() {
                         marginBottom: 12,
                         fontSize: 'clamp(32px, 4vw, 48px)',
                         textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                        fontFamily: "'Outfit', sans-serif"
+                        transform: 'rotate(-5deg)',
+                        fontFamily: "'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
                     }}>
                         {t.appName}
                     </Title>
@@ -99,15 +100,18 @@ function Register() {
                         marginBottom: 8,
                         fontWeight: 300
                     }}>
-                        {t.auth.joinCommunity}
+                        Find your Jeevansathi within your community.
                     </Text>
                     <Paragraph style={{
-                        color: 'rgba(255,255,255,0.7)',
+                        color: 'rgba(255,255,255,0.8)',
                         maxWidth: 320,
                         margin: '0 auto',
-                        lineHeight: 1.6
+                        lineHeight: 1.6,
+                        fontStyle: 'italic'
                     }}>
-                        Connect with people who share your values, culture, and life goals.
+                        "Marriages are made in heaven, but arranged on Pehchan."
+                        <br /><br />
+                        Trusted by thousands of families to find the perfect match.
                     </Paragraph>
                 </div>
             </div>
@@ -139,10 +143,18 @@ function Register() {
                     }}>
                         <Space direction="vertical" size="small" style={{ width: '100%' }}>
                             <div style={{ textAlign: 'left', marginBottom: 16 }}>
-                                <Title level={2} style={{ marginBottom: 4, color: '#2C1810', fontSize: 26 }}>
-                                    {t.auth.createAccount}
-                                </Title>
-                                <Text type="secondary" style={{ fontSize: 14 }}>Begin your journey today</Text>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                                    <div style={{ background: '#FFF0F5', padding: '8px', borderRadius: '50%', marginRight: 12 }}>
+                                        <HeartOutlined style={{ color: '#A0153E', fontSize: 20 }} />
+                                    </div>
+                                    <Title level={2} style={{ margin: 0, color: '#2C1810', fontSize: 26, fontFamily: "'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+                                        {t.auth.createAccount}
+                                    </Title>
+                                </div>
+                                <Text type="secondary" style={{ fontSize: 14 }}>
+                                    Start your journey to find your perfect life partner. <br />
+                                    <span style={{ color: '#A0153E', fontStyle: 'italic' }}>Creating your family's biodata starts here.</span>
+                                </Text>
                             </div>
 
                             <Form layout="vertical" onFinish={handleSubmit} size="middle" requiredMark={false}>
@@ -162,13 +174,22 @@ function Register() {
                                 <Form.Item
                                     name="phone"
                                     label={<span style={{ fontWeight: 500, fontSize: 13 }}>{t.auth.phone}</span>}
-                                    rules={[{ required: true, message: t.auth.enterPhone }]}
+                                    rules={[
+                                        { required: true, message: t.auth.enterPhone },
+                                        { pattern: /^[6-9]\d{9}$/, message: 'Please enter a valid 10-digit Indian mobile number starting with 6-9' }
+                                    ]}
                                     style={{ marginBottom: 12 }}
                                 >
                                     <Input
-                                        prefix={<PhoneOutlined style={{ color: '#8B7355' }} />}
-                                        placeholder={t.auth.enterPhone}
+                                        addonBefore="+91"
+                                        placeholder="Mobile Number"
+                                        maxLength={10}
                                         style={{ borderRadius: 8, height: 42 }}
+                                        onKeyPress={(event) => {
+                                            if (!/[0-9]/.test(event.key)) {
+                                                event.preventDefault();
+                                            }
+                                        }}
                                     />
                                 </Form.Item>
 
@@ -320,7 +341,7 @@ function Register() {
                     }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }
 
