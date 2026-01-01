@@ -97,6 +97,8 @@ const ProfileSchema = new mongoose.Schema({
     },
     company: String,
     annualIncome: String, // Range like "5-10 LPA"
+    workCity: String,
+    workState: String,
 
     // Local Language Content (Hindi)
     localContent: {
@@ -111,6 +113,8 @@ const ProfileSchema = new mongoose.Schema({
         educationDetail: String,
         profession: String,    // पेशा
         company: String,       // कंपनी
+        workCity: String,      // कार्य शहर
+        workState: String,     // कार्य राज्य
         fatherName: String,    // पिता का नाम
         fatherOccupation: String,
         motherName: String,    // माता का नाम

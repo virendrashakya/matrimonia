@@ -20,7 +20,7 @@ function BilingualInput({ name, label, labelHi, placeholder, placeholderHi, requ
                 <Form.Item
                     name={name}
                     label={<span>{label} <Text type="secondary" style={{ fontSize: 10 }}>(EN)</Text></span>}
-                    rules={required ? [{ required: true, message: `Required` }] : []}
+                    rules={required ? [{ required: true, message: `${label} is required` }] : []}
                 >
                     <Input placeholder={placeholder} {...inputProps} />
                 </Form.Item>
@@ -78,7 +78,7 @@ const BasicStep = () => (
 
         <Row gutter={24}>
             <Col xs={24} sm={12}>
-                <Form.Item name="gender" label="Gender / लिंग" rules={[{ required: true }]}>
+                <Form.Item name="gender" label="Gender / लिंग" rules={[{ required: true, message: 'Gender is required' }]}>
                     <Radio.Group buttonStyle="solid">
                         <Radio.Button value="male">Male / पुरुष</Radio.Button>
                         <Radio.Button value="female">Female / महिला</Radio.Button>
@@ -86,7 +86,7 @@ const BasicStep = () => (
                 </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-                <Form.Item name="dateOfBirth" label="Date of Birth / जन्म तिथि" rules={[{ required: true }]}>
+                <Form.Item name="dateOfBirth" label="Date of Birth / जन्म तिथि" rules={[{ required: true, message: 'Date of Birth is required' }]}>
                     <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="DD/MM/YYYY" />
                 </Form.Item>
             </Col>
@@ -105,25 +105,30 @@ const BasicStep = () => (
             </Col>
             <Col xs={24} sm={12}>
                 <Form.Item
-                    name="phone"
                     label="Phone / फ़ोन"
-                    rules={[
-                        { required: true, message: 'Please enter phone number' },
-                        { pattern: /^[6-9]\d{9}$/, message: 'Please enter a valid 10-digit Indian mobile number' }
-                    ]}
+                    required
                 >
                     <Space.Compact style={{ width: '100%' }}>
-                        <Input style={{ width: '20%', textAlign: 'center' }} value="+91" disabled />
-                        <Input
-                            placeholder="Mobile Number"
-                            maxLength={10}
-                            style={{ width: '80%' }}
-                            onKeyPress={(event) => {
-                                if (!/[0-9]/.test(event.key)) {
-                                    event.preventDefault();
-                                }
-                            }}
-                        />
+                        <Input style={{ width: '25%', textAlign: 'center' }} value="+91" disabled />
+                        <Form.Item
+                            name="phone"
+                            noStyle
+                            rules={[
+                                { required: true, message: 'Phone number is required' },
+                                { pattern: /^[6-9]\d{9}$/, message: 'Please enter a valid 10-digit Indian mobile number' }
+                            ]}
+                        >
+                            <Input
+                                placeholder="Mobile Number"
+                                maxLength={10}
+                                style={{ width: '75%' }}
+                                onKeyPress={(event) => {
+                                    if (!/[0-9]/.test(event.key)) {
+                                        event.preventDefault();
+                                    }
+                                }}
+                            />
+                        </Form.Item>
                     </Space.Compact>
                 </Form.Item>
             </Col>
@@ -139,17 +144,43 @@ const BasicStep = () => (
     </Card>
 );
 
-const LocationStep = ({ selectedState, cityOptions }) => (
+const LocationStep = ({ selectedState, cityOptions, casteOptions, subCasteOptions, gotraOptions }) => (
     <Card title={<><HomeOutlined /> Location & Demographics / स्थान और जनसांख्यिकी</>}>
         <Alert message="Helps us find matches in your city and community." type="info" showIcon style={{ marginBottom: 16 }} />
-        <BilingualInput name="caste" label="Caste" labelHi="जाति" placeholder="Enter caste" placeholderHi="जाति दर्ज करें" required />
 
         <Row gutter={24}>
             <Col xs={24} sm={12}>
-                <BilingualInput name="subCaste" label="Sub-Caste" labelHi="उपजाति" placeholder="Sub-caste" placeholderHi="उपजाति" />
+                <Form.Item name="caste" label="Caste / जाति" rules={[{ required: true, message: 'Caste is required' }]}>
+                    <Select showSearch mode="tags" placeholder="Select or type Caste">
+                        {casteOptions.map(c => <Option key={c.value} value={c.value}>{c.label}</Option>)}
+                    </Select>
+                </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-                <BilingualInput name="gotra" label="Gotra" labelHi="गोत्र" placeholder="Gotra" placeholderHi="गोत्र" />
+                <Form.Item name="subCaste" label="Sub-Caste / उपजाति">
+                    <Select showSearch mode="tags" placeholder="Select or type Sub-Caste">
+                        {subCasteOptions.map(sc => <Option key={sc.value} value={sc.value}>{sc.label}</Option>)}
+                    </Select>
+                </Form.Item>
+            </Col>
+        </Row>
+
+        <Row gutter={24}>
+            <Col xs={24} sm={12}>
+                <Form.Item name="gotra" label="Gotra / गोत्र">
+                    <Select mode="tags" placeholder="Select or type Gotra">
+                        {gotraOptions.map(g => <Option key={g.value} value={g.value}>{g.label}</Option>)}
+                    </Select>
+                </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+                <Form.Item name="motherTongue" label="Mother Tongue / मातृभाषा">
+                    <Select showSearch placeholder="Select language">
+                        {['Hindi', 'English', 'Marathi', 'Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Bengali', 'Gujarati', 'Punjabi', 'Bhojpuri', 'Rajasthani'].map(l => (
+                            <Option key={l} value={l}>{l}</Option>
+                        ))}
+                    </Select>
+                </Form.Item>
             </Col>
         </Row>
 
@@ -166,22 +197,13 @@ const LocationStep = ({ selectedState, cityOptions }) => (
                     </Select>
                 </Form.Item>
             </Col>
-            <Col xs={24} sm={12}>
-                <Form.Item name="motherTongue" label="Mother Tongue / मातृभाषा">
-                    <Select showSearch placeholder="Select">
-                        {['Hindi', 'English', 'Marathi', 'Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Bengali', 'Gujarati', 'Punjabi', 'Bhojpuri', 'Rajasthani'].map(l => (
-                            <Option key={l} value={l}>{l}</Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-            </Col>
         </Row>
 
         <Divider>Location / स्थान</Divider>
 
         <Row gutter={24}>
             <Col xs={24} sm={12}>
-                <Form.Item name="state" label="State / राज्य" rules={[{ required: true, message: 'Select State' }]}>
+                <Form.Item name="state" label="State / राज्य" rules={[{ required: true, message: 'State is required' }]}>
                     <Select showSearch placeholder="Select state">
                         {Object.keys(INDIAN_LOCATIONS).sort().map(s => (
                             <Option key={s} value={s}>{s}</Option>
@@ -190,7 +212,7 @@ const LocationStep = ({ selectedState, cityOptions }) => (
                 </Form.Item>
             </Col>
             <Col xs={24} sm={12}>
-                <Form.Item name="city" label="City / शहर" rules={[{ required: true, message: 'Select City' }]}>
+                <Form.Item name="city" label="City / शहर" rules={[{ required: true, message: 'City is required' }]}>
                     <Select
                         showSearch
                         placeholder={selectedState ? "Select city" : "Select state first"}
@@ -306,16 +328,31 @@ const PhysicalStep = () => (
     </Card>
 );
 
-const EducationStep = () => (
+const EducationStep = ({ educationOptions, professionOptions, workCityOptions, workState, onWorkStateChange }) => (
     <Card title={<><BookOutlined /> Education & Career / शिक्षा और करियर</>}>
         <Alert message="Education and career are key match factors." type="info" showIcon style={{ marginBottom: 16 }} />
-        <BilingualInput name="education" label="Highest Education" labelHi="उच्चतम शिक्षा" placeholder="e.g. B.Tech, MBA" placeholderHi="जैसे बी.टेक, एम.बी.ए" required />
-        <BilingualInput name="profession" label="Profession / Job" labelHi="व्यवसाय" placeholder="e.g. Software Engineer" placeholderHi="जैसे सॉफ्टवेयर इंजीनियर" required />
+
+        <Row gutter={24}>
+            <Col xs={24} sm={12}>
+                <Form.Item name="education" label="Highest Education / उच्चतम शिक्षा" rules={[{ required: true, message: 'Highest Education is required' }]}>
+                    <Select showSearch placeholder="Select Education">
+                        {educationOptions.map(e => <Option key={e.value} value={e.value}>{e.label}</Option>)}
+                    </Select>
+                </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+                <Form.Item name="profession" label="Profession / व्यवसाय" rules={[{ required: true, message: 'Profession is required' }]}>
+                    <Select showSearch placeholder="Select Profession">
+                        {professionOptions.map(p => <Option key={p.value} value={p.value}>{p.label}</Option>)}
+                    </Select>
+                </Form.Item>
+            </Col>
+        </Row>
 
         <Row gutter={24}>
             <Col xs={24} sm={12}>
                 <Form.Item name="annualIncome" label="Annual Income / वार्षिक आय">
-                    <Select placeholder="Select">
+                    <Select placeholder="Select Income Range">
                         <Option value="Below 2L">Below 2 Lakhs</Option>
                         <Option value="2L-5L">2L - 5L</Option>
                         <Option value="5L-10L">5L - 10L</Option>
@@ -325,9 +362,39 @@ const EducationStep = () => (
                     </Select>
                 </Form.Item>
             </Col>
+            <Col xs={24} sm={12}>
+                <Form.Item name="company" label="Company / कंपनी">
+                    <Input placeholder="Company Name (Optional)" />
+                </Form.Item>
+            </Col>
         </Row>
 
-        <BilingualInput name="workCity" label="Work City" labelHi="कार्य करने का शहर" placeholder="City where working" placeholderHi="कार्यस्थल" />
+        <Divider>Work Location / कार्य स्थल</Divider>
+
+        <Row gutter={24}>
+            <Col xs={24} sm={12}>
+                <Form.Item name="workState" label="Work State / कार्य राज्य">
+                    <Select showSearch placeholder="Select State" onChange={onWorkStateChange}>
+                        {Object.keys(INDIAN_LOCATIONS).sort().map(s => (
+                            <Option key={s} value={s}>{s}</Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+                <Form.Item name="workCity" label="Work City / कार्य शहर">
+                    <Select
+                        showSearch
+                        placeholder={workState ? "Select City" : "Select State First"}
+                        disabled={!workState}
+                    >
+                        {workCityOptions.sort().map(c => (
+                            <Option key={c} value={c}>{c}</Option>
+                        ))}
+                    </Select>
+                </Form.Item>
+            </Col>
+        </Row>
     </Card>
 );
 
@@ -595,11 +662,14 @@ function AddProfile() {
     const selectedState = Form.useWatch('state', form);
     const [cityOptions, setCityOptions] = useState([]);
 
+    // Watch work state change
+    const workState = Form.useWatch('workState', form);
+    const [workCityOptions, setWorkCityOptions] = useState([]);
+
     // Update cities when state changes
     useEffect(() => {
         if (selectedState && INDIAN_LOCATIONS[selectedState]) {
             setCityOptions(INDIAN_LOCATIONS[selectedState]);
-            // If current city is not in new list, clear it
             const currentCity = form.getFieldValue('city');
             if (currentCity && !INDIAN_LOCATIONS[selectedState].includes(currentCity)) {
                 form.setFieldsValue({ city: undefined });
@@ -609,27 +679,60 @@ function AddProfile() {
         }
     }, [selectedState, form]);
 
+    // Update work cities when workState changes
+    useEffect(() => {
+        if (workState && INDIAN_LOCATIONS[workState]) {
+            setWorkCityOptions(INDIAN_LOCATIONS[workState]);
+            const currentWorkCity = form.getFieldValue('workCity');
+            if (currentWorkCity && !INDIAN_LOCATIONS[workState].includes(currentWorkCity)) {
+                form.setFieldsValue({ workCity: undefined });
+            }
+        } else {
+            setWorkCityOptions([]);
+        }
+    }, [workState, form]);
+
     // Get options from config (backend-configurable)
     const rashiOptions = getOptions('rashiOptions', isHindi);
     const nakshatraOptions = getOptions('nakshatraOptions', isHindi);
     const stateOptions = getOptions('stateOptions', isHindi);
     const maritalStatusOptions = getOptions('maritalStatusOptions', isHindi);
+    const casteOptions = getOptions('casteOptions', isHindi);
+    const subCasteOptions = getOptions('subCasteOptions', isHindi);
+    const gotraOptions = getOptions('gotraOptions', isHindi);
+    const educationOptions = getOptions('educationOptions', isHindi);
+    const professionOptions = getOptions('professionOptions', isHindi);
 
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const values = await form.validateFields();
+            // Validate only the fields present in the current step first to ensure UX consistency
+            await form.validateFields();
 
-            console.log('Form values:', JSON.stringify(values, null, 2));
+            // Get ALL values from the form store (includes unmounted/preserved steps)
+            const allValues = form.getFieldsValue(true);
 
-            if (values.dateOfBirth) {
-                values.dateOfBirth = values.dateOfBirth.toISOString();
+            // Log for debugging
+            console.log('Final Submission Values:', JSON.stringify(allValues, null, 2));
+
+            // Helper to handle array-to-string for single-select fields that use mode="tags"
+            const ensureString = (val) => Array.isArray(val) ? (val[0] || '') : val;
+
+            const finalData = {
+                ...allValues,
+                caste: ensureString(allValues.caste),
+                subCaste: ensureString(allValues.subCaste),
+                gotra: ensureString(allValues.gotra)
+            };
+
+            if (finalData.dateOfBirth) {
+                finalData.dateOfBirth = finalData.dateOfBirth.toISOString();
             }
-            if (values.horoscope?.birthTime) {
-                values.horoscope.birthTime = values.horoscope.birthTime.format('HH:mm');
+            if (finalData.horoscope?.birthTime) {
+                finalData.horoscope.birthTime = finalData.horoscope.birthTime.format('HH:mm');
             }
 
-            const response = await api.post('/profiles', values);
+            const response = await api.post('/profiles', finalData);
             toast.success('Profile created successfully!');
             navigate(`/profiles/${response.data.data.profile._id}`, { state: { newProfile: true } });
         } catch (error) {
@@ -693,9 +796,21 @@ function AddProfile() {
     const renderStep = () => {
         switch (currentStep) {
             case 0: return <BasicStep />;
-            case 1: return <LocationStep selectedState={selectedState} cityOptions={cityOptions} />;
+            case 1: return <LocationStep
+                selectedState={selectedState}
+                cityOptions={cityOptions}
+                casteOptions={casteOptions}
+                subCasteOptions={subCasteOptions}
+                gotraOptions={gotraOptions}
+            />;
             case 2: return <PhysicalStep />;
-            case 3: return <EducationStep />;
+            case 3: return <EducationStep
+                educationOptions={educationOptions}
+                professionOptions={professionOptions}
+                workCityOptions={workCityOptions}
+                workState={workState}
+                onWorkStateChange={(val) => form.setFieldsValue({ workState: val })}
+            />;
             case 4: return <FamilyStep />;
             case 5: return <HoroscopeStep rashiOptions={rashiOptions} nakshatraOptions={nakshatraOptions} />;
             case 6: return <PreferencesStep stateOptions={stateOptions} maritalStatusOptions={maritalStatusOptions} />;
@@ -778,6 +893,7 @@ function AddProfile() {
                 form={form}
                 layout="vertical"
                 onFinish={handleSubmit}
+                preserve={true}
                 initialValues={{
                     gender: 'male',
                     maritalStatus: 'never_married',
@@ -786,6 +902,8 @@ function AddProfile() {
                     smoking: 'no',
                     drinking: 'no',
                     visibility: 'public',
+                    workState: undefined,
+                    workCity: undefined
                 }}
             >
                 {renderStep()}

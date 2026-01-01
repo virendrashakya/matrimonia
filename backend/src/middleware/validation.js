@@ -36,32 +36,62 @@ const loginSchema = Joi.object({
  */
 const profileSchema = Joi.object({
     // Basic Info
-    fullName: Joi.string().required().trim().max(100),
-    gender: Joi.string().valid('male', 'female').required(),
-    dateOfBirth: Joi.date().required().max('now'),
-    phone: Joi.string().required(),
+    fullName: Joi.string().required().trim().max(100).messages({
+        'any.required': 'Full Name is required',
+        'string.empty': 'Full Name is required',
+        'string.max': 'Full Name must be less than 100 characters'
+    }),
+    gender: Joi.string().valid('male', 'female').required().messages({
+        'any.required': 'Gender is required',
+        'any.only': 'Gender must be male or female'
+    }),
+    dateOfBirth: Joi.date().required().max('now').messages({
+        'any.required': 'Date of Birth is required',
+        'date.max': 'Date of Birth cannot be in the future'
+    }),
+    phone: Joi.string().required().messages({
+        'any.required': 'Phone number is required',
+        'string.empty': 'Phone number is required'
+    }),
     alternatePhone: Joi.string().optional().allow(''),
     email: Joi.string().email().optional().allow(''),
     maritalStatus: Joi.string().valid('never_married', 'divorced', 'widowed', 'awaiting_divorce').optional(),
     createdFor: Joi.string().valid('self', 'son', 'daughter', 'brother', 'sister', 'nephew', 'niece', 'friend', 'relative', 'client').optional(),
 
     // Location & Demographics
-    caste: Joi.string().required(),
-    subCaste: Joi.string().optional().allow(''),
-    gotra: Joi.string().optional().allow(''),
+    caste: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required().messages({
+        'any.required': 'Caste is required',
+        'string.empty': 'Caste is required'
+    }),
+    subCaste: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).optional().allow(''),
+    gotra: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).optional().allow(''),
     religion: Joi.string().optional().default('Hindu'),
     motherTongue: Joi.string().optional().allow(''),
-    city: Joi.string().required(),
-    state: Joi.string().required(),
+    city: Joi.string().required().messages({
+        'any.required': 'City is required',
+        'string.empty': 'City is required'
+    }),
+    state: Joi.string().required().messages({
+        'any.required': 'State is required',
+        'string.empty': 'State is required'
+    }),
     country: Joi.string().optional().default('India'),
     nativePlace: Joi.string().optional().allow(''),
 
     // Education & Career
-    education: Joi.string().required(),
+    education: Joi.string().required().messages({
+        'any.required': 'Highest Education is required',
+        'string.empty': 'Highest Education is required'
+    }),
     educationDetail: Joi.string().optional().allow(''),
-    profession: Joi.string().required(),
+    profession: Joi.string().required().messages({
+        'any.required': 'Profession is required',
+        'string.empty': 'Profession is required'
+    }),
     company: Joi.string().optional().allow(''),
     annualIncome: Joi.string().optional().allow(''),
+    workCity: Joi.string().optional().allow(''),
+    workState: Joi.string().optional().allow(''),
 
     // Physical
     heightCm: Joi.number().optional().min(100).max(250).allow(null),

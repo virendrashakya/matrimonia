@@ -750,7 +750,32 @@ function ProfileDetail() {
                             >
                                 {isHindi ? '🔗 पब्लिक लिंक कॉपी करें' : '🔗 Copy Public Link'}
                             </Button>
-                            {/* ... more buttons ... */}
+                            <Button
+                                type="primary"
+                                block
+                                icon={<WhatsAppOutlined />}
+                                onClick={() => setWhatsappVisible(true)}
+                                style={{ background: '#25D366', borderColor: '#25D366', color: 'white', fontWeight: 600 }}
+                                disabled={profile.visibility === 'private'}
+                            >
+                                {isHindi ? 'WhatsApp पर शेयर करें' : 'Share on WhatsApp'}
+                            </Button>
+                            <Button
+                                block
+                                icon={<FilePdfOutlined />}
+                                onClick={() => setBiodataPDFVisible(true)}
+                                disabled={profile.visibility === 'private'}
+                            >
+                                {isHindi ? 'PDF बायोडाटा डाउनलोड करें' : 'Download PDF Biodata'}
+                            </Button>
+                            <Button
+                                block
+                                icon={<QrcodeOutlined />}
+                                onClick={() => setQrVisible(true)}
+                                disabled={profile.visibility === 'private'}
+                            >
+                                {isHindi ? 'QR कोड दिखाएं' : 'Show QR Code'}
+                            </Button>
                         </Space>
                     </Card>
 

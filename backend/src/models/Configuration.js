@@ -52,6 +52,8 @@ const ConfigurationSchema = new mongoose.Schema({
 
     // Caste Categories (major castes, user can add their own)
     casteOptions: [String],
+    subCasteOptions: [String],
+    gotraOptions: [String],
 
     // Mother Tongue / Languages
     languageOptions: [{
@@ -288,8 +290,11 @@ function getDefaultOptions() {
         casteOptions: [
             'Brahmin', 'Kshatriya', 'Vaishya', 'Kayastha', 'Rajput', 'Jat', 'Yadav',
             'Kurmi', 'Gupta', 'Agarwal', 'Baniya', 'Marwari', 'Patel', 'Sharma',
-            'Verma', 'Singh', 'Thakur', 'Chauhan', 'Other'
-        ]
+            'Verma', 'Singh', 'Thakur', 'Chauhan', 'Kushwaha', 'Maurya', 'Shakya',
+            'Saini', 'Kachhi', 'Other'
+        ],
+        subCasteOptions: [],
+        gotraOptions: []
     };
 }
 
