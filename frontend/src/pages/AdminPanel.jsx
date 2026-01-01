@@ -198,6 +198,20 @@ function AdminPanel() {
             )
         },
         {
+            title: 'Last Login',
+            dataIndex: 'lastLoginAt',
+            key: 'lastLoginAt',
+            render: (date) => date ? new Date(date).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : '-',
+            sorter: (a, b) => new Date(a.lastLoginAt || 0) - new Date(b.lastLoginAt || 0),
+        },
+        {
+            title: 'Logins',
+            dataIndex: 'loginCount',
+            key: 'loginCount',
+            render: (count) => count || 0,
+            sorter: (a, b) => (a.loginCount || 0) - (b.loginCount || 0),
+        },
+        {
             title: 'Actions',
             key: 'actions',
             render: (_, record) => (

@@ -101,13 +101,91 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
             }
         }
 
-        // Update last login
+        // Update last login and increment login count
         user.lastLoginAt = new Date();
+        user.loginCount = (user.loginCount || 0) + 1;
         await user.save();
 
         // Audit log
         await AuditLog.create({
             action: 'user_login',
+            targetType: 'user',
+            targetId: user._id,
+            performedBy: user._id,
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        const token = generateToken(user._id);
+
+        res.json({
+            success: true,
+            data: {
+                user: user.toJSON(),
+                token
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * POST /api/auth/admin-login
+ * Login for Admin/Moderator only (separate portal)
+ */
+router.post('/admin-login', validate(loginSchema), async (req, res, next) => {
+    try {
+        const { phone, password, totpToken } = req.validatedBody;
+
+        const user = await User.findOne({ phone }).select('+passwordHash +twoFactorSecret');
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Restrict to admin/moderator only
+        if (!['admin', 'moderator'].includes(user.role)) {
+            return res.status(403).json({ error: 'Access denied. This portal is for administrators only.' });
+        }
+
+        if (!user.isActive) {
+            return res.status(401).json({ error: 'Account is deactivated' });
+        }
+
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // 2FA Check
+        if (user.isTwoFactorEnabled) {
+            if (!totpToken) {
+                return res.status(403).json({
+                    error: 'Two-factor authentication required',
+                    require2FA: true
+                });
+            }
+
+            const verified = speakeasy.totp.verify({
+                secret: user.twoFactorSecret.base32,
+                encoding: 'base32',
+                token: totpToken,
+                window: 1
+            });
+
+            if (!verified) {
+                return res.status(401).json({ error: 'Invalid 2FA code' });
+            }
+        }
+
+        // Update last login and increment login count
+        user.lastLoginAt = new Date();
+        user.loginCount = (user.loginCount || 0) + 1;
+        await user.save();
+
+        // Audit log
+        await AuditLog.create({
+            action: 'admin_login',
             targetType: 'user',
             targetId: user._id,
             performedBy: user._id,

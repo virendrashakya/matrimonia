@@ -106,7 +106,11 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    lastLoginAt: Date
+    lastLoginAt: Date,
+    loginCount: {
+        type: Number,
+        default: 0
+    }
 
 }, { timestamps: true });
 
