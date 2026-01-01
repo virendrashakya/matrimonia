@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, App as AntApp } from 'antd'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
 import { AuthProvider } from './context/AuthContext'
@@ -98,7 +98,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                             <ShortlistProvider>
                                 <AuthProvider>
                                     <ErrorBoundary>
-                                        <App />
+                                        <AntApp>
+                                            <App />
+                                        </AntApp>
                                     </ErrorBoundary>
                                     <Toaster
                                         position="top-center"

@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { Layout, Spin } from 'antd';
+import { Layout, Spin, Grid } from 'antd';
 import { useAuth } from './context/AuthContext';
 import { ChatProvider } from './context/ChatContext';
 
@@ -90,9 +90,12 @@ function AdminRoleRoute({ children }) {
 function App() {
     const { isAuthenticated, user } = useAuth();
     const location = useLocation();
+    const isMessagesRoute = location.pathname === '/messages';
     const isAdminRoute = location.pathname.startsWith('/admin');
     const isAdminLogin = location.pathname === '/admin-login';
     const isModeratorLogin = location.pathname === '/moderator-login';
+    const screens = Grid.useBreakpoint();
+    const isMobile = !screens.md;
 
     // Admin/Moderator login pages - render without any layout
     if (isAdminLogin || isModeratorLogin) {
@@ -135,9 +138,32 @@ function App() {
     return (
         <ChatProvider>
             <CallModal />
-            <Layout style={{ minHeight: '100vh' }}>
+            <Layout
+                className={isMessagesRoute ? 'messages-layout' : ''}
+                style={{
+                    height: isMobile ? '100dvh' : '100vh',
+                    background: '#fff',
+                    width: '100%',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}
+            >
                 {isAuthenticated && <Navbar />}
-                <Content style={{ padding: isAuthenticated ? '0 24px' : 0, maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+                <Content
+                    style={{
+                        padding: (isAuthenticated && !isMessagesRoute) ? '0 24px' : 0,
+                        maxWidth: isMessagesRoute ? 'none' : 1400,
+                        margin: isMessagesRoute ? 0 : '0 auto',
+                        width: '100%',
+                        background: isMessagesRoute ? '#fff' : 'transparent',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        flex: 1,
+                        overflow: isMessagesRoute ? 'hidden' : 'auto',
+                        minHeight: 0
+                    }}
+                >
                     <Routes>
                         {/* Public routes */}
                         <Route path="/setup" element={

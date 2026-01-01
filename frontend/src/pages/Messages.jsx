@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Layout, List, Input, Button, Avatar, Typography, Badge, Card, Row, Col, Empty, Spin } from 'antd';
-import { SendOutlined, UserOutlined, PhoneOutlined, SearchOutlined } from '@ant-design/icons';
+import { Layout, List, Input, Button, Avatar, Typography, Badge, Card, Row, Col, Empty, Spin, Grid } from 'antd';
+import { SendOutlined, UserOutlined, PhoneOutlined, SearchOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useChat } from '../context/ChatContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -12,8 +12,12 @@ const { Text, Title } = Typography;
 
 const Messages = () => {
     const { user } = useAuth();
-    const { socket, onlineUsers } = useChat();
+    const { socket, onlineUsers, typingUsers, initiateCall } = useChat();
     const [searchParams] = useSearchParams();
+    const screens = Grid.useBreakpoint();
+    const isMobile = !screens.md;
+    const typingTimeoutRef = useRef(null);
+    const [isTyping, setIsTyping] = useState(false);
 
     const [conversations, setConversations] = useState([]);
     const [activeConversationId, setActiveConversationId] = useState(searchParams.get('conversationId') || null);
@@ -103,151 +107,183 @@ const Messages = () => {
         // We emit via socket, server saves and broadcasts back 'receive_message' to us too (or we verify via ack).
         // Let's rely on socket emit.
 
-        socket.emit('send_message', {
-            conversationId: activeConversationId,
-            content: newMessage,
-            type: 'text'
-        });
+        if (socket) {
+            socket.emit('send_message', {
+                conversationId: activeConversationId,
+                content: newMessage,
+                type: 'text'
+            });
+            // Stop typing status immediately on send
+            socket.emit('stop_typing', { conversationId: activeConversationId });
+            setIsTyping(false);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        }
 
         setNewMessage("");
     };
 
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        setNewMessage(val);
+
+        if (!socket || !activeConversationId) return;
+
+        if (!isTyping) {
+            setIsTyping(true);
+            socket.emit('typing', { conversationId: activeConversationId });
+        }
+
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+        typingTimeoutRef.current = setTimeout(() => {
+            socket.emit('stop_typing', { conversationId: activeConversationId });
+            setIsTyping(false);
+        }, 2000);
+    };
+
     const handleCall = () => {
-        // Find participant info
         const conversation = conversations.find(c => c._id === activeConversationId);
         if (!conversation) return;
+        const otherUser = getOtherUser(conversation);
+        if (!otherUser) return;
 
-        const otherUser = conversation.participants.find(p => p._id !== user._id);
-        if (!otherUser) return; // Should not happen
-
-        // Get Audio stream and start signaling
-        navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(stream => {
-            const peer = new window.SimplePeer({
-                initiator: true,
-                trickle: false,
-                stream: stream
-            });
-
-            peer.on('signal', (data) => {
-                socket.emit('call_user', {
-                    userToCall: otherUser._id,
-                    signalData: data,
-                    from: user._id,
-                    name: user.name
-                });
-            });
-
-            // We need to manage this peer connection in the global context ideally, 
-            // OR pass it to our CallModal.
-            // ACTUALLY: The CallModal is global. When we initiate a call, we should probably set some state in Context
-            // to show the "Calling..." UI.
-            // For now, let's just emit. The Context has "incomingCall" logic... but not "outgoingCall".
-            // Phase 26: Chat implemented. "Call Interface" is next.
-            // I'll skip full local outgoing UI for this step and focus on chat text.
-            // But I will trigger the signal.
-
-            // NOTE: SimplePeer needs to be imported or available on window if I use window.SimplePeer. 
-            // I installed it as 'simple-peer'.
-        });
+        initiateCall(otherUser._id, otherUser.name);
     };
 
     // Helper to get other user
-    const getOtherUser = (conv) => conv.participants.find(p => p._id !== user._id);
+    const getOtherUser = (conv) => conv?.participants?.find(p => p._id !== user?._id);
+
+    const activeConversation = conversations.find(c => c._id === activeConversationId);
+    const otherUser = getOtherUser(activeConversation);
 
     return (
-        <Layout style={{ height: 'calc(100vh - 64px)', background: '#fff' }}>
-            <Sider width={300} theme="light" style={{ borderRight: '1px solid #f0f0f0' }}>
-                <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0' }}>
-                    <Input prefix={<SearchOutlined />} placeholder="Search chats" />
-                </div>
-                <List
-                    dataSource={conversations}
-                    loading={loading}
-                    renderItem={item => {
-                        const other = getOtherUser(item);
-                        return (
-                            <List.Item
-                                style={{
-                                    padding: '12px 16px',
-                                    cursor: 'pointer',
-                                    background: activeConversationId === item._id ? '#e6f7ff' : 'transparent'
-                                }}
-                                onClick={() => setActiveConversationId(item._id)}
-                            >
-                                <List.Item.Meta
-                                    avatar={<Avatar icon={<UserOutlined />} >{other?.name?.[0]}</Avatar>}
-                                    title={<div style={{ display: 'flex', justifyContent: 'space-between' }}><Text strong>{other?.name}</Text> <Text type="secondary" style={{ fontSize: 10 }}>{dayjs(item.lastMessage?.timestamp).fromNow(true)}</Text></div>}
-                                    description={<Text ellipsis type="secondary">{item.lastMessage?.content || 'No messages yet'}</Text>}
-                                />
-                            </List.Item>
-                        );
-                    }}
-                />
-            </Sider>
-            <Content style={{ display: 'flex', flexDirection: 'column' }}>
-                {activeConversationId ? (
-                    <>
-                        {/* Header */}
-                        <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <Avatar icon={<UserOutlined />} size="large" />
-                                <div>
-                                    <Title level={5} style={{ margin: 0 }}>{getOtherUser(conversations.find(c => c._id === activeConversationId))?.name}</Title>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>{onlineUsers.includes(getOtherUser(conversations.find(c => c._id === activeConversationId))?._id) ? 'Online' : 'Offline'}</Text>
+        <Layout style={{ flex: 1, background: '#fff', width: '100%', overflow: 'hidden' }}>
+            {(!isMobile || !activeConversationId) && (
+                <Sider
+                    width={isMobile ? '100%' : 300}
+                    theme="light"
+                    style={{ borderRight: '1px solid #f0f0f0' }}
+                >
+                    <div style={{ padding: '16px', borderBottom: '1px solid #f0f0f0' }}>
+                        <Input prefix={<SearchOutlined />} placeholder="Search chats" />
+                    </div>
+                    <List
+                        dataSource={conversations}
+                        loading={loading}
+                        renderItem={item => {
+                            const other = getOtherUser(item);
+                            return (
+                                <List.Item
+                                    style={{
+                                        padding: '12px 16px',
+                                        cursor: 'pointer',
+                                        background: activeConversationId === item._id ? '#e6f7ff' : 'transparent'
+                                    }}
+                                    onClick={() => setActiveConversationId(item._id)}
+                                >
+                                    <List.Item.Meta
+                                        avatar={<Avatar icon={<UserOutlined />} >{other?.name?.[0]}</Avatar>}
+                                        title={<div style={{ display: 'flex', justifyContent: 'space-between' }}><Text strong>{other?.name}</Text> <Text type="secondary" style={{ fontSize: 10 }}>{dayjs(item.lastMessage?.timestamp).fromNow(true)}</Text></div>}
+                                        description={<Text ellipsis type="secondary">{item.lastMessage?.content || 'No messages yet'}</Text>}
+                                    />
+                                </List.Item>
+                            );
+                        }}
+                    />
+                </Sider>
+            )}
+            {(!isMobile || activeConversationId) && (
+                <Content style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+                    {activeConversationId ? (
+                        <>
+                            {/* Header */}
+                            <div style={{
+                                padding: isMobile ? '8px 12px' : '12px 16px',
+                                borderBottom: '1px solid #f0f0f0',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                minHeight: isMobile ? '56px' : '64px'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    {isMobile && (
+                                        <Button
+                                            type="text"
+                                            icon={<ArrowLeftOutlined />}
+                                            onClick={() => setActiveConversationId(null)}
+                                        />
+                                    )}
+                                    <Avatar icon={<UserOutlined />} size={isMobile ? "small" : "large"} />
+                                    <div>
+                                        <Title level={5} style={{ margin: 0, fontSize: isMobile ? 14 : 16, lineHeight: 1.2 }}>{otherUser?.name || 'Chat'}</Title>
+                                        <Text type="secondary" style={{ fontSize: 12 }}>
+                                            {typingUsers[activeConversationId]?.length > 0
+                                                ? <span style={{ color: '#52c41a', fontStyle: 'italic' }}>Typing...</span>
+                                                : (otherUser?._id && onlineUsers.includes(otherUser._id) ? 'Online' : 'Offline')
+                                            }
+                                        </Text>
+                                    </div>
                                 </div>
                             </div>
-                            <Button shape="circle" icon={<PhoneOutlined />} onClick={handleCall} />
-                        </div>
 
-                        {/* Messages Area */}
-                        <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: '#f5f5f5' }}>
-                            {messages.map((msg, index) => {
-                                const isMe = msg.sender._id === user._id || msg.sender === user._id; // Handle populated vs unpopulated
-                                return (
-                                    <div key={index} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 12 }}>
-                                        <div style={{
-                                            maxWidth: '70%',
-                                            background: isMe ? '#1890ff' : '#fff',
-                                            color: isMe ? '#fff' : 'inherit',
-                                            padding: '8px 16px',
-                                            borderRadius: 12,
-                                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                        }}>
-                                            <div style={{ fontSize: 14 }}>{msg.content}</div>
-                                            <div style={{ fontSize: 10, textAlign: 'right', marginTop: 4, opacity: 0.7 }}>
-                                                {dayjs(msg.createdAt).format('HH:mm')}
+                            {/* Messages Area */}
+                            <div style={{
+                                flex: 1,
+                                padding: isMobile ? '12px' : '20px',
+                                overflowY: 'auto',
+                                background: '#f5f5f5',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                minHeight: 0
+                            }}>
+                                {messages.map((msg, index) => {
+                                    const isMe = msg.sender._id === user._id || msg.sender === user._id; // Handle populated vs unpopulated
+                                    return (
+                                        <div key={index} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 12 }}>
+                                            <div style={{
+                                                maxWidth: '70%',
+                                                background: isMe ? '#1890ff' : '#fff',
+                                                color: isMe ? '#fff' : 'inherit',
+                                                padding: '8px 16px',
+                                                borderRadius: 12,
+                                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                            }}>
+                                                <div style={{ fontSize: 14 }}>{msg.content}</div>
+                                                <div style={{ fontSize: 10, textAlign: 'right', marginTop: 4, opacity: 0.7 }}>
+                                                    {dayjs(msg.createdAt).format('HH:mm')}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
-                            <div ref={messagesEndRef} />
-                        </div>
+                                    );
+                                })}
+                                <div ref={messagesEndRef} />
+                            </div>
 
-                        {/* Input Area */}
-                        <div style={{ padding: '16px', background: '#fff', borderTop: '1px solid #f0f0f0' }}>
-                            <Row gutter={16}>
-                                <Col flex="auto">
-                                    <Input
-                                        size="large"
-                                        placeholder="Type a message..."
-                                        value={newMessage}
-                                        onChange={e => setNewMessage(e.target.value)}
-                                        onPressEnter={handleSendMessage}
-                                    />
-                                </Col>
-                                <Col>
-                                    <Button type="primary" size="large" icon={<SendOutlined />} onClick={handleSendMessage} />
-                                </Col>
-                            </Row>
+                            {/* Input Area */}
+                            <div style={{ padding: isMobile ? '12px' : '16px', background: '#fff', borderTop: '1px solid #f0f0f0' }}>
+                                <Row gutter={16}>
+                                    <Col flex="auto">
+                                        <Input
+                                            size="large"
+                                            placeholder="Type a message..."
+                                            value={newMessage}
+                                            onChange={handleInputChange}
+                                            onPressEnter={handleSendMessage}
+                                        />
+                                    </Col>
+                                    <Col>
+                                        <Button type="primary" size="large" icon={<SendOutlined />} onClick={handleSendMessage} />
+                                    </Col>
+                                </Row>
+                            </div>
+                        </>
+                    ) : !isMobile ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#ccc' }}>
+                            <Empty description="Select a conversation to start chatting" />
                         </div>
-                    </>
-                ) : (
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: '#ccc' }}>
-                        <Empty description="Select a conversation to start chatting" />
-                    </div>
-                )}
-            </Content>
+                    ) : null}
+                </Content>
+            )}
         </Layout>
     );
 };

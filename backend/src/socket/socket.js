@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { Conversation, Message, User, ChatRequest } = require('../models');
 
 let io;
+const onlineUsers = new Map(); // userId -> socketId
 
 const initializeSocket = (server) => {
     io = new Server(server, {
@@ -19,7 +20,7 @@ const initializeSocket = (server) => {
             if (!token) return next(new Error('Authentication error'));
 
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const user = await User.findById(decoded.id);
+            const user = await User.findById(decoded.userId);
 
             if (!user) return next(new Error('User not found'));
 
@@ -31,10 +32,15 @@ const initializeSocket = (server) => {
     });
 
     io.on('connection', (socket) => {
-        console.log(`User connected: ${socket.user.name} (${socket.user._id})`);
+        const userId = socket.user._id.toString();
+        console.log(`User connected: ${socket.user.name} (${userId})`);
+
+        // Track online users
+        onlineUsers.set(userId, socket.id);
+        io.emit('get_online_users', Array.from(onlineUsers.keys()));
 
         // Join a room with their own user ID for direct notifications/calls
-        socket.join(socket.user._id.toString());
+        socket.join(userId);
 
         socket.on('join_conversation', (conversationId) => {
             if (conversationId) {
@@ -97,22 +103,62 @@ const initializeSocket = (server) => {
             }
         });
 
+        socket.on('typing', ({ conversationId }) => {
+            if (conversationId) {
+                socket.to(conversationId).emit('user_typing', {
+                    conversationId,
+                    userId: socket.user._id,
+                    name: socket.user.name
+                });
+            }
+        });
+
+        socket.on('stop_typing', ({ conversationId }) => {
+            if (conversationId) {
+                socket.to(conversationId).emit('user_stop_typing', {
+                    conversationId,
+                    userId: socket.user._id
+                });
+            }
+        });
+
         // WebRTC Signaling Events
         socket.on('call_user', async ({ userToCall, signalData, from, name }) => {
-            // Check permission: Request accepted?
-            // For now, strict check: Are they in an active conversation?
-            // Optimization: Just check allowed list or trust client logic + simplified backend check
-            const allowed = await ChatRequest.findOne({
-                $or: [
-                    { requester: socket.user._id, recipient: userToCall, status: 'accepted' },
-                    { requester: userToCall, recipient: socket.user._id, status: 'accepted' }
-                ]
-            });
+            try {
+                const callerId = socket.user._id.toString();
+                // Handle userToCall being an object or a string
+                const recipientId = typeof userToCall === 'string'
+                    ? userToCall
+                    : (userToCall?._id?.toString() || userToCall?.toString());
 
-            if (allowed) {
-                io.to(userToCall).emit("call_user", { signal: signalData, from, name });
-            } else {
-                socket.emit("call_error", "Not allowed to call this user");
+                console.log(`[SIGNAL] Call attempt: ${callerId} -> ${recipientId}`);
+
+                // Check permission: Request accepted?
+                const allowed = await ChatRequest.findOne({
+                    $or: [
+                        { requester: callerId, recipient: recipientId, status: 'accepted' },
+                        { requester: recipientId, recipient: callerId, status: 'accepted' }
+                    ]
+                });
+
+                if (allowed) {
+                    console.log(`[SIGNAL] Call allowed. Sending signal to room: ${recipientId}`);
+                    io.to(recipientId).emit("call_user", { signal: signalData, from, name });
+                } else {
+                    console.warn(`[SIGNAL] Call denied: No 'accepted' chat request between ${callerId} and ${recipientId}`);
+                    // List active requests for debugging
+                    const existing = await ChatRequest.findOne({
+                        $or: [
+                            { requester: callerId, recipient: recipientId },
+                            { requester: recipientId, recipient: callerId }
+                        ]
+                    });
+                    console.log(`[SIGNAL] Found existing request: ${existing?.status || 'none'}`);
+                    socket.emit("call_error", "Not allowed to call this user. Ensure chat request is accepted.");
+                }
+            } catch (error) {
+                console.error("Signaling error:", error);
+                socket.emit("call_error", "Internal signaling error");
             }
         });
 
@@ -121,7 +167,9 @@ const initializeSocket = (server) => {
         });
 
         socket.on('disconnect', () => {
-            console.log('User disconnected');
+            onlineUsers.delete(userId);
+            io.emit('get_online_users', Array.from(onlineUsers.keys()));
+            console.log(`User disconnected: ${userId}`);
         });
     });
 

@@ -1761,3 +1761,37 @@ html {
   border-radius: 8px !important;
   padding: 8px 14px !important;
 }
+
+/* Message Page Specific Overrides to handle aggressive global paddings */
+.messages-layout {
+  padding-top: 0 !important;
+  /* No gap for sticky navbar on desktop */
+  padding-bottom: 0 !important;
+  /* Force remove the 80px gap */
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+}
+
+.messages-layout .ant-layout-content {
+  padding: 0 !important;
+  flex: 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+
+/* On mobile, we need top padding because the header is fixed at top: 0 */
+@media (max-width: 768px) {
+  .messages-layout {
+    padding-top: 56px !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}

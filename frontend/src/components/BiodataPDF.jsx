@@ -526,7 +526,7 @@ function BiodataPDF({ profile, visible, onClose }) {
             open={visible}
             onCancel={onClose}
             width={1200}
-            bodyStyle={{ padding: '0px' }}
+            styles={{ body: { padding: '0px' } }}
             style={{ top: 20 }}
             footer={[
                 <Button key="cancel" onClick={onClose}>

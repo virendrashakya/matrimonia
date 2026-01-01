@@ -406,9 +406,16 @@ function ProfileDetail() {
     };
 
     const handleSendChatRequest = async () => {
+        // Robust target user ID
+        const targetUserId = profile?.user?._id || profile?.createdBy?._id || profile?.createdBy;
+        if (!targetUserId) {
+            message.error('Recipient not found');
+            return;
+        }
+
         setSendingChatRequest(true);
         try {
-            const res = await api.post(`/chat/request/${profile.user._id}`, { message: chatRequestMessage });
+            await api.post(`/chat/request/${targetUserId}`, { message: chatRequestMessage });
             message.success(isHindi ? 'चैट अनुरोध भेजा गया' : 'Chat Request Sent');
             setChatStatus('pending_sent');
             setChatRequestModalVisible(false);
@@ -420,10 +427,11 @@ function ProfileDetail() {
     };
 
     const handleAcceptChatRequest = async () => {
+        const targetUserId = profile?.user?._id || profile?.createdBy?._id || profile?.createdBy;
         try {
             await api.put(`/chat/request/${chatRequestId}`, { status: 'accepted' });
             message.success('Chat Accepted');
-            fetchChatStatus(profile.user._id);
+            if (targetUserId) fetchChatStatus(targetUserId);
         } catch (error) {
             message.error('Failed to accept');
         }

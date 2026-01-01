@@ -282,6 +282,7 @@ function Navbar() {
                                     <List
                                         size="small"
                                         dataSource={notifications}
+                                        style={{ maxHeight: 300, overflowY: 'auto' }}
                                         renderItem={(item) => (
                                             <List.Item
                                                 style={{
@@ -291,7 +292,14 @@ function Navbar() {
                                                 }}
                                                 onClick={() => {
                                                     if (!item.isRead) markAsRead(item._id);
-                                                    if (item.data?.actionUrl) navigate(item.data.actionUrl);
+
+                                                    // Handle different notification types for navigation
+                                                    if (item.type === 'new_message' && item.data?.conversationId) {
+                                                        navigate(`/messages?conversationId=${item.data.conversationId}`);
+                                                    } else if (item.data?.actionUrl) {
+                                                        navigate(item.data.actionUrl);
+                                                    }
+                                                    setMobileMenuOpen(false); // Close mobile drawer if it was open
                                                 }}
                                             >
                                                 <List.Item.Meta

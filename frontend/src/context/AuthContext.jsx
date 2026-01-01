@@ -5,6 +5,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
+    const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -23,6 +24,7 @@ export function AuthProvider({ children }) {
             setUser(response.data.data.user);
         } catch (error) {
             localStorage.removeItem('token');
+            setToken(null);
         } finally {
             setLoading(false);
         }
@@ -30,28 +32,32 @@ export function AuthProvider({ children }) {
 
     const login = async (phone, password, totpToken) => {
         const response = await api.post('/auth/login', { phone, password, totpToken });
-        const { user, token } = response.data.data;
-        localStorage.setItem('token', token);
+        const { user, token: newToken } = response.data.data;
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
         setUser(user);
         return user;
     };
 
     const register = async (name, phone, password) => {
         const response = await api.post('/auth/register', { name, phone, password });
-        const { user, token } = response.data.data;
-        localStorage.setItem('token', token);
+        const { user, token: newToken } = response.data.data;
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
         setUser(user);
         return user;
     };
 
     const logout = () => {
         localStorage.removeItem('token');
+        setToken(null);
         setUser(null);
     };
 
     // Direct auth data setter (for admin/moderator login pages that handle API themselves)
-    const setAuthData = (userData, token) => {
-        localStorage.setItem('token', token);
+    const setAuthData = (userData, newToken) => {
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
         setUser(userData);
     };
 
@@ -62,6 +68,7 @@ export function AuthProvider({ children }) {
     return (
         <AuthContext.Provider value={{
             user,
+            token,
             loading,
             login,
             register,
